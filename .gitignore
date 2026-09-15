@@ -4,7 +4,6 @@
 .env.*
 *.log
 /backups/
-/php/
 /old_april/
 /old_error/
 /old/
