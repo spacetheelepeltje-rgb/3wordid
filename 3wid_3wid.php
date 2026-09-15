@@ -288,7 +288,7 @@
             </form>
         </div>
     </main>
-    <footer class="site-footer"><?php echo $footer; ?></footer>
+    <footer class="site-footer"></footer>
 </body>
 <script src="js/3wid_3wid.js"></script>
 <script>
