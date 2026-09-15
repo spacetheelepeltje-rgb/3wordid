@@ -112,7 +112,7 @@
                     <input id="threewords" name="threewords" type="text" class="search-bar" placeholder="first  ·  second  ·  third" value="<?= htmlspecialchars($threewords); ?>" autocomplete="off">
                     <button type="submit" id="submitBtn">Lookup</button>
                 </div>
-                <div class="search-hints">Try <code>museum.exhibit.guide</code> or <code>your.own.words</code></div>
+                <div class="search-hints">Thy the thee word IDs listed below</div>
                 <button type="button" id="createBtn" class="create-link" data-share-url="<?php echo $loginUrl; ?>">Create your own 3WordID →</button>
                 <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
             </form>
@@ -120,17 +120,17 @@
 
         <section class="cards" id="use-cases">
             <article class="card">
-                <div class="icon">◎</div>
+                
                 <h3>Find anything</h3>
                 <p>Link any three words to a URL. Share a page, profile, file, or resource with a memorable ID anyone can look up.</p>
             </article>
             <article class="card">
-                <div class="icon">✉</div>
+                
                 <h3>Leave a message</h3>
                 <p>Each 3WordID can have a notification or private mailbox. Perfect for contact forms, inquiries, tips, or direct messages.</p>
             </article>
             <article class="card">
-                <div class="icon">W</div>
+               
                 <h3>Share without QR codes</h3>
                 <p>Works anywhere words do — on signs, print, tickets, name badges, and more. No scanning. No app. No barriers.</p>
             </article>
