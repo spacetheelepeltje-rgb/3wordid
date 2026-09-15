@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Spatial Graph Rotation - 720° Trick</title>
+<style>
+  body { margin:0; overflow:hidden; background:#05050f; font-family:Arial, sans-serif; }
+  #ui {
+    position: absolute; top: 15px; left: 15px; background: rgba(0,0,0,0.85);
+    padding: 18px; border-radius: 10px; color: #00ffcc; z-index: 100; width: 280px;
+  }
+  label { display:block; margin:12px 0 6px; }
+  input[type=range] { width: 100%; }
+  button { padding: 10px 20px; background:#00aa77; color:white; border:none; border-radius:6px; cursor:pointer; }
+</style>
+</head>
+<body>
+
+<div id="ui">
+  <h2>Spatial Graph Rotation</h2>
+  <p style="font-size:14px; margin:8px 0;">Central object connected by fixed-length edges</p>
+  
+  <label>Number of Edges: <span id="nVal">8</span></label>
+  <input type="range" id="numEdges" min="4" max="16" value="8" step="2">
+
+  <label>Rotation Angle: <span id="angleVal">0</span>°</label>
+  <input type="range" id="rotationSlider" min="0" max="1440" value="0" step="1">
+
+  <button onclick="resetDemo()">Reset</button>
+  <p style="font-size:13px; margin-top:10px;">
+    Move slider to 720° → edges should return to untwisted state
+  </p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/controls/OrbitControls.js"></script>
+
+<script>
+// =============== SETUP ===============
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x05050f);
+
+const camera = new THREE.PerspectiveCamera(50, window.innerWidth/window.innerHeight, 0.1, 100);
+camera.position.set(0, 3, 10);
+
+const renderer = new THREE.WebGLRenderer({antialias: true});
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+
+// Lights
+scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+const dirLight = new THREE.DirectionalLight(0xffffff, 0.9);
+dirLight.position.set(5, 12, 10);
+scene.add(dirLight);
+
+// Cube Frame
+const cube = new THREE.Mesh(
+  new THREE.BoxGeometry(7, 7, 7),
+  new THREE.MeshBasicMaterial({color: 0x00ffaa, wireframe: true})
+);
+scene.add(cube);
+
+// Central Sphere
+const sphere = new THREE.Mesh(
+  new THREE.SphereGeometry(1.05, 64, 64),
+  new THREE.MeshPhongMaterial({color: 0xffaa00, shininess: 100})
+);
+scene.add(sphere);
+
+// =============== EDGES ===============
+let edges = [];
+let fixedPoints = [];
+
+function createEdges(n) {
+  edges.forEach(e => { scene.remove(e); e.geometry.dispose(); });
+  edges = [];
+  fixedPoints = [];
+
+  const radius = 3.2;
+
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * Math.PI * 2;
+    const b = a * 1.618; // golden angle for nice spread
+
+    const x = radius * Math.cos(a) * Math.cos(b*0.5);
+    const y = radius * Math.sin(b) * 0.8;
+    const z = radius * Math.sin(a);
+
+    fixedPoints.push(new THREE.Vector3(x, y, z));
+
+    const material = new THREE.MeshPhongMaterial({
+      color: 0x44aaff,
+      shininess: 30
+    });
+
+    const edge = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.08, 0.08, 1, 16),
+      material
+    );
+    scene.add(edge);
+    edges.push(edge);
+  }
+}
+
+function updateEdges(angleDeg) {
+  const rad = THREE.MathUtils.degToRad(angleDeg);
+  sphere.rotation.y = rad;                    // Rotate central object
+
+  edges.forEach((edge, i) => {
+    const target = fixedPoints[i].clone();
+    const length = target.length();
+
+    // Position and orient the cylinder
+    const direction = target.clone().normalize();
+    edge.position.copy(direction.multiplyScalar(length / 2));
+    edge.scale.set(1, length, 1);
+    edge.lookAt(target);
+
+    // Add twist / looping effect based on rotation
+    const twistAmount = rad * 1.1;
+    const twistAxis = direction.clone();
+    edge.rotateOnAxis(twistAxis, twistAmount * 0.6);
+  });
+}
+
+// =============== UI ===============
+document.getElementById('numEdges').oninput = function() {
+  document.getElementById('nVal').textContent = this.value;
+  createEdges(parseInt(this.value));
+};
+
+document.getElementById('rotationSlider').oninput = function() {
+  document.getElementById('angleVal').textContent = this.value;
+  updateEdges(parseFloat(this.value));
+};
+
+function resetDemo() {
+  document.getElementById('rotationSlider').value = 0;
+  document.getElementById('angleVal').textContent = "0";
+  updateEdges(0);
+}
+
+// =============== ANIMATION ===============
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+  cube.rotation.y += 0.0004;
+  renderer.render(scene, camera);
+}
+
+// Init
+createEdges(8);
+animate();
+
+// Resize
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>16x16 Grid with Rotating 3x3 Center</title>
+<style>
+  body {
+    margin: 0;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    background: #111;
+    color: #0f0;
+    text-align: center;
+  }
+  canvas {
+    border: 2px solid #0f0;
+    image-rendering: crisp-edges;
+    background: #000;
+  }
+  .controls {
+    margin: 15px;
+  }
+  input[type="range"] {
+    width: 500px;
+  }
+  button {
+    padding: 10px 20px;
+    font-size: 16px;
+    margin: 0 10px;
+  }
+</style>
+</head>
+<body>
+
+<h1>16×16 Grid • Rotating 3×3 Center</h1>
+<canvas id="canvas" width="800" height="800"></canvas>
+
+<div class="controls">
+  <label>Rotation: <span id="angleVal">0</span>°</label><br>
+  <input type="range" id="slider" min="0" max="360" value="0">
+  <br><br>
+  <button id="playBtn">▶ Run Continuous Rotation</button>
+  <button id="stopBtn">⏹ Stop</button>
+  <button id="resetBtn">Reset to 0°</button>
+</div>
+
+<script>
+// ============== CONFIG ==============
+const GRID_SIZE = 16;
+const CELL_SIZE = 45;
+const CANVAS_SIZE = 800;
+const OFFSET = (CANVAS_SIZE - (GRID_SIZE - 1) * CELL_SIZE) / 2;
+
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+let angle = 0;           // degrees
+let isRotating = false;
+let lastTime = 0;
+const rotationSpeed = 60; // degrees per second
+
+// Central 3x3 indices
+const centerStart = Math.floor((GRID_SIZE - 3) / 2); // 6
+const centerEnd = centerStart + 2;                   // 8
+
+// Original positions of all nodes
+const nodes = [];
+for (let y = 0; y < GRID_SIZE; y++) {
+  for (let x = 0; x < GRID_SIZE; x++) {
+    nodes.push({
+      x: x,
+      y: y,
+      isCenter: (x >= centerStart && x <= centerEnd && y >= centerStart && y <= centerEnd)
+    });
+  }
+}
+
+// Helper: get screen position
+function getScreenPos(gridX, gridY, currentAngle = 0) {
+  const centerGridX = centerStart + 1;
+  const centerGridY = centerStart + 1;
+  const centerScreenX = OFFSET + centerGridX * CELL_SIZE;
+  const centerScreenY = OFFSET + centerGridY * CELL_SIZE;
+
+  let screenX = OFFSET + gridX * CELL_SIZE;
+  let screenY = OFFSET + gridY * CELL_SIZE;
+
+  if (nodes.find(n => n.x === gridX && n.y === gridY).isCenter) {
+    // Rotate point around center
+    const dx = screenX - centerScreenX;
+    const dy = screenY - centerScreenY;
+    const rad = currentAngle * Math.PI / 180;
+    
+    const newX = centerScreenX + dx * Math.cos(rad) - dy * Math.sin(rad);
+    const newY = centerScreenY + dx * Math.sin(rad) + dy * Math.cos(rad);
+    
+    return {x: newX, y: newY};
+  }
+  return {x: screenX, y: screenY};
+}
+
+// Draw function
+function draw() {
+  ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+
+  // Draw edges first
+  ctx.strokeStyle = '#0a0';
+  ctx.lineWidth = 2;
+
+  // Horizontal edges
+  for (let y = 0; y < GRID_SIZE; y++) {
+    for (let x = 0; x < GRID_SIZE - 1; x++) {
+      const p1 = getScreenPos(x, y, angle);
+      const p2 = getScreenPos(x + 1, y, angle);
+      ctx.beginPath();
+      ctx.moveTo(p1.x, p1.y);
+      ctx.lineTo(p2.x, p2.y);
+      ctx.stroke();
+    }
+  }
+
+  // Vertical edges
+  for (let x = 0; x < GRID_SIZE; x++) {
+    for (let y = 0; y < GRID_SIZE - 1; y++) {
+      const p1 = getScreenPos(x, y, angle);
+      const p2 = getScreenPos(x, y + 1, angle);
+      ctx.beginPath();
+      ctx.moveTo(p1.x, p1.y);
+      ctx.lineTo(p2.x, p2.y);
+      ctx.stroke();
+    }
+  }
+
+  // Draw nodes
+  for (let i = 0; i < nodes.length; i++) {
+    const n = nodes[i];
+    const pos = getScreenPos(n.x, n.y, angle);
+    
+    ctx.fillStyle = n.isCenter ? '#0f0' : '#aaa';
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, 6, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Highlight center nodes more
+    if (n.isCenter) {
+      ctx.strokeStyle = '#0f0';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y, 9, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+  }
+}
+
+// Animation loop
+function animate(timestamp) {
+  if (!lastTime) lastTime = timestamp;
+  const delta = (timestamp - lastTime) / 1000;
+  lastTime = timestamp;
+
+  if (isRotating) {
+    angle = (angle + rotationSpeed * delta) % 360;
+    document.getElementById('slider').value = angle;
+    document.getElementById('angleVal').textContent = angle.toFixed(1);
+  }
+
+  draw();
+  requestAnimationFrame(animate);
+}
+
+// Controls
+document.getElementById('slider').addEventListener('input', (e) => {
+  angle = parseFloat(e.target.value);
+  document.getElementById('angleVal').textContent = angle.toFixed(1);
+  draw();
+});
+
+document.getElementById('playBtn').addEventListener('click', () => {
+  isRotating = true;
+});
+
+document.getElementById('stopBtn').addEventListener('click', () => {
+  isRotating = false;
+});
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+  angle = 0;
+  document.getElementById('slider').value = 0;
+  document.getElementById('angleVal').textContent = '0';
+  draw();
+});
+
+// Start
+requestAnimationFrame(animate);
+draw();
+</script>
+
+</body>
+</html>

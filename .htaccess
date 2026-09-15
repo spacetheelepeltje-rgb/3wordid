@@ -1,0 +1,21 @@
+RewriteEngine On
+
+# Rule for MD5 hash (32 hexadecimal characters)
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^([a-f0-9]{32})$ index.php?hash=$1 [QSA,L]
+
+# Existing rule for three words
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^([\w\s-]+)\s([\w\s-]+)\s([\w\s-]+)$ 3wid_forward.php?threewords=$1+$2+$3 [QSA,L]
+
+# Rule for three alphanumeric strings separated by dots
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^([a-zA-Z0-9]+)\.([a-zA-Z0-9]+)\.([a-zA-Z0-9]+)$ 3wid_forward.php?threewords=$1+$2+$3 [QSA,L]
+
+# Existing catch-all rule
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php [L]

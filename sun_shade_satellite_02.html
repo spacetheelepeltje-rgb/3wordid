@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Realistic Retrograde GEO Satellite</title>
+<style>
+  body { margin:0; background:#000; color:#fff; font-family:Arial; text-align:center; }
+  canvas { border:1px solid #444; margin:20px; }
+</style>
+</head>
+<body>
+  <h1>Realistic Speeds at GEO Altitude (42,164 km)</h1>
+  <p>Green = Normal Prograde GEO (slow) | Blue = Retrograde (same speed, opposite direction)</p>
+  <canvas id="canvas" width="900" height="650"></canvas>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+const W = 900, H = 650;
+const CX = W/2, CY = H/2;
+const EARTH_R = 90;
+const ORBIT_R = 320;
+
+let time = 0;
+
+function draw() {
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = "#000511";
+    ctx.fillRect(0, 0, W, H);
+
+    // Sun
+    ctx.fillStyle = "#ffcc00";
+    ctx.beginPath();
+    ctx.arc(W-60, CY, 35, 0, Math.PI*2);
+    ctx.fill();
+
+    ctx.save();
+    ctx.translate(CX, CY);
+
+    // Earth
+    ctx.fillStyle = "#2277ff";
+    ctx.beginPath();
+    ctx.arc(0, 0, EARTH_R, 0, Math.PI*2);
+    ctx.fill();
+
+    // Night side
+    ctx.fillStyle = "rgba(0,0,0,0.5)";
+    ctx.beginPath();
+    ctx.rect(-EARTH_R, -EARTH_R*1.5, EARTH_R, EARTH_R*3);
+    ctx.fill();
+
+    ctx.restore();
+
+    // Orbit
+    ctx.strokeStyle = "#555577";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(CX, CY, ORBIT_R, 0, Math.PI*2);
+    ctx.stroke();
+
+    // Normal Prograde GEO (matches Earth rotation)
+    const proAngle = time * 0.5 * Math.PI/180;
+    const px = CX + Math.cos(proAngle) * ORBIT_R;
+    const py = CY + Math.sin(proAngle) * ORBIT_R;
+
+    ctx.fillStyle = "#00ff88";
+    ctx.beginPath();
+    ctx.arc(px, py, 12, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = "#fff";
+    ctx.fillText("Prograde GEO", px+20, py+5);
+
+    // Retrograde Satellite (same orbital speed, opposite direction)
+    const retroAngle = time * -0.5 * Math.PI/180;   // Same magnitude, opposite direction
+    const rx = CX + Math.cos(retroAngle) * ORBIT_R;
+    const ry = CY + Math.sin(retroAngle) * ORBIT_R;
+
+    ctx.fillStyle = "#00ddff";
+    ctx.beginPath();
+    ctx.arc(rx, ry, 12, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = "#fff";
+    ctx.fillText("Retrograde", rx+20, ry-10);
+
+    time += 1;
+    requestAnimationFrame(draw);
+}
+
+draw();
+</script>
+
+<p>The retrograde satellite moves at the <strong>same orbital speed</strong> (~3 km/s) as the prograde one — just in the opposite direction.<br>
+It still completes one full orbit around Earth in ~24 hours, but in the opposite way.</p>
+</body>
+</html>

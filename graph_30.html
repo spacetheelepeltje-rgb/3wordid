@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Spring Lattice • 10×10×10</title>
+<style>
+  body { 
+    margin: 0; padding: 0; background: #000; overflow: hidden; 
+    font-family: Arial, sans-serif; 
+    display: flex; align-items: center; justify-content: center; height: 100vh;
+  }
+  canvas { display: block; }
+  .controls {
+    position: absolute; top: 15px; left: 15px; background: rgba(0,30,20,0.9); color: #0ff;
+    padding: 15px; border-radius: 10px; border: 1px solid #0ff; z-index: 100;
+    min-width: 280px;
+  }
+  button, input { margin: 6px 3px; }
+  button { padding: 8px 14px; background: #002211; color: #0ff; border: 1px solid #0ff; border-radius: 4px; cursor: pointer; }
+  button:hover { background: #004422; }
+  label { display: block; margin: 10px 0 5px; }
+</style>
+</head>
+<body>
+
+<div class="controls">
+  <h2>10×10×10 Spring Lattice</h2>
+  <p>Drag on empty space = Rotate whole lattice<br>
+     Drag on a node = Move that node (releases with spring physics)</p>
+  
+  <label>Springiness: <span id="kValue">0.25</span></label>
+  <input type="range" id="springSlider" min="0.05" max="0.8" step="0.01" value="0.25">
+
+  <button id="resetBtn">Reset All</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+<script>
+// ============== SETUP ==============
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(52, window.innerWidth / window.innerHeight, 0.1, 1000);
+camera.position.set(0, 10, 48);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(window.devicePixelRatio);
+document.body.appendChild(renderer.domElement);
+
+scene.add(new THREE.AmbientLight(0x404040, 1.6));
+const dirLight = new THREE.DirectionalLight(0x88ffdd, 1.9);
+dirLight.position.set(25, 35, 30);
+scene.add(dirLight);
+
+// Parameters
+const SIZE = 10;
+const SPACING = 2.05;
+const CENTER_IDX = Math.floor(SIZE / 2);
+
+const points = [];
+const springs = [];
+let springConstant = 0.25;
+
+// Materials
+const nodeMat = new THREE.MeshPhongMaterial({ color: 0x00ffcc, emissive: 0x003322 });
+const lineMat = new THREE.LineBasicMaterial({ color: 0x00ffaa, transparent: true, opacity: 0.8 });
+
+// Create nodes
+for (let x = 0; x < SIZE; x++) {
+  for (let y = 0; y < SIZE; y++) {
+    for (let z = 0; z < SIZE; z++) {
+      const mesh = new THREE.Mesh(new THREE.SphereGeometry(0.22, 24, 24), nodeMat);
+      
+      const pos = new THREE.Vector3(
+        (x - CENTER_IDX) * SPACING,
+        (y - CENTER_IDX) * SPACING,
+        (z - CENTER_IDX) * SPACING
+      );
+
+      mesh.position.copy(pos);
+      mesh.userData = { 
+        basePos: pos.clone(),
+        velocity: new THREE.Vector3(),
+        gridPos: {x, y, z}
+      };
+      scene.add(mesh);
+      points.push(mesh);
+    }
+  }
+}
+
+// Build springs and lines
+const lineSegments = [];
+function createSpringsAndLines() {
+  const directions = [[1,0,0], [0,1,0], [0,0,1]];
+  
+  for (let i = 0; i < points.length; i++) {
+    const p1 = points[i];
+    const {x, y, z} = p1.userData.gridPos;
+
+    for (let d of directions) {
+      const nx = x + d[0], ny = y + d[1], nz = z + d[2];
+      if (nx >= SIZE || ny >= SIZE || nz >= SIZE) continue;
+
+      const p2 = points.find(p => 
+        p.userData.gridPos.x === nx && 
+        p.userData.gridPos.y === ny && 
+        p.userData.gridPos.z === nz
+      );
+
+      if (p2) {
+        const restLength = p1.position.distanceTo(p2.position);
+        springs.push({ p1, p2, restLength });
+
+        // Create visual line
+        const geometry = new THREE.BufferGeometry().setFromPoints([p1.position, p2.position]);
+        const line = new THREE.Line(geometry, lineMat);
+        scene.add(line);
+        lineSegments.push(line);
+      }
+    }
+  }
+}
+createSpringsAndLines();
+
+// ====================== MOUSE CONTROLS ======================
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+let draggedNode = null;
+let isRotating = false;
+let prevMouse = { x: 0, y: 0 };
+
+window.addEventListener('mousedown', e => {
+  if (e.button !== 0) return;
+
+  mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+  raycaster.setFromCamera(mouse, camera);
+  const intersects = raycaster.intersectObjects(points);
+
+  if (intersects.length > 0) {
+    draggedNode = intersects[0].object;
+    draggedNode.userData.velocity.set(0, 0, 0);
+  } else {
+    isRotating = true;
+  }
+
+  prevMouse = { x: e.clientX, y: e.clientY };
+});
+
+window.addEventListener('mousemove', e => {
+  const dx = e.clientX - prevMouse.x;
+  const dy = e.clientY - prevMouse.y;
+
+  if (draggedNode) {
+    // === FIXED DRAGGING: Move node in camera's local plane ===
+    const dragSpeed = 0.028;
+    
+    const forward = new THREE.Vector3().subVectors(camera.position, new THREE.Vector3()).normalize();
+    const right = new THREE.Vector3().crossVectors(camera.up, forward).normalize();
+    const up = camera.up.clone();
+
+    draggedNode.position.addScaledVector(right, dx * dragSpeed);
+    draggedNode.position.addScaledVector(up, -dy * dragSpeed);   // negative dy because screen y is inverted
+  } 
+  else if (isRotating) {
+    const rotSpeed = 0.006;
+    points.forEach(p => {
+      const pos = p.position;
+      let temp;
+
+      // Y-axis rotation
+      temp = pos.x;
+      pos.x = pos.x * Math.cos(dx * rotSpeed) - pos.z * Math.sin(dx * rotSpeed);
+      pos.z = temp * Math.sin(dx * rotSpeed) + pos.z * Math.cos(dx * rotSpeed);
+
+      // X-axis rotation
+      temp = pos.y;
+      pos.y = pos.y * Math.cos(dy * rotSpeed) - pos.z * Math.sin(dy * rotSpeed);
+      pos.z = temp * Math.sin(dy * rotSpeed) + pos.z * Math.cos(dy * rotSpeed);
+    });
+  }
+
+  prevMouse = { x: e.clientX, y: e.clientY };
+});
+
+window.addEventListener('mouseup', () => {
+  draggedNode = null;
+  isRotating = false;
+});
+
+// Slider
+const slider = document.getElementById('springSlider');
+const kValue = document.getElementById('kValue');
+slider.oninput = () => {
+  springConstant = parseFloat(slider.value);
+  kValue.textContent = springConstant.toFixed(2);
+};
+
+// Reset
+document.getElementById('resetBtn').onclick = () => {
+  points.forEach(p => {
+    p.position.copy(p.userData.basePos);
+    p.userData.velocity.set(0, 0, 0);
+  });
+};
+
+// ====================== PHYSICS (Human Readable) ======================
+function updatePhysics() {
+  // 1. Apply spring forces between connected nodes
+  springs.forEach(spring => {
+    const {p1, p2, restLength} = spring;
+    
+    const delta = new THREE.Vector3().subVectors(p2.position, p1.position);
+    const currentDistance = delta.length();
+
+    if (currentDistance < 0.001) return;
+
+    // Hooke's Law: Force = springConstant * (current - rest)
+    const forceMagnitude = (currentDistance - restLength) * springConstant;
+    delta.normalize();
+
+    const forceVec = delta.multiplyScalar(forceMagnitude);
+
+    // Apply force to both nodes (unless one is being dragged)
+    if (p1 !== draggedNode) p1.userData.velocity.add(forceVec);
+    if (p2 !== draggedNode) p2.userData.velocity.sub(forceVec);
+  });
+
+  // 2. Update node positions based on velocity
+  const damping = 0.85;           // Lower = more bouncy / responsive
+  points.forEach(p => {
+    if (p === draggedNode) return;
+
+    p.userData.velocity.multiplyScalar(damping);
+    p.position.add(p.userData.velocity);
+  });
+}
+
+// ====================== ANIMATION LOOP ======================
+function animate() {
+  requestAnimationFrame(animate);
+
+  updatePhysics();
+
+  // Update all spring lines
+  springs.forEach((spring, i) => {
+    const positions = lineSegments[i].geometry.attributes.position;
+    positions.array[0] = spring.p1.position.x;
+    positions.array[1] = spring.p1.position.y;
+    positions.array[2] = spring.p1.position.z;
+    positions.array[3] = spring.p2.position.x;
+    positions.array[4] = spring.p2.position.y;
+    positions.array[5] = spring.p2.position.z;
+    positions.needsUpdate = true;
+  });
+
+  renderer.render(scene, camera);
+}
+
+animate();
+
+// Resize handler
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+</body>
+</html>

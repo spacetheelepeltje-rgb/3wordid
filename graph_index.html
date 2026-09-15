@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Graph Files</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #0f172a, #1e2937);
+      color: #e2e8f0;
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 30px;
+    }
+
+    .header {
+      background: rgba(15, 23, 42, 0.95);
+      border-radius: 16px;
+      padding: 32px;
+      margin-bottom: 30px;
+      border: 1px solid #334155;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    h1 {
+      margin: 0 0 12px 0;
+      font-size: 2.4rem;
+      color: #60a5fa;
+    }
+
+    .description {
+      font-size: 1.1rem;
+      color: #94a3b8;
+      line-height: 1.6;
+      max-width: 700px;
+    }
+
+    .file-list {
+      background: rgba(15, 23, 42, 0.95);
+      border-radius: 16px;
+      padding: 24px;
+      border: 1px solid #334155;
+    }
+
+    .file-list h2 {
+      margin: 0 0 20px 0;
+      color: #cbd5e1;
+      font-size: 1.4rem;
+    }
+
+    .file-item {
+      display: flex;
+      align-items: center;
+      padding: 14px 18px;
+      margin-bottom: 8px;
+      background: #1e2937;
+      border-radius: 10px;
+      text-decoration: none;
+      color: #e2e8f0;
+      transition: all 0.2s ease;
+      border: 1px solid #334155;
+    }
+
+    .file-item:hover {
+      background: #334155;
+      transform: translateX(8px);
+      border-color: #60a5fa;
+    }
+
+    .file-item::before {
+      content: "📊";
+      margin-right: 16px;
+      font-size: 1.4rem;
+    }
+
+    .file-name {
+      font-weight: 500;
+      flex: 1;
+    }
+
+    .no-files {
+      text-align: center;
+      padding: 40px;
+      color: #64748b;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Title and Description -->
+    <div class="header">
+      <h1>📈 Graph Files</h1>
+      <p class="description">
+        Below is a list of all files in this directory that start with <strong>"graph"</strong>. 
+        Click any file to open it.
+      </p>
+    </div>
+
+    <!-- File List -->
+    <div class="file-list">
+      <h2>Available Graphs</h2>
+      <div id="fileList"></div>
+    </div>
+  </div>
+
+  <script>
+    // List of files starting with 'graph'
+    async function loadGraphFiles() {
+      const fileListDiv = document.getElementById('fileList');
+      fileListDiv.innerHTML = '<div class="no-files">Scanning directory...</div>';
+
+      try {
+        // This works best when the HTML is opened from a local server
+        // For pure local file://, we can't list files due to browser security
+        const response = await fetch('./');
+        const text = await response.text();
+
+        // Simple regex to extract links ending with files starting with 'graph'
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(text, 'text/html');
+        const links = doc.querySelectorAll('a[href]');
+
+        const graphFiles = Array.from(links)
+          .map(link => link.getAttribute('href'))
+          .filter(href => 
+            href.startsWith('graph') && 
+            !href.includes('..') && 
+            !href.endsWith('/') &&
+            (href.endsWith('.html') || 
+             href.endsWith('.png') || 
+             href.endsWith('.jpg') || 
+             href.endsWith('.pdf') || 
+             href.endsWith('.json') || 
+             href.endsWith('.csv'))
+          );
+
+        if (graphFiles.length === 0) {
+          fileListDiv.innerHTML = `
+            <div class="no-files">
+              No files starting with "graph" were found in this directory.
+            </div>`;
+          return;
+        }
+
+        let html = '';
+        graphFiles.forEach(file => {
+          html += `
+            <a href="${file}" class="file-item" target="_blank">
+              <span class="file-name">${file}</span>
+              <span style="font-size: 0.9rem; color: #64748b;">Open →</span>
+            </a>`;
+        });
+
+        fileListDiv.innerHTML = html;
+
+      } catch (error) {
+        // Fallback: Show manual note
+        fileListDiv.innerHTML = `
+          <div class="no-files">
+            <strong>Directory listing not available.</strong><br><br>
+            For this script to automatically detect files, please run it through a local server 
+            (e.g. using Python: <code>python -m http.server</code>).
+          </div>`;
+      }
+    }
+
+    // Load files when page loads
+    window.onload = loadGraphFiles;
+  </script>
+</body>
+</html>

@@ -1,0 +1,78 @@
+ <style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Poppins', sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background: linear-gradient(to right, #00c6ff, #0072ff);
+    }
+
+    .container {
+        text-align: center;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 40px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    h1 {
+        font-size: 3em;
+        margin-bottom: 20px;
+        color: #333;
+    }
+
+    section {
+        font-size: 1.2em;
+        margin-bottom: 20px;
+        color: #333;
+    }
+
+    .threefields {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 20px;
+    }
+
+    .threefields input[type="text"] {
+        width: 30%;
+        padding: 15px;
+        font-size: 1.2em;
+        border: 2px solid #0072ff;
+        border-radius: 5px;
+        outline: none;
+        transition: all 0.3s ease;
+    }
+
+    .threefields input[type="text"]:focus {
+        border-color: #00c6ff;
+        box-shadow: 0 0 10px rgba(0, 198, 255, 0.5);
+    }
+
+    input[type="submit"] {
+        width: 100%;
+        padding: 15px;
+        font-size: 1.2em;
+        border: 2px solid #0072ff;
+        border-radius: 5px;
+        outline: none;
+        transition: all 0.3s ease;
+    }
+
+    input[type="submit"]:hover {
+        background-color: #0072ff;
+        color: #fff;
+    }
+    
+    #myInput {
+	  width: 100%;
+	  box-sizing: border-box; /* to include padding and border in the width calculation */
+	  padding: 10px;
+	}
+    </style>

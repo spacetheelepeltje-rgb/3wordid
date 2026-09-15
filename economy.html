@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Rail Track Flowchart</title>
+    <style>
+        body { display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        svg { border: 1px solid #ccc; }
+        .switch { cursor: pointer; }
+    </style>
+</head>
+<body>
+    <svg width="600" height="300" id="flowchart"></svg>
+    <script>
+        // JSON data defining the rail track structure
+        const trackData = {
+            "nodes": [
+                { "id": "A", "x": 50, "y": 100 },
+                { "id": "B", "x": 150, "y": 100 },
+                { "id": "C1", "x": 250, "y": 50 },
+                { "id": "C2", "x": 250, "y": 150 },
+                { "id": "D", "x": 350, "y": 100 },
+                { "id": "E1", "x": 450, "y": 50 },
+                { "id": "E3", "x": 450, "y": 75 },
+                { "id": "E2", "x": 450, "y": 150 }
+            ],
+            "connections": [
+                { "from": "A", "to": "B" },
+                { "from": "B", "to": "C1", "switch": "S1", "state": "up" },
+                { "from": "B", "to": "C2", "switch": "S1", "state": "down" },
+                { "from": "C1", "to": "D" },
+                { "from": "C2", "to": "D" },
+                { "from": "D", "to": "E1", "switch": "S2", "state": "up" },
+                { "from": "D", "to": "E2", "switch": "S2", "state": "down" }
+            ],
+            "switches": [
+                { "id": "S1", "node": "B", "states": ["up", "down"], "currentState": "up" },
+                { "id": "S2", "node": "D", "states": ["up", "down"], "currentState": "up" }
+            ]
+        };
+
+        const svg = document.getElementById('flowchart');
+
+        // Helper to find a node by ID
+        function findNode(id) {
+            return trackData.nodes.find(node => node.id === id);
+        }
+
+        // Draw the flowchart
+        function drawFlowchart() {
+            svg.innerHTML = ''; // Clear previous content
+
+            // Draw all connections (thin lines)
+            trackData.connections.forEach(conn => {
+                const fromNode = findNode(conn.from);
+                const toNode = findNode(conn.to);
+                const path = `<path d="M${fromNode.x},${fromNode.y} L${toNode.x},${toNode.y}" stroke="black" stroke-width="2"/>`;
+                svg.innerHTML += path;
+            });
+
+            // Draw nodes
+            trackData.nodes.forEach(node => {
+                svg.innerHTML += `<circle cx="${node.x}" cy="${node.y}" r="5" fill="gray"/>`;
+            });
+
+            // Draw switches
+            trackData.switches.forEach(switchData => {
+                const node = findNode(switchData.node);
+                svg.innerHTML += `<rect x="${node.x - 10}" y="${node.y - 10}" width="20" height="20" fill="orange" class="switch" data-switch-id="${switchData.id}"/>`;
+            });
+
+            // Draw the active flow
+            updateFlow();
+        }
+
+        // Calculate and draw the active flow path
+        function updateFlow() {
+            let currentNode = "A"; // Start at the beginning
+            let flowPath = `M${findNode(currentNode).x},${findNode(currentNode).y} `;
+
+            while (currentNode !== "E1" && currentNode !== "E2") {
+                // Find the switch at the current node
+                const currentSwitch = trackData.switches.find(s => s.node === currentNode);
+                let nextNode;
+
+                if (currentSwitch) {
+                    // Find the connection that matches the switch's current state
+                    const activeConnection = trackData.connections.find(
+                        conn => conn.from === currentNode && conn.switch === currentSwitch.id && conn.state === currentSwitch.currentState
+                    );
+                    nextNode = activeConnection.to;
+                } else {
+                    // No switch, take the only connection
+                    const connection = trackData.connections.find(conn => conn.from === currentNode);
+                    nextNode = connection.to;
+                }
+
+                const nextNodeData = findNode(nextNode);
+                flowPath += `L${nextNodeData.x},${nextNodeData.y} `;
+                currentNode = nextNode;
+            }
+
+            // Draw the active flow path
+            svg.innerHTML += `<path d="${flowPath}" stroke="blue" stroke-width="6" fill="none"/>`;
+        }
+
+        // Handle switch clicks
+        svg.addEventListener('click', (e) => {
+            if (e.target.classList.contains('switch')) {
+                const switchId = e.target.getAttribute('data-switch-id');
+                const switchData = trackData.switches.find(s => s.id === switchId);
+                const currentStateIndex = switchData.states.indexOf(switchData.currentState);
+                const nextStateIndex = (currentStateIndex + 1) % switchData.states.length;
+                switchData.currentState = switchData.states[nextStateIndex];
+                drawFlowchart(); // Redraw with updated flow
+            }
+        });
+
+        // Initial draw
+        drawFlowchart();
+    </script>
+</body>
+</html>

@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>3D Node Repulsion • Wireframe Box</title>
+<style>
+    body { margin:0; overflow:hidden; background:#000; font-family:Arial, sans-serif; }
+    #controls {
+        position: absolute; top: 10px; left: 10px; background: rgba(20,20,20,0.95);
+        padding: 12px; border: 1px solid #0f0; border-radius: 8px; color: #0f0;
+        z-index: 100; min-width: 260px;
+    }
+    label { display: block; margin: 8px 0 4px; }
+    input, button { background:#222; color:#0f0; border:1px solid #0f0; padding:5px 8px; margin:2px; }
+    button { cursor:pointer; font-weight:bold; }
+    button:hover { background:#0f0; color:#000; }
+</style>
+</head>
+<body>
+
+<div id="controls">
+    <h3>3D Node Repulsion</h3>
+    
+    <label>Nodes: <input type="number" id="numNodes" value="80" min="10" max="300"></label>
+    <label>Edges per Node: <input type="number" id="edgesPerNode" value="7" min="1" max="20"></label>
+    
+    <label>Repulsion: <input type="range" id="repulsion" min="300" max="3000" value="1200" step="50">
+    <span id="repVal">1200</span></label>
+    
+    <label>Damping: <input type="range" id="damping" min="0.85" max="0.98" value="0.94" step="0.01">
+    <span id="dampVal">0.94</span></label>
+    
+    <button onclick="resetSimulation()">Reset Simulation</button>
+    <button onclick="togglePause()">Pause / Resume</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+<script>
+// =============== SETUP ===============
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
+camera.position.set(0, 80, 180);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(window.devicePixelRatio);
+document.body.appendChild(renderer.domElement);
+
+scene.add(new THREE.AmbientLight(0x404040, 1.2));
+const dirLight = new THREE.DirectionalLight(0x88ffdd, 1.5);
+dirLight.position.set(100, 150, 80);
+scene.add(dirLight);
+
+// Wireframe Box
+const boxSize = 200;
+const boxGeo = new THREE.BoxGeometry(boxSize, boxSize, boxSize);
+const boxMat = new THREE.LineBasicMaterial({ color: 0x00ff88, transparent: true, opacity: 0.4 });
+const box = new THREE.LineSegments(new THREE.WireframeGeometry(boxGeo), boxMat);
+scene.add(box);
+
+// Variables
+let nodes = [];
+let isPaused = false;
+let springs = []; // for edges
+
+// Node class
+class Node {
+    constructor(mesh) {
+        this.mesh = mesh;
+        this.velocity = new THREE.Vector3();
+        this.neighbors = [];
+    }
+}
+
+// =============== INIT ===============
+function initSimulation() {
+    // Clear old nodes
+    nodes.forEach(n => scene.remove(n.mesh));
+    nodes = [];
+    springs = [];
+
+    const n = parseInt(document.getElementById('numNodes').value);
+    const half = boxSize / 2 - 20;
+
+    for (let i = 0; i < n; i++) {
+        const geometry = new THREE.SphereGeometry(3.5, 16, 16);
+        const material = new THREE.MeshPhongMaterial({ 
+            color: 0x00ffcc, 
+            emissive: 0x002211 
+        });
+        const sphere = new THREE.Mesh(geometry, material);
+        
+        sphere.position.set(
+            (Math.random() - 0.5) * boxSize * 0.8,
+            (Math.random() - 0.5) * boxSize * 0.8,
+            (Math.random() - 0.5) * boxSize * 0.8
+        );
+
+        scene.add(sphere);
+        nodes.push(new Node(sphere));
+    }
+
+    buildConnections();
+}
+
+// Build nearest-neighbor connections
+function buildConnections() {
+    const k = parseInt(document.getElementById('edgesPerNode').value);
+    
+    nodes.forEach(node => node.neighbors = []);
+
+    for (let i = 0; i < nodes.length; i++) {
+        const distances = [];
+        for (let j = 0; j < nodes.length; j++) {
+            if (i === j) continue;
+            const distSq = nodes[i].mesh.position.distanceToSquared(nodes[j].mesh.position);
+            distances.push({ index: j, distSq });
+        }
+        distances.sort((a,b) => a.distSq - b.distSq);
+        
+        const topK = distances.slice(0, Math.min(k, distances.length));
+        topK.forEach(item => {
+            nodes[i].neighbors.push(nodes[item.index]);
+        });
+    }
+}
+
+// =============== PHYSICS ===============
+function updatePhysics() {
+    const repulsion = parseFloat(document.getElementById('repulsion').value);
+    const damping = parseFloat(document.getElementById('damping').value);
+
+    // Repulsion
+    for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+            const a = nodes[i].mesh.position;
+            const b = nodes[j].mesh.position;
+            
+            const delta = new THREE.Vector3().subVectors(b, a);
+            const distSq = delta.lengthSq();
+            
+            if (distSq < 1) continue;
+            
+            const dist = Math.sqrt(distSq);
+            const force = repulsion / distSq;
+            
+            delta.normalize();
+            const forceVec = delta.multiplyScalar(force);
+            
+            nodes[i].velocity.sub(forceVec);
+            nodes[j].velocity.add(forceVec);
+        }
+    }
+
+    // Update positions and bounce on box walls
+    for (let node of nodes) {
+        node.velocity.multiplyScalar(damping);
+        node.mesh.position.add(node.velocity);
+
+        const p = node.mesh.position;
+        const r = 10; // margin
+
+        if (Math.abs(p.x) > boxSize/2 - r) { p.x = Math.sign(p.x) * (boxSize/2 - r); node.velocity.x *= -0.7; }
+        if (Math.abs(p.y) > boxSize/2 - r) { p.y = Math.sign(p.y) * (boxSize/2 - r); node.velocity.y *= -0.7; }
+        if (Math.abs(p.z) > boxSize/2 - r) { p.z = Math.sign(p.z) * (boxSize/2 - r); node.velocity.z *= -0.7; }
+    }
+}
+
+// =============== RENDER EDGES ===============
+const lineGroup = new THREE.Group();
+scene.add(lineGroup);
+
+function updateEdges() {
+    // Clear old lines
+    while(lineGroup.children.length > 0) {
+        lineGroup.remove(lineGroup.children[0]);
+    }
+    
+    const edgeMat = new THREE.LineBasicMaterial({ 
+		color: 0x00ff99, 
+		transparent: true, 
+		opacity: 0.35,
+		linewidth: 4   // try 3 to 8
+	});
+
+    for (let node of nodes) {
+        for (let neighbor of node.neighbors) {
+            if (node.mesh.position.x < neighbor.mesh.position.x) { // avoid double lines
+                const points = [node.mesh.position, neighbor.mesh.position];
+                const geometry = new THREE.BufferGeometry().setFromPoints(points);
+                const line = new THREE.Line(geometry, edgeMat);
+                lineGroup.add(line);
+            }
+        }
+    }
+}
+
+// =============== MOUSE CONTROLS (Orbit) ===============
+let isDragging = false;
+let prevX = 0, prevY = 0;
+
+window.addEventListener('mousedown', e => { 
+    if (e.button === 0) isDragging = true; 
+    prevX = e.clientX; 
+    prevY = e.clientY; 
+});
+window.addEventListener('mouseup', () => isDragging = false);
+window.addEventListener('mousemove', e => {
+    if (!isDragging) return;
+    
+    const dx = (e.clientX - prevX) * 0.005;
+    const dy = (e.clientY - prevY) * 0.005;
+
+    const rot = new THREE.Quaternion();
+    rot.setFromAxisAngle(new THREE.Vector3(0,1,0), dx);
+    camera.position.applyQuaternion(rot);
+    
+    const right = new THREE.Vector3().crossVectors(camera.up, camera.position.clone().normalize());
+    rot.setFromAxisAngle(right, dy);
+    camera.position.applyQuaternion(rot);
+    
+    camera.lookAt(0, 0, 0);
+    prevX = e.clientX;
+    prevY = e.clientY;
+});
+
+// =============== ANIMATION ===============
+function animate() {
+    requestAnimationFrame(animate);
+    
+    if (!isPaused) {
+        updatePhysics();
+        updateEdges();
+    }
+    
+    renderer.render(scene, camera);
+}
+
+animate();
+
+// =============== UI ===============
+document.getElementById('repulsion').addEventListener('input', () => {
+    document.getElementById('repVal').textContent = document.getElementById('repulsion').value;
+});
+document.getElementById('damping').addEventListener('input', () => {
+    document.getElementById('dampVal').textContent = document.getElementById('damping').value;
+});
+
+function resetSimulation() {
+    initSimulation();
+}
+
+function togglePause() {
+    isPaused = !isPaused;
+}
+
+// Resize handler
+window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// Start
+initSimulation();
+</script>
+</body>
+</html>

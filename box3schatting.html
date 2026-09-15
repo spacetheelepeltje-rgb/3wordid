@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Box 3 Belasting 2025 – Correcte Berekening</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 720px;
+      margin: 30px auto;
+      padding: 20px;
+      background: #f8f9fa;
+      color: #333;
+      line-height: 1.5;
+    }
+    h1 { text-align: center; color: #1a3c6d; }
+    .intro { background: #fff3cd; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 0.95em; }
+    .section { 
+      background: white; 
+      padding: 20px; 
+      border-radius: 10px; 
+      box-shadow: 0 2px 12px rgba(0,0,0,0.1); 
+      margin-bottom: 25px; 
+    }
+    label { display: block; margin: 14px 0 6px; font-weight: 600; }
+    input[type="number"], select {
+      width: 100%;
+      padding: 10px;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1.05em;
+    }
+    button {
+      background: #1a3c6d;
+      color: white;
+      border: none;
+      padding: 14px 28px;
+      font-size: 1.1em;
+      border-radius: 6px;
+      cursor: pointer;
+      margin: 25px 0 10px;
+    }
+    button:hover { background: #2c5a9e; }
+    #result {
+      background: #e8f4ff;
+      padding: 20px;
+      border-radius: 10px;
+      border-left: 5px solid #1a3c6d;
+      margin-top: 20px;
+    }
+    .line { margin: 12px 0; }
+    .small { font-size: 0.9em; color: #555; }
+    .highlight { font-weight: bold; color: #d32f2f; font-size: 1.2em; }
+  </style>
+</head>
+<body>
+  <center><a href="https://3wordid.com"><img width="100" src="https://3wordid.com/img/3wid_big.png" alt="3wordid logo"></a><br>
+  Click on the image above to make your own 3WordID (log in top right!).<br><center>
+  <h1>Box 3 Belasting 2025 – Correcte Schatting</h1>
+
+  <div class="intro">
+    <strong>Belangrijk:</strong> Dit volgt de officiële methode van de Belastingdienst voor de <strong>voorlopige aanslag 2025</strong>.<br>
+    • Heffingsvrij vermogen wordt afgetrokken van de rendementsgrondslag (niet van het rendement).<br>
+    • Er wordt een proportioneel aandeel berekend.<br>
+    • Percentages: spaargeld 1,44%, overig 5,88%, schulden 2,62% (voorlopig).<br>
+    • Dit is een indicatie — gebruik voor de aangifte altijd de Belastingdienst rekentool of aangifteprogramma.<br>
+    • Dit is een indicatie, er kunnen aan deze berekening geen rechten worden ontleend.<br>
+    • De gegevens die u invoert worden niet opgeslagen en we gebruiken geen cooies.<br>
+  </div>
+
+  <div class="section">
+    <label for="spaargeld">Banktegoeden / spaargeld op 1-1-2025 (€):</label>
+    <input type="number" id="spaargeld" value="0" min="0" step="1">
+
+    <label for="overig">Overige bezittingen (beleggingen, 2e huis, crypto, etc.) (€):</label>
+    <input type="number" id="overig" value="0" min="0" step="1">
+
+    <label for="schulden">Meetellende schulden in box 3 (€):</label>
+    <input type="number" id="schulden" value="0" min="0" step="1">
+
+    <label for="partners">Fiscale partners?</label>
+    <select id="partners">
+      <option value="1">Alleenstaand (heffingsvrij €57.684)</option>
+      <option value="2">Fiscale partners (heffingsvrij €115.368)</option>
+    </select>
+
+    <button onclick="berekenBox3()">Bereken box 3</button>
+  </div>
+
+  <div id="result" style="display:none;">
+    <h2>Resultaat (schatting)</h2>
+    
+    <div class="line">Rendementsgrondslag: <strong id="grondslagTotaal"></strong></div>
+    <div class="line">Fictief rendement: <strong id="fictiefRendement"></strong></div>
+    <div class="line">Grondslag sparen en beleggen (na heffingsvrij): <strong id="grondslagNaVrij"></strong></div>
+    <div class="line">Proportioneel aandeel: <strong id="aandeel"></strong></div>
+    <div class="line">Belastbaar box 3-inkomen: <strong id="belastbaarInkomen"></strong></div>
+    <div class="line">Geschatte box 3-belasting (36%): <span class="highlight" id="belasting"></span></div>
+    
+    <p class="small" style="margin-top:20px;">
+      Let op: als je werkelijk rendement lager was, kun je via de tegenbewijsregeling een lagere heffing aanvragen.<br>
+      Definitieve percentages spaargeld/schulden kunnen licht afwijken (worden begin 2026 vastgesteld).
+    </p>
+  </div>
+
+  <script>
+    function berekenBox3() {
+      // Invoer ophalen
+      const spaargeld = parseFloat(document.getElementById('spaargeld').value) || 0;
+      const overig    = parseFloat(document.getElementById('overig').value)    || 0;
+      const schulden  = parseFloat(document.getElementById('schulden').value)  || 0;
+      const partners  = parseInt(document.getElementById('partners').value);
+
+      const heffingsvrij = partners === 2 ? 115368 : 57684;
+
+      // Percentages 2025 (voorlopig)
+      const percSpaar   = 0.0144;
+      const percOverig  = 0.0588;
+      const percSchuld  = 0.0262;
+
+      // Stap 1: fictief rendement berekenen
+      const rendSpaar  = spaargeld * percSpaar;
+      const rendOverig = overig    * percOverig;
+      const rendSchuld = schulden  * percSchuld;
+      const fictiefTotaal = rendSpaar + rendOverig - rendSchuld;
+
+      // Stap 2: rendementsgrondslag (vermogen)
+      const rendementsGrondslag = spaargeld + overig - schulden;
+
+      // Stap 3: grondslag sparen en beleggen (na heffingsvrij)
+      const grondslagNaVrij = Math.max(0, rendementsGrondslag - heffingsvrij);
+
+      // Stap 4: proportioneel aandeel (in %)
+      let aandeel = 0;
+      if (rendementsGrondslag > 0) {
+        aandeel = (grondslagNaVrij / rendementsGrondslag) * 100;
+      }
+
+      // Stap 5: belastbaar inkomen box 3
+      const belastbaar = (fictiefTotaal * aandeel) / 100;
+
+      // Stap 6: belasting
+      const belastingBedrag = belastbaar * 0.36;
+
+      // Weergave
+      document.getElementById('grondslagTotaal').textContent = 
+        `€${rendementsGrondslag.toLocaleString('nl-NL', {minimumFractionDigits:0})}`;
+
+      document.getElementById('fictiefRendement').textContent = 
+        `€${fictiefTotaal.toLocaleString('nl-NL', {minimumFractionDigits:0})} ` +
+        `(spaargeld €${rendSpaar.toFixed(0)}, overig €${rendOverig.toFixed(0)}, schulden -€${rendSchuld.toFixed(0)})`;
+
+      document.getElementById('grondslagNaVrij').textContent = 
+        `€${grondslagNaVrij.toLocaleString('nl-NL', {minimumFractionDigits:0})}`;
+
+      document.getElementById('aandeel').textContent = 
+        `${aandeel.toFixed(3)}%`;
+
+      document.getElementById('belastbaarInkomen').textContent = 
+        `€${belastbaar.toLocaleString('nl-NL', {minimumFractionDigits:0})}`;
+
+      document.getElementById('belasting').textContent = 
+        `€${belastingBedrag.toLocaleString('nl-NL', {minimumFractionDigits:0})}`;
+
+      document.getElementById('result').style.display = 'block';
+    }
+  </script>
+
+</body>
+</html>

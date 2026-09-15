@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>FCC Packing - Tangency Graph (3D)</title>
+<style>
+  body { margin:0; overflow:hidden; background:#000; font-family:Arial, sans-serif; }
+  #info {
+    position: absolute; top: 10px; left: 10px; color: white; background: rgba(0,0,0,0.6);
+    padding: 10px; border-radius: 8px; pointer-events: none; z-index: 100;
+  }
+</style>
+</head>
+<body>
+<div id="info">
+  <b>FCC Sphere Packing - Tangency Graph</b><br>
+  Each sphere touches 12 neighbors • Drag to rotate • Scroll to zoom
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/controls/OrbitControls.js"></script>
+
+<script>
+// ============== FCC Packing Visualization ==============
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x111122);
+
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+camera.position.set(15, 12, 18);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(window.devicePixelRatio);
+document.body.appendChild(renderer.domElement);
+
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.05;
+
+// Lighting
+const ambient = new THREE.AmbientLight(0xffffff, 0.6);
+scene.add(ambient);
+const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+dirLight.position.set(10, 20, 10);
+scene.add(dirLight);
+
+// Material for spheres
+const sphereMaterial = new THREE.MeshPhongMaterial({
+  color: 0x44aaff,
+  shininess: 80,
+  specular: 0x222222,
+  emissive: 0x112244
+});
+
+// Parameters
+const radius = 1;                    // sphere radius
+const nnDistance = 2 * radius;       // nearest neighbor distance
+const layers = 4;                    // how many layers to show
+
+// Generate FCC positions
+const positions = [];
+const edgeLength = nnDistance * Math.sqrt(2); // conventional cubic cell edge
+
+for (let x = -layers; x <= layers; x++) {
+  for (let y = -layers; y <= layers; y++) {
+    for (let z = -layers; z <= layers; z++) {
+      // FCC basis positions
+      const pos = [
+        new THREE.Vector3(x,     y,     z),
+        new THREE.Vector3(x+0.5, y+0.5, z),
+        new THREE.Vector3(x+0.5, y,     z+0.5),
+        new THREE.Vector3(x,     y+0.5, z+0.5)
+      ];
+
+      pos.forEach(p => {
+        p.multiplyScalar(edgeLength);
+        // Keep only points reasonably close to origin
+        if (p.length() < edgeLength * layers * 1.4) {
+          positions.push(p);
+        }
+      });
+    }
+  }
+}
+
+// Create spheres
+const spheres = [];
+positions.forEach(pos => {
+  const geometry = new THREE.SphereGeometry(radius, 32, 32);
+  const sphere = new THREE.Mesh(geometry, sphereMaterial);
+  sphere.position.copy(pos);
+  scene.add(sphere);
+  spheres.push(sphere);
+});
+
+// Tangency lines (only draw edges between touching spheres)
+const lineMaterial = new THREE.LineBasicMaterial({ color: 0x88ff88, transparent: true, opacity: 0.6 });
+const points = positions;
+
+for (let i = 0; i < points.length; i++) {
+  for (let j = i + 1; j < points.length; j++) {
+    const dist = points[i].distanceTo(points[j]);
+    if (Math.abs(dist - nnDistance) < 0.01) {   // touching
+      const geometry = new THREE.BufferGeometry().setFromPoints([points[i], points[j]]);
+      const line = new THREE.Line(geometry, lineMaterial);
+      scene.add(line);
+    }
+  }
+}
+
+// Animation loop
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+  renderer.render(scene, camera);
+}
+animate();
+
+// Resize handler
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+</body>
+</html>

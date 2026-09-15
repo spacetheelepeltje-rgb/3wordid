@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>3D Node Repulsion • Visible Edges + Zoom</title>
+<style>
+    body { margin:0; overflow:hidden; background:#000; font-family:Arial, sans-serif; }
+    #controls {
+        position: absolute; top: 10px; left: 10px; background: rgba(20,20,20,0.95);
+        padding: 12px; border: 1px solid #0f0; border-radius: 8px; color: #0f0;
+        z-index: 100; min-width: 280px;
+    }
+    label { display: block; margin: 8px 0 4px; }
+    input, button { background:#222; color:#0f0; border:1px solid #0f0; padding:5px 8px; margin:2px; }
+    button { cursor:pointer; font-weight:bold; }
+    button:hover { background:#0f0; color:#000; }
+    .button-row { margin-top: 10px; }
+</style>
+</head>
+<body>
+
+<div id="controls">
+    <h3>3D Node Repulsion</h3>
+    
+    <label>Nodes per side: <input type="number" id="gridSize" value="5" min="3" max="12"></label>
+    <label>Max Edge Length: <input type="range" id="maxLength" min="30" max="150" value="65" step="1">
+    <span id="maxLenVal">65</span></label>
+    
+    <label>Repulsion: <input type="range" id="repulsion" min="300" max="3000" value="1400" step="50">
+    <span id="repVal">1400</span></label>
+    
+    <label>Damping: <input type="range" id="damping" min="0.85" max="0.98" value="0.93" step="0.01">
+    <span id="dampVal">0.93</span></label>
+
+    <div class="button-row">
+        <button id="runBtn">▶ Run</button>
+        <button id="stepBtn">Step</button>
+        <button id="pauseBtn">⏸ Pause</button>
+        <button onclick="resetSimulation()">Reset Simulation</button>
+    </div>
+    <small style="color:#0a0;">Scroll mouse wheel to zoom • Drag to rotate</small>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+<script>
+// =============== SETUP ===============
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 2000);
+let cameraDistance = 220;
+camera.position.set(0, 80, cameraDistance);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(window.devicePixelRatio);
+document.body.appendChild(renderer.domElement);
+
+scene.add(new THREE.AmbientLight(0x404040, 1.4));
+const dirLight = new THREE.DirectionalLight(0x88ffdd, 1.7);
+dirLight.position.set(120, 180, 100);
+scene.add(dirLight);
+
+// Wireframe Box
+const boxSize = 200;
+const boxGeo = new THREE.BoxGeometry(boxSize, boxSize, boxSize);
+const boxMat = new THREE.LineBasicMaterial({ color: 0x00ff88, transparent: true, opacity: 0.3 });
+const box = new THREE.LineSegments(new THREE.WireframeGeometry(boxGeo), boxMat);
+scene.add(box);
+
+// Variables
+let nodes = [];
+let edges = [];
+let isRunning = false;
+
+class Node {
+    constructor(mesh) {
+        this.mesh = mesh;
+        this.velocity = new THREE.Vector3();
+    }
+}
+
+// =============== INIT ===============
+function initSimulation() {
+    nodes.forEach(n => scene.remove(n.mesh));
+    nodes = [];
+    edges = [];
+
+    const gridSize = parseInt(document.getElementById('gridSize').value);
+    const spacing = boxSize * 0.68 / (gridSize - 1);
+
+    for (let x = 0; x < gridSize; x++) {
+        for (let y = 0; y < gridSize; y++) {
+            for (let z = 0; z < gridSize; z++) {
+                const sphere = new THREE.Mesh(
+                    new THREE.SphereGeometry(3.8, 16, 16),
+                    new THREE.MeshPhongMaterial({ color: 0x00ffcc, emissive: 0x002211 })
+                );
+                
+                sphere.position.set(
+                    (x - (gridSize-1)/2) * spacing,
+                    (y - (gridSize-1)/2) * spacing,
+                    (z - (gridSize-1)/2) * spacing
+                );
+
+                scene.add(sphere);
+                nodes.push(new Node(sphere));
+            }
+        }
+    }
+
+    buildInitialConnections();
+    updateEdges();
+}
+
+function buildInitialConnections() {
+    edges = [];
+    const maxDist = 1.6;
+    for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+            if (nodes[i].mesh.position.distanceTo(nodes[j].mesh.position) < maxDist) {
+                edges.push({ a: nodes[i], b: nodes[j] });
+            }
+        }
+    }
+}
+
+// =============== PHYSICS ===============
+function updatePhysics() {
+    const repulsion = parseFloat(document.getElementById('repulsion').value);
+    const damping = parseFloat(document.getElementById('damping').value);
+
+    for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+            const a = nodes[i].mesh.position;
+            const b = nodes[j].mesh.position;
+            const delta = new THREE.Vector3().subVectors(b, a);
+            const distSq = delta.lengthSq();
+            if (distSq < 1) continue;
+            
+            const force = repulsion / distSq;
+            delta.normalize();
+            const forceVec = delta.multiplyScalar(force);
+            
+            nodes[i].velocity.sub(forceVec);
+            nodes[j].velocity.add(forceVec);
+        }
+    }
+
+    for (let node of nodes) {
+        node.velocity.multiplyScalar(damping);
+        node.mesh.position.add(node.velocity);
+
+        const p = node.mesh.position;
+        const r = 12;
+        if (Math.abs(p.x) > boxSize/2 - r) { p.x = Math.sign(p.x) * (boxSize/2 - r); node.velocity.x *= -0.7; }
+        if (Math.abs(p.y) > boxSize/2 - r) { p.y = Math.sign(p.y) * (boxSize/2 - r); node.velocity.y *= -0.7; }
+        if (Math.abs(p.z) > boxSize/2 - r) { p.z = Math.sign(p.z) * (boxSize/2 - r); node.velocity.z *= -0.7; }
+    }
+}
+
+function checkAndSplitEdges() {
+    const maxLen = parseFloat(document.getElementById('maxLength').value);
+    let i = 0;
+    while (i < edges.length) {
+        const edge = edges[i];
+        const dist = edge.a.mesh.position.distanceTo(edge.b.mesh.position);
+        if (dist > maxLen) {
+            const midPos = edge.a.mesh.position.clone().add(edge.b.mesh.position).multiplyScalar(0.5);
+            const newSphere = new THREE.Mesh(
+                new THREE.SphereGeometry(3.8, 16, 16),
+                new THREE.MeshPhongMaterial({ color: 0x00ffcc, emissive: 0x002211 })
+            );
+            newSphere.position.copy(midPos);
+            scene.add(newSphere);
+            const newNode = new Node(newSphere);
+            nodes.push(newNode);
+
+            edges[i] = { a: edge.a, b: newNode };
+            edges.push({ a: newNode, b: edge.b });
+        } else {
+            i++;
+        }
+    }
+}
+
+// =============== SIMPLE & BRIGHT EDGES ===============
+const lineGroup = new THREE.Group();
+scene.add(lineGroup);
+
+function updateEdges() {
+    while (lineGroup.children.length > 0) lineGroup.remove(lineGroup.children[0]);
+
+    const positions = [];
+    for (let edge of edges) {
+        const a = edge.a.mesh.position;
+        const b = edge.b.mesh.position;
+        positions.push(a.x, a.y, a.z);
+        positions.push(b.x, b.y, b.z);
+    }
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+
+    const material = new THREE.LineBasicMaterial({
+        color: 0x00ffff,     // Bright cyan
+        transparent: true,
+        opacity: 0.9,
+        linewidth: 2.5
+    });
+
+    const lines = new THREE.LineSegments(geometry, material);
+    lineGroup.add(lines);
+}
+
+// =============== SIMULATION ===============
+function simulationStep() {
+    updatePhysics();
+    checkAndSplitEdges();
+    updateEdges();
+}
+
+function animate() {
+    requestAnimationFrame(animate);
+    if (isRunning) simulationStep();
+    renderer.render(scene, camera);
+}
+animate();
+
+// =============== UI ===============
+document.getElementById('repulsion').addEventListener('input', () => {
+    document.getElementById('repVal').textContent = document.getElementById('repulsion').value;
+});
+document.getElementById('damping').addEventListener('input', () => {
+    document.getElementById('dampVal').textContent = document.getElementById('damping').value;
+});
+document.getElementById('maxLength').addEventListener('input', () => {
+    document.getElementById('maxLenVal').textContent = document.getElementById('maxLength').value;
+});
+
+const runBtn = document.getElementById('runBtn');
+const pauseBtn = document.getElementById('pauseBtn');
+const stepBtn = document.getElementById('stepBtn');
+
+runBtn.addEventListener('click', () => { isRunning = true; runBtn.style.display = 'none'; pauseBtn.style.display = 'inline-block'; });
+pauseBtn.addEventListener('click', () => { isRunning = false; runBtn.style.display = 'inline-block'; pauseBtn.style.display = 'none'; });
+stepBtn.addEventListener('click', () => simulationStep());
+
+function resetSimulation() {
+    isRunning = false;
+    runBtn.style.display = 'inline-block';
+    pauseBtn.style.display = 'none';
+    initSimulation();
+}
+
+// Zoom with mouse wheel
+window.addEventListener('wheel', (e) => {
+    cameraDistance += e.deltaY * 0.15;
+    cameraDistance = Math.max(80, Math.min(500, cameraDistance));
+    camera.position.set(0, 80, cameraDistance);
+    camera.lookAt(0, 0, 0);
+});
+
+// Mouse drag to rotate
+let isDragging = false;
+let prevX = 0, prevY = 0;
+
+window.addEventListener('mousedown', e => { 
+    if (e.button === 0) isDragging = true; 
+    prevX = e.clientX; 
+    prevY = e.clientY; 
+});
+window.addEventListener('mouseup', () => isDragging = false);
+window.addEventListener('mousemove', e => {
+    if (!isDragging) return;
+    const dx = (e.clientX - prevX) * 0.005;
+    const dy = (e.clientY - prevY) * 0.005;
+
+    const rotY = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0), dx);
+    camera.position.applyQuaternion(rotY);
+    
+    const right = new THREE.Vector3().crossVectors(camera.up, camera.position.clone().normalize());
+    const rotX = new THREE.Quaternion().setFromAxisAngle(right, dy);
+    camera.position.applyQuaternion(rotX);
+    
+    camera.lookAt(0, 0, 0);
+    prevX = e.clientX;
+    prevY = e.clientY;
+});
+
+// Resize
+window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+runBtn.style.display = 'inline-block';
+pauseBtn.style.display = 'none';
+initSimulation();
+</script>
+</body>
+</html>

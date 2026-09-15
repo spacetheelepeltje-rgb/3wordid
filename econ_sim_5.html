@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5×5 Family Network - Clean & Editable</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f4f4f4; }
+        canvas { background: white; border: 2px solid #333; box-shadow: 0 0 10px rgba(0,0,0,0.1); display: block; margin: 0 auto; }
+        .controls { margin: 15px 0; padding: 15px; background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+                    display: flex; gap: 15px; flex-wrap: wrap; align-items: center; max-width: 880px; margin: 15px auto; }
+        button { padding: 8px 16px; font-size: 14px; cursor: pointer; }
+        #info { margin: 10px auto; padding: 12px; background: #fff; border: 1px solid #ddd; border-radius: 6px; 
+                max-width: 880px; min-height: 160px; font-size: 0.95em; line-height: 1.45; }
+    </style>
+</head>
+<body>
+    <h1>5×5 Family Network Simulation</h1>
+    <p class="description">Total money fixed at <strong>10,000</strong> • Edit constants and rules easily below</p>
+    
+    <div class="controls">
+        <button id="stepBtn">Step</button>
+        <button id="runBtn">Run</button>
+        <button id="resetBtn">Reset Simulation</button>
+        <button id="randomizeBtn">Randomize Money</button>
+        
+        <label>Global Savings Rate: <input type="range" id="savingsSlider" min="0" max="100" value="30">
+            <span id="savingsValue">30%</span>
+        </label>
+        <button id="applySavingsBtn">Apply to All</button>
+        
+        <span>Step: <span id="stepCount">0</span></span>
+        <span>Total Liquid: <span id="totalLiquid">10000</span></span>
+        <span>Grand Total: <span id="grandTotal">10000</span></span>
+    </div>
+
+    <canvas id="canvas" width="850" height="650"></canvas>
+    <div id="info">Click any node for details.</div>
+
+    <script>
+        // ====================== CONSTANTS & CONFIG ======================
+        const TOTAL_MONEY = 10000;
+        const GRID_SIZE = 5;
+        const NUM_NODES = GRID_SIZE * GRID_SIZE;
+        const MIN_CONNECTIONS = 10;
+        const STARTING_MIN_RESERVES = 50;
+        const SURVIVAL_CONSUME_FROM_SAVINGS = 80;   // if broke, take this from savings
+        const CANVAS_WIDTH = 850;
+        const CANVAS_HEIGHT = 650;
+
+        // ====================== GLOBAL STATE ======================
+        let nodes = [];
+        let step = 0;
+        let isRunning = false;
+        let intervalId = null;
+        let selectedNode = null;
+        let activeSenders = new Set();
+
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        // ====================== NODE CREATION ======================
+        function createNodes() {
+            nodes = [];
+            const cellSize = 110;
+            const offsetX = 80;
+            const offsetY = 60;
+            const defaultRate = parseFloat(document.getElementById('savingsSlider').value) / 100;
+
+            for (let i = 0; i < NUM_NODES; i++) {
+                const row = Math.floor(i / GRID_SIZE);
+                const col = i % GRID_SIZE;
+                
+                nodes.push({
+                    id: i,
+                    x: offsetX + col * cellSize,
+                    y: offsetY + row * cellSize,
+                    savingsRate: defaultRate,
+                    reserves: 0,           // liquid money
+                    savings: 0,            // locked savings
+                    lastDistributed: 0,    // money sent this step
+                    neighbors: new Set()
+                });
+            }
+            createConnections();
+            randomizeMoney();
+        }
+
+        function createConnections() {
+            nodes.forEach(n => n.neighbors.clear());
+            for (let i = 0; i < NUM_NODES; i++) {
+                while (nodes[i].neighbors.size < MIN_CONNECTIONS) {
+                    const j = Math.floor(Math.random() * NUM_NODES);
+                    if (j !== i && !nodes[i].neighbors.has(j)) {
+                        nodes[i].neighbors.add(j);
+                        nodes[j].neighbors.add(i);
+                    }
+                }
+            }
+        }
+
+        function randomizeMoney() {
+            nodes.forEach(n => { n.reserves = 0; n.savings = 0; n.lastDistributed = 0; });
+
+            const base = TOTAL_MONEY / NUM_NODES; // ~400
+
+            let total = 0;
+            nodes.forEach(node => {
+                const variation = (Math.random() - 0.5) * 280;
+                node.reserves = Math.max(STARTING_MIN_RESERVES, Math.round(base + variation));
+                total += node.reserves;
+            });
+
+            // Normalize to exact TOTAL_MONEY
+            const diff = TOTAL_MONEY - total;
+            const adjustment = Math.round(diff / NUM_NODES);
+            nodes.forEach(node => {
+                node.reserves = Math.max(STARTING_MIN_RESERVES, node.reserves + adjustment);
+            });
+        }
+
+        // ====================== MAIN SIMULATION STEP ======================
+        function simulationStep() {
+            step++;
+            document.getElementById('stepCount').textContent = step;
+            activeSenders.clear();
+
+            const received = new Array(NUM_NODES).fill(0);
+
+            // === PHASE 1: Process each family ===
+            for (let i = 0; i < NUM_NODES; i++) {
+                const node = nodes[i];
+                node.lastDistributed = 0;
+
+                if (node.reserves > 0.1) {
+                    activeSenders.add(i);
+
+                    // Rule 1: Park savings
+                    const toSave = node.reserves * node.savingsRate;
+                    node.savings += toSave;
+
+                    // Rule 2: Distribute the rest
+                    const toDistribute = node.reserves * (1 - node.savingsRate);
+                    if (toDistribute > 0.1 && node.neighbors.size > 0) {
+                        const share = toDistribute / node.neighbors.size;
+                        for (let neigh of node.neighbors) {
+                            received[neigh] += share;
+                        }
+                        node.lastDistributed = Math.round(toDistribute);
+                    }
+                    node.reserves = 0;
+                }
+
+                // Rule 3: Survival - use savings if completely broke
+                if (node.reserves < 0.1 && node.savings > 0) {
+                    const consume = Math.min(SURVIVAL_CONSUME_FROM_SAVINGS, node.savings);
+                    node.savings -= consume;
+                    node.reserves += consume;
+                }
+            }
+
+            // === PHASE 2: Apply received money ===
+            let totalLiquid = 0;
+            let totalSavings = 0;
+
+            for (let i = 0; i < NUM_NODES; i++) {
+                nodes[i].reserves += received[i];
+                totalLiquid += nodes[i].reserves;
+                totalSavings += nodes[i].savings;
+            }
+
+            document.getElementById('totalLiquid').textContent = Math.round(totalLiquid);
+            document.getElementById('grandTotal').textContent = Math.round(totalLiquid + totalSavings);
+            draw();
+        }
+
+        // ====================== DRAWING ======================
+        function draw() {
+            ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+            // Active connections only
+            ctx.strokeStyle = '#555555';
+            ctx.lineWidth = 1.5;
+            for (let i of activeSenders) {
+                const node = nodes[i];
+                for (let j of node.neighbors) {
+                    if (j > i || !activeSenders.has(j)) {
+                        ctx.beginPath();
+                        ctx.moveTo(node.x, node.y);
+                        ctx.lineTo(nodes[j].x, nodes[j].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            // Nodes
+            let maxTotal = Math.max(...nodes.map(n => n.reserves + n.savings));
+            for (let node of nodes) {
+                const total = node.reserves + node.savings;
+                const norm = maxTotal > 0 ? Math.min(total / maxTotal, 1) : 0;
+                const radius = 29 + norm * 13;
+
+                const isBroke = node.reserves <= 0 && node.savings <= 0;
+                ctx.fillStyle = isBroke ? '#ff8800' : (node.reserves <= 0 ? '#223355' : '#1e3a8a');
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, radius, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.strokeStyle = (selectedNode && selectedNode.id === node.id) ? '#ffff00' : '#111';
+                ctx.lineWidth = (selectedNode && selectedNode.id === node.id) ? 5 : 3;
+                ctx.stroke();
+
+                // Display numbers
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 16px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(Math.round(node.reserves), node.x, node.y - 7);
+
+                ctx.fillStyle = '#ffdd44';
+                ctx.font = 'bold 12px Arial';
+                ctx.fillText(Math.round(node.savings), node.x, node.y + 14);
+
+                ctx.fillStyle = node.savingsRate > 0 ? '#aaccff' : '#88ff88';
+                ctx.font = '9px Arial';
+                ctx.fillText((node.savingsRate * 100).toFixed(0) + '%', node.x, node.y + 39);
+            }
+        }
+
+        // ====================== UI HELPERS ======================
+        function getNodeAt(x, y) {
+            for (let node of nodes) {
+                const dx = node.x - x, dy = node.y - y;
+                if (dx*dx + dy*dy < 48*48) return node;
+            }
+            return null;
+        }
+
+        function setupListeners() {
+            document.getElementById('stepBtn').onclick = () => simulationStep();
+            
+            const runBtn = document.getElementById('runBtn');
+            runBtn.onclick = () => {
+                isRunning = !isRunning;
+                runBtn.textContent = isRunning ? 'Pause' : 'Run';
+                if (isRunning) intervalId = setInterval(simulationStep, 240);
+                else clearInterval(intervalId);
+            };
+
+            document.getElementById('resetBtn').onclick = () => {
+                if (isRunning) { isRunning = false; document.getElementById('runBtn').textContent = 'Run'; clearInterval(intervalId); }
+                step = 0;
+                document.getElementById('stepCount').textContent = '0';
+                createNodes();
+                draw();
+            };
+
+            document.getElementById('randomizeBtn').onclick = () => {
+                if (isRunning) { isRunning = false; document.getElementById('runBtn').textContent = 'Run'; clearInterval(intervalId); }
+                randomizeMoney();
+                step = 0;
+                document.getElementById('stepCount').textContent = '0';
+                activeSenders.clear();
+                draw();
+            };
+
+            const slider = document.getElementById('savingsSlider');
+            document.getElementById('savingsValue').textContent = slider.value + '%';
+            slider.oninput = () => document.getElementById('savingsValue').textContent = slider.value + '%';
+
+            document.getElementById('applySavingsBtn').onclick = () => {
+                const rate = parseFloat(slider.value) / 100;
+                nodes.forEach(n => n.savingsRate = rate);
+                draw();
+            };
+
+            canvas.onclick = (e) => {
+                const rect = canvas.getBoundingClientRect();
+                selectedNode = getNodeAt(e.clientX - rect.left, e.clientY - rect.top);
+                
+                if (selectedNode) {
+                    const total = selectedNode.reserves + selectedNode.savings;
+                    document.getElementById('info').innerHTML = `
+                        <strong>Family #${selectedNode.id}</strong><br>
+                        Savings rate: <strong>${(selectedNode.savingsRate*100).toFixed(0)}%</strong><br>
+                        Liquid: <strong style="color:#fff">${selectedNode.reserves.toFixed(1)}</strong><br>
+                        Savings: <strong style="color:#ffdd44">${selectedNode.savings.toFixed(1)}</strong><br>
+                        <strong>Total: ${total.toFixed(1)}</strong><br><br>
+                        Distributed last step: <strong style="color:#44ff88">${selectedNode.lastDistributed}</strong>
+                    `;
+                } else {
+                    document.getElementById('info').textContent = 'Click a node for details.';
+                }
+                draw();
+            };
+        }
+
+        function init() {
+            createNodes();
+            setupListeners();
+            draw();
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>

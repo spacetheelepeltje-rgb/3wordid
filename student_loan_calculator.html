@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Student Loan Payoff Calculator - With Dates & Min Payment</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacOSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 1000px;
+      margin: 30px auto;
+      padding: 0 20px;
+      line-height: 1.5;
+    }
+    h1 { color: #2c3e50; }
+    .input-group {
+      margin: 20px 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    .input-group label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+    input[type="number"], select {
+      width: 180px;
+      padding: 10px;
+      font-size: 1.1rem;
+      border: 2px solid #bdc3c7;
+      border-radius: 6px;
+    }
+    button {
+      padding: 12px 28px;
+      font-size: 1.1rem;
+      background: #2980b9;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover { background: #3498db; }
+
+    #result {
+      margin-top: 40px;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 20px;
+      font-size: 0.98rem;
+    }
+    th, td {
+      padding: 10px 12px;
+      text-align: right;
+      border-bottom: 1px solid #eee;
+    }
+    th {
+      background: #f5f6f5;
+      text-align: center;
+      font-weight: 600;
+    }
+    .date-col { text-align: center; width: 110px; font-weight: 500; }
+    .paid-off {
+      background-color: #d4edda;
+      font-weight: bold;
+    }
+    .negative {
+      color: #e74c3c;
+      font-weight: bold;
+    }
+    .summary {
+      margin: 30px 0;
+      padding: 20px;
+      background: #ecf0f1;
+      border-radius: 8px;
+    }
+    .years-estimate {
+      font-size: 1.2rem;
+      margin: 15px 0;
+      color: #27ae60;
+    }
+    .min-payment {
+      color: #e67e22;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Student Debt Calculator (via <a href="https://www.3wordid.com">3WordID.com</a>)</h1>
+<h3><a href="https://www.3wordid.com">Create your own 3WordID, just log in right top corner!</a></h3>
+<br>
+Fill in your debt/loan data and calculate how the principle changes over time. No data is stored from this page. 
+No rights can be derived from the results. This is not a financial service. Prefilled numbers are example input.
+<br>
+<div class="input-group">
+  <div>
+    <label>Principal $</label>
+    <input type="number" id="principal" value="35000" min="1000" step="100">
+  </div>
+  <div>
+    <label>Annual Interest Rate %</label>
+    <input type="number" id="rate" value="5.8" min="0" max="30" step="0.1">
+  </div>
+  <div>
+    <label>Monthly Payment $</label>
+    <input type="number" id="payment" value="400" min="50" step="10">
+  </div>
+</div>
+
+<div class="input-group">
+  <div>
+    <label>Start Month</label>
+    <select id="startMonth">
+      <option value="0">January</option>
+      <option value="1" selected>February</option>
+      <option value="2">March</option>
+      <option value="3">April</option>
+      <option value="4">May</option>
+      <option value="5">June</option>
+      <option value="6">July</option>
+      <option value="7">August</option>
+      <option value="8">September</option>
+      <option value="9">October</option>
+      <option value="10">November</option>
+      <option value="11">December</option>
+    </select>
+  </div>
+  <div>
+    <label>Start Year</label>
+    <input type="number" id="startYear" value="2026" min="2000" max="2100">
+  </div>
+</div>
+
+<button onclick="calculateLoan()">Calculate Payoff Schedule</button>
+
+<div id="result"></div>
+
+<script>
+const MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+function getDateString(monthOffset, startMonth, startYear) {
+  let totalMonths = startMonth + monthOffset;
+  const year = startYear + Math.floor(totalMonths / 12);
+  const monthIndex = totalMonths % 12;
+  return `${MONTH_NAMES[monthIndex]} ${year}`;
+}
+
+function calculateLoan() {
+  const principal = Number(document.getElementById('principal').value);
+  const annualRate = Number(document.getElementById('rate').value);
+  const monthlyPayment = Number(document.getElementById('payment').value);
+  const startMonth = Number(document.getElementById('startMonth').value);
+  const startYear  = Number(document.getElementById('startYear').value);
+
+  if (!principal || principal <= 0 || !annualRate || !monthlyPayment || monthlyPayment <= 0) {
+    alert("Please enter valid positive numbers for all fields.");
+    return;
+  }
+
+  const monthlyRate = annualRate / 100 / 12;
+  
+  // ────────────────────────────────────────────────
+  // Minimum payment to actually reduce principal
+  // (must be > first month's interest)
+  let minToReduce = "—";
+  if (monthlyRate > 0) {
+    const firstMonthInterest = principal * monthlyRate;
+    minToReduce = firstMonthInterest + 0.01; // tiny buffer
+  } else {
+    minToReduce = 0.01; // any tiny amount reduces principal if 0% interest
+  }
+  // ────────────────────────────────────────────────
+
+  let balance = principal;
+  let totalInterest = 0;
+  let totalPaid = 0;
+  let month = 0;
+
+  let html = `
+    <div class="summary">
+      <strong>Starting balance:</strong> $${principal.toLocaleString(undefined, {minimumFractionDigits:2})}<br>
+      <strong>Annual interest rate:</strong> ${annualRate}%<br>
+      <strong>Monthly payment:</strong> $${monthlyPayment.toLocaleString(undefined, {minimumFractionDigits:2})}<br>
+      <strong>Payment necessary to not increase debt:</strong> 
+        $${minToReduce.toLocaleString(undefined, {minimumFractionDigits:2})}<br>
+      <strong>Starting:</strong> ${getDateString(0, startMonth, startYear)}
+    </div>`;
+
+  if (monthlyPayment <= minToReduce) {
+    html += `
+      <p class="negative" style="margin: 15px 0;">
+        Warning: Your monthly payment is ≤ the minimum needed to reduce principal. 
+        The balance will not decrease (or may increase).
+      </p>`;
+  }
+
+  html += `
+    <table>
+      <thead>
+        <tr>
+          <th class="date-col">Date</th>
+          <th>Balance</th>
+          <th>Interest</th>
+          <th>Principal</th>
+          <th>Payment</th>
+          <th>Total Paid</th>
+        </tr>
+      </thead>
+      <tbody>`;
+
+  // Initial balance (month 0)
+  html += `
+    <tr>
+      <td class="date-col">${getDateString(0, startMonth, startYear)}</td>
+      <td>$${balance.toLocaleString(undefined,{minimumFractionDigits:2})}</td>
+      <td>—</td>
+      <td>—</td>
+      <td>—</td>
+      <td>$0.00</td>
+    </tr>`;
+
+  while (balance > 0 && month < 300) {
+    month++;
+    const interestThisMonth = balance * monthlyRate;
+    totalInterest += interestThisMonth;
+
+    let principalThisMonth;
+    let paymentThisMonth = monthlyPayment;
+
+    if (balance + interestThisMonth <= monthlyPayment) {
+      paymentThisMonth = balance + interestThisMonth;
+      principalThisMonth = balance;
+    } else {
+      principalThisMonth = paymentThisMonth - interestThisMonth;
+    }
+
+    balance -= principalThisMonth;
+    totalPaid += paymentThisMonth;
+
+    if (balance < 0.01) balance = 0;
+
+    const rowClass = balance <= 0 ? 'paid-off' : '';
+
+    html += `
+      <tr class="${rowClass}">
+        <td class="date-col">${getDateString(month, startMonth, startYear)}</td>
+        <td>$${Math.max(balance,0).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
+        <td>$${interestThisMonth.toLocaleString(undefined,{minimumFractionDigits:2})}</td>
+        <td>$${principalThisMonth.toLocaleString(undefined,{minimumFractionDigits:2})}</td>
+        <td>$${paymentThisMonth.toLocaleString(undefined,{minimumFractionDigits:2})}</td>
+        <td>$${totalPaid.toLocaleString(undefined,{minimumFractionDigits:2})}</td>
+      </tr>`;
+
+    if (balance <= 0) break;
+  }
+
+  html += `</tbody></table>`;
+
+  const payoffMonth = month;
+  const payoffYear = startYear + Math.floor((startMonth + payoffMonth) / 12);
+  const payoffMonthIndex = (startMonth + payoffMonth) % 12;
+  const payoffDateStr = `${MONTH_NAMES[payoffMonthIndex]} ${payoffYear}`;
+
+  const years = Math.floor(payoffMonth / 12);
+  const monthsExtra = payoffMonth % 12;
+
+  html += `
+    <div class="summary years-estimate">
+      Loan paid off in <strong>${payoffMonth} months</strong> 
+      (${years} year${years > 1 ? 's' : ''}${monthsExtra > 0 ? ` + ${monthsExtra} month${monthsExtra > 1 ? 's' : ''}` : ''})<br>
+      <strong>Payoff date:</strong> ${payoffDateStr}<br>
+      Total paid: <strong>$${totalPaid.toLocaleString(undefined,{minimumFractionDigits:2})}</strong><br>
+      Total interest paid: <strong>$${totalInterest.toLocaleString(undefined,{minimumFractionDigits:2})}</strong>
+    </div>`;
+
+  if (payoffMonth >= 240) {
+    html += `<p class="negative">Note: Loan takes 20+ years to pay off with current payment.</p>`;
+  }
+
+  document.getElementById('result').innerHTML = html;
+}
+</script>
+
+</body>
+</html>

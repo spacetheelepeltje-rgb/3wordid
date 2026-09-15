@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Earth + Custom Area Shell Simulation (550 km)</title>
+<style>
+  body { margin:0; overflow:hidden; background:#000; font-family:Arial, sans-serif; }
+  #info {
+    position: absolute; top: 10px; left: 10px; color: white; background: rgba(0,0,0,0.5);
+    padding: 10px; border-radius: 8px; pointer-events: none;
+  }
+  #controls {
+    position: absolute; bottom: 10px; left: 10px; color: white; background: rgba(0,0,0,0.7);
+    padding: 12px; border-radius: 8px;
+  }
+</style>
+</head>
+<body>
+<div id="info">
+  <strong>Earth + 550 km Shell</strong><br>
+  <span id="stats"></span>
+</div>
+
+<div id="controls">
+  <label>Shape Area (sq miles): <input type="number" id="areaInput" value="100" style="width:80px"></label><br>
+  <button onclick="updateShell()">Update Shell</button>
+  <button onclick="toggleRotation()">Pause/Resume Rotation</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/controls/OrbitControls.js"></script>
+
+<script>
+// ============== CONFIG ==============
+const EARTH_RADIUS_KM = 6371;
+const ALTITUDE_KM = 550;
+const SHELL_RADIUS_KM = EARTH_RADIUS_KM + ALTITUDE_KM;
+
+// Visualization scale (so it fits nicely on screen)
+const SCALE = 0.001; // 1 km = 0.001 units
+const EARTH_RADIUS = EARTH_RADIUS_KM * SCALE;
+const SHELL_RADIUS = SHELL_RADIUS_KM * SCALE;
+
+// Default shape area in square miles
+let shapeAreaSqMiles = 100;
+
+// ============== THREE.JS SETUP ==============
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+camera.position.set(0, 0, 15);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(window.devicePixelRatio);
+document.body.appendChild(renderer.domElement);
+
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.05;
+
+// Lights
+const ambient = new THREE.AmbientLight(0x404040);
+scene.add(ambient);
+const sun = new THREE.DirectionalLight(0xffffff, 1.2);
+sun.position.set(50, 30, 20);
+scene.add(sun);
+
+// ============== EARTH ==============
+const earthGeo = new THREE.SphereGeometry(EARTH_RADIUS, 64, 64);
+const earthMat = new THREE.MeshPhongMaterial({
+  color: 0x2233ff,
+  shininess: 5,
+  specular: 0x222222
+});
+const earth = new THREE.Mesh(earthGeo, earthMat);
+scene.add(earth);
+
+// Simple atmosphere glow
+const atmosphereGeo = new THREE.SphereGeometry(EARTH_RADIUS * 1.015, 64, 64);
+const atmosphereMat = new THREE.MeshPhongMaterial({
+  color: 0x88ccff,
+  transparent: true,
+  opacity: 0.15,
+  blending: THREE.AdditiveBlending,
+  side: THREE.BackSide
+});
+const atmosphere = new THREE.Mesh(atmosphereGeo, atmosphereMat);
+scene.add(atmosphere);
+
+// ============== SHELL ==============
+let shellGroup = new THREE.Group();
+scene.add(shellGroup);
+
+function createShell() {
+  // Clear old shell
+  shellGroup.clear();
+
+  // Convert area to km²
+  const areaSqKm = shapeAreaSqMiles * 2.58999; // 1 sq mile ≈ 2.59 km²
+
+  // Approximate surface area of shell
+  const shellAreaKm2 = 4 * Math.PI * Math.pow(SHELL_RADIUS_KM, 2);
+  
+  // Number of shapes
+  let numShapes = Math.floor(shellAreaKm2 / areaSqKm);
+  numShapes = Math.max(100, Math.min(numShapes, 8000)); // reasonable limits
+
+  document.getElementById('stats').innerHTML = 
+    `Shell radius: ${SHELL_RADIUS_KM.toFixed(0)} km<br>
+     Shapes: ${numShapes.toLocaleString()} (${shapeAreaSqMiles} sq mi each)`;
+
+  // Use InstancedMesh for performance
+  const instanceCount = numShapes;
+  const geometry = new THREE.IcosahedronGeometry(0.08, 1); // small shape size
+  const material = new THREE.MeshPhongMaterial({ 
+    color: 0x00ff88, 
+    emissive: 0x00aa44,
+    shininess: 10 
+  });
+
+  const instancedMesh = new THREE.InstancedMesh(geometry, material, instanceCount);
+  const dummy = new THREE.Object3D();
+
+  let index = 0;
+  const phiStep = Math.PI * (3 - Math.sqrt(5)); // golden angle for good distribution
+
+  for (let i = 0; i < instanceCount; i++) {
+    const y = 1 - (i / (instanceCount - 1)) * 2;
+    const radius = Math.sqrt(1 - y * y);
+    const theta = phiStep * i;
+
+    const x = Math.cos(theta) * radius;
+    const z = Math.sin(theta) * radius;
+
+    dummy.position.set(x, y, z).multiplyScalar(SHELL_RADIUS);
+    dummy.lookAt(0, 0, 0); // orient toward center
+    dummy.updateMatrix();
+    instancedMesh.setMatrixAt(i, dummy.matrix);
+  }
+
+  shellGroup.add(instancedMesh);
+}
+
+// ============== ANIMATION ==============
+let rotating = true;
+
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+
+  if (rotating) {
+    earth.rotation.y += 0.0008;
+    shellGroup.rotation.y += 0.0008;
+  }
+
+  renderer.render(scene, camera);
+}
+
+animate();
+
+// ============== INTERACTIONS ==============
+function updateShell() {
+  shapeAreaSqMiles = parseFloat(document.getElementById('areaInput').value) || 100;
+  createShell();
+}
+
+function toggleRotation() {
+  rotating = !rotating;
+}
+
+// Resize handler
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// Initial creation
+createShell();
+</script>
+</body>
+</html>

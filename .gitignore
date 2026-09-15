@@ -1,0 +1,15 @@
+/vendor/
+/node_modules/
+.env
+.env.*
+*.log
+/backups/
+/php/
+/old_april/
+/old_error/
+/old/
+/logging/
+/api/
+/google_login/
+/login/
+/login/config.php

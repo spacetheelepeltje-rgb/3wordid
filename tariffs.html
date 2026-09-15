@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tariff Impact Calculator</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .slider { width: 300px; }
+        .results { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h2>Tariff Impact on Car Production</h2>
+    <p>follow <a href='https://x.com/climatebabes'>@climatebabes on X.com</a></p>
+    <label for="tariffSlider">Aluminum Tariff Rate (%): </label>
+    <input type="range" id="tariffSlider" min="0" max="50" value="0" class="slider">
+    <span id="tariffValue">0%</span>
+    
+    <div class="results" id="results">
+        <p>Base Aluminum Cost (per car): $5000</p>
+        <p>Tariff Cost: $0</p>
+        <p>Total Aluminum Cost: $5000</p>
+        <p>Production Cost: $30000</p>
+        <p>Selling Price (Europe): $50000</p>
+        <p>Profit Margin: $20000 (40%)</p>
+        
+    </div>
+
+    <script>
+        // Base values
+        const baseAluminumCost = 5000;    // Cost of aluminum per car
+        const otherProductionCost = 25000; // Other production costs
+        const sellingPrice = 50000;       // Export price to Europe
+
+        const slider = document.getElementById('tariffSlider');
+        const tariffValue = document.getElementById('tariffValue');
+        const results = document.getElementById('results');
+
+        function updateCalculations() {
+            // Get tariff rate from slider (0-50%)
+            const tariffRate = parseInt(slider.value);
+            tariffValue.textContent = tariffRate + '%';
+
+            // Calculate costs
+            const tariffCost = baseAluminumCost * (tariffRate / 100);
+            const totalAluminumCost = baseAluminumCost + tariffCost;
+            const totalProductionCost = totalAluminumCost + otherProductionCost;
+            const profit = sellingPrice - totalProductionCost;
+            const profitMargin = (profit / sellingPrice) * 100;
+
+            // Update display
+            results.innerHTML = `
+                <p>Base Aluminum Cost (per car): $${baseAluminumCost.toFixed(2)}</p>
+                <p>Tariff Cost: $${tariffCost.toFixed(2)}</p>
+                <p>Total Aluminum Cost: $${totalAluminumCost.toFixed(2)}</p>
+                <p>Production Cost: $${totalProductionCost.toFixed(2)}</p>
+                <p>Selling Price (Europe): $${sellingPrice.toFixed(2)}</p>
+                <p>Profit Margin: $${profit.toFixed(2)} (${profitMargin.toFixed(1)}%)</p>
+            `;
+        }
+
+        // Update when slider changes
+        slider.addEventListener('input', updateCalculations);
+
+        // Initial calculation
+        updateCalculations();
+    </script>
+</body>
+</html>

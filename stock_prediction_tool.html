@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Growth Calculator</title>
+    <style>
+        body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    max-width: 100vw; /* Prevent overflow beyond viewport */
+    box-sizing: border-box; /* Ensure padding/margins don’t cause overflow */
+}
+
+h1 {
+    font-size: 1.5em; /* Smaller on mobile for better fit */
+    line-height: 1.4;
+}
+
+.input-container {
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column; /* Stack items vertically on mobile */
+    gap: 15px; /* Space between rows */
+    width: 100%; /* Full width, constrained by parent */
+    max-width: 600px; /* Cap width on larger screens */
+}
+
+.input-container label {
+    display: flex;
+    justify-content: space-between; /* Label text left, input right */
+    align-items: center; /* Vertically center text and input */
+    width: 100%; /* Full width of container */
+    font-size: 1em; /* Readable text size */
+    margin-right: 0; /* Remove default margin */
+}
+
+.input-container label span {
+    flex: 0 0 auto; /* Label text doesn’t shrink or grow */
+    margin-right: 10px; /* Space between text and input */
+}
+
+.input-container input {
+    flex: 1; /* Input takes remaining space */
+    min-width: 0; /* Prevent overflow */
+    padding: 8px;
+    font-size: 1em;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box; /* Padding doesn’t affect width */
+}
+
+.input-container button {
+    padding: 10px 20px;
+    font-size: 1em;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    align-self: flex-start; /* Button aligns left */
+    margin-top: 10px; /* Space above button */
+}
+
+.input-container button:hover {
+    background-color: #0056b3; /* Darker on hover */
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-top: 20px;
+    font-size: 0.9em; /* Slightly smaller for mobile */
+    overflow-x: auto; /* Allow horizontal scroll if needed */
+    display: block; /* Enable scrolling on mobile */
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: right;
+    min-width: 80px; /* Ensure columns don’t collapse too small */
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
+/* Mobile-specific adjustments */
+@media screen and (max-width: 600px) {
+    body {
+        margin: 10px; /* Less margin on small screens */
+    }
+
+    h1 {
+        font-size: 1.3em; /* Even smaller for tiny screens */
+    }
+
+    .input-container label {
+        flex-direction: row; /* Keep label and input side-by-side */
+        font-size: 0.95em; /* Slightly smaller text */
+    }
+
+    .input-container input {
+        font-size: 0.95em;
+        padding: 6px; /* Smaller padding for compact look */
+    }
+
+    .input-container button {
+        width: 100%; /* Full-width button on mobile */
+        padding: 12px;
+    }
+
+    table {
+        font-size: 0.8em; /* Smaller table text */
+    }
+}
+
+/* Desktop adjustments */
+@media screen and (min-width: 601px) {
+    h1 {
+        font-size: 1.8em;
+    }
+
+    .input-container {
+        max-width: 800px; /* Wider form on desktop */
+    }
+
+    .input-container label {
+        font-size: 1.1em;
+    }
+
+    .input-container input {
+        max-width: 200px; /* Limit input width on desktop */
+    }
+}
+    </style>
+    <link rel="stylesheet" href="css/styles_3.css">
+</head>
+<body>
+    <h1>Stock Growth Calculator<br><a href="https://3WordId.com">3WordID.com</a></h1><br>
+    Estimate the theoretical value of your holdings based on price targets given a monthly allowance. No rights can be derived from using this tool. No data is stored if you use this page.<br><br>
+  <div class="input-container">
+    <label><span>Start MY:</span> <input type="month" id="startDate"></label>
+    <label><span>End MY:</span> <input type="month" id="endDate"></label>
+    <label><span>Current Stock Price ($):</span> <input type="number" id="currentPrice" step="0.01" min="0" size="10"></label>
+    <label><span>Price target ($):</span> <input type="number" id="futurePrice" step="0.01" min="0" size="10"></label>
+    <label><span>Current Stock Holding (nr):</span> <input type="number" id="currentHolding" step="1" min="0"></label>
+    <label><span>Monthly Allowance ($):</span> <input type="number" id="monthlyAllowance" step="0.01" min="0" value="0"></label>
+    <button onclick="calculateTable()">Calculate</button>
+</div>
+    <div id="result"></div>
+
+    <script>
+        // Set default dates
+        const today = new Date();
+        const twoYearsLater = new Date(today);
+        twoYearsLater.setFullYear(today.getFullYear() + 2);
+
+        // Format dates for input type="month" (YYYY-MM)
+        document.getElementById('startDate').value = today.toISOString().slice(0,7);
+        document.getElementById('endDate').value = twoYearsLater.toISOString().slice(0,7);
+
+        function calculateTable() {
+            // Get input values
+            const currentPrice = parseFloat(document.getElementById('currentPrice').value);
+            const futurePrice = parseFloat(document.getElementById('futurePrice').value);
+            const currentHolding = parseFloat(document.getElementById('currentHolding').value);
+            const monthlyAllowance = parseFloat(document.getElementById('monthlyAllowance').value);
+            const startDateInput = document.getElementById('startDate').value;
+            const endDateInput = document.getElementById('endDate').value;
+
+            // Validate numeric inputs
+            if (isNaN(currentPrice) || isNaN(futurePrice) || isNaN(currentHolding) || isNaN(monthlyAllowance) ||
+                currentPrice < 0 || futurePrice < 0 || currentHolding < 0 || monthlyAllowance < 0) {
+                alert('Please enter valid positive numbers for all numeric fields.');
+                return;
+            }
+
+            // Validate dates
+            const startDate = new Date(startDateInput + '-01');
+            const endDate = new Date(endDateInput + '-01');
+            if (startDate >= endDate) {
+                alert('End date must be after start date.');
+                return;
+            }
+
+            // Calculate months array
+            const months = [];
+            let currentDate = new Date(startDate);
+            while (currentDate <= endDate) {
+                months.push(new Date(currentDate));
+                currentDate.setMonth(currentDate.getMonth() + 1);
+            }
+            const totalMonths = months.length;
+
+            // Calculate monthly interest rate for stock price growth
+            const monthlyRate = (futurePrice / currentPrice) ** (1 / (totalMonths - 1)) - 1;
+
+            // Build table data
+            let stockPrice = currentPrice;
+            let stockHolding = currentHolding;
+            const tableData = {
+                months: [],
+                prices: [],
+                stocksSold: [],
+                allowances: [],
+                totalValues: [],
+                stockHoldings: []
+            };
+
+            for (let i = 0; i < totalMonths; i++) {
+                tableData.months.push(months[i].toLocaleString('default', { month: 'long', year: 'numeric' }));
+                tableData.prices.push(stockPrice);
+                tableData.stockHoldings.push(stockHolding);
+
+                // Calculate stocks to sell (whole numbers only)
+                const stocksToSell = Math.floor(monthlyAllowance / stockPrice);
+                const stocksSold = Math.min(stocksToSell, stockHolding);
+                tableData.stocksSold.push(stocksSold);
+
+                // Monthly allowance achieved based on whole stocks sold
+                const achievedAllowance = stocksSold * stockPrice;
+                tableData.allowances.push(achievedAllowance);
+
+                // Total value before selling
+                tableData.totalValues.push(stockHolding * stockPrice);
+
+                // Update holdings for next month
+                stockHolding -= stocksSold;
+
+                // Increase stock price for next month
+                stockPrice *= (1 + monthlyRate);
+            }
+
+            // Generate horizontal table HTML
+            let tableHTML = '<table><tr><th></th>';
+            for (let i = 0; i < totalMonths; i++) {
+                tableHTML += `<th>${tableData.months[i]}</th>`;
+            }
+            tableHTML += '</tr>';
+
+            // Stock Price row
+            tableHTML += '<tr><td>Stock Price ($)</td>';
+            for (let i = 0; i < totalMonths; i++) {
+                tableHTML += `<td>${tableData.prices[i].toFixed(2)}</td>`;
+            }
+            tableHTML += '</tr>';
+
+            // Stocks Sold row
+            tableHTML += '<tr><td>Stocks Sold</td>';
+            for (let i = 0; i < totalMonths; i++) {
+                tableHTML += `<td>${tableData.stocksSold[i]}</td>`;
+            }
+            tableHTML += '</tr>';
+
+            // Monthly Allowance row
+            tableHTML += '<tr><td>Monthly Allowance ($)</td>';
+            for (let i = 0; i < totalMonths; i++) {
+                tableHTML += `<td>${tableData.allowances[i].toFixed(2)}</td>`;
+            }
+            tableHTML += '</tr>';
+
+            // Total Value row
+            tableHTML += '<tr><td>Remaining Value ($)</td>';
+            for (let i = 0; i < totalMonths; i++) {
+                tableHTML += `<td>${tableData.totalValues[i].toFixed(2)}</td>`;
+            }
+            tableHTML += '</tr>';
+
+            // Total Stock Holding row
+            tableHTML += '<tr><td>Total Stock Holding</td>';
+            for (let i = 0; i < totalMonths; i++) {
+                tableHTML += `<td>${tableData.stockHoldings[i]}</td>`;
+            }
+            tableHTML += '</tr>';
+
+            tableHTML += '</table>';
+
+            // Display table
+            document.getElementById('result').innerHTML = tableHTML;
+        }
+    </script>
+</body>
+</html>

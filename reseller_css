@@ -1,0 +1,125 @@
+    <style>
+    * {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  line-height: 1.6;
+  color: #333;
+  min-height: 100vh;
+}
+
+/* Main container styling with Flexbox for centering */
+.main-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 20px;
+  text-align: center;
+}
+
+/* Search container styling */
+.search-container {
+  max-width: 600px; /* Limit width for readability on larger screens */
+  width: 100%; /* Full width on smaller screens */
+  margin-bottom: 20px;
+}
+
+/* Logo link styling */
+.logo-link {
+  display: block;
+  margin: 0 auto 20px; /* Center the logo and add spacing below */
+}
+
+/* Heading styling */
+.search-container h2 {
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+  color: #1a73e8; /* A nice blue for emphasis */
+}
+
+/* Paragraph styling */
+.search-container p {
+  font-size: 1rem;
+  margin-bottom: 15px;
+}
+
+/* Link styling */
+.search-container a,
+.back-link a {
+  color: #1a73e8;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.search-container a:hover,
+.back-link a:hover {
+  color: #1557b0;
+  text-decoration: underline;
+}
+
+/* Back link styling */
+.back-link {
+  margin-top: 20px;
+}
+
+.back-link a {
+  font-size: 1rem;
+  padding: 10px 20px;
+  border: 1px solid #1a73e8;
+  border-radius: 5px;
+  display: inline-block;
+}
+
+.back-link a:hover {
+  background-color: #f0f4ff;
+}
+
+/* Responsive adjustments for mobile */
+@media (max-width: 768px) {
+  .main-container {
+    padding: 15px;
+  }
+
+  .search-container {
+    max-width: 100%;
+  }
+
+  .search-container h2 {
+    font-size: 1.25rem;
+  }
+
+  .search-container p {
+    font-size: 0.9rem;
+  }
+
+  .logo-link img {
+    width: 80px; /* Slightly smaller logo on mobile */
+  }
+
+  .back-link a {
+    font-size: 0.9rem;
+    padding: 8px 16px;
+  }
+}
+
+/* Ensure the page is mobile-friendly */
+@media (max-width: 480px) {
+  .search-container h2 {
+    font-size: 1.1rem;
+  }
+
+  .search-container p {
+    font-size: 0.85rem;
+  }
+
+  .logo-link img {
+    width: 60px; /* Even smaller logo for very small screens */
+  }
+}
+</style>

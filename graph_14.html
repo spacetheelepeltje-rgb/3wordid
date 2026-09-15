@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Tetrahedral Lattice</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #0a0a0a; font-family: Arial, sans-serif; }
+        canvas { display: block; }
+        #controls {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.75);
+            padding: 12px 16px;
+            border-radius: 10px;
+            color: white;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        }
+        label { display: block; margin-bottom: 6px; font-size: 14px; }
+        input[type="number"] {
+            width: 80px;
+            padding: 7px;
+            border: none;
+            border-radius: 5px;
+            background: #222;
+            color: white;
+        }
+        button {
+            margin-top: 10px;
+            padding: 9px 18px;
+            background: #00ddff;
+            color: #111;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        button:hover { background: #00ffff; }
+        small { display: block; margin-top: 8px; font-size: 12.5px; opacity: 0.75; }
+    </style>
+</head>
+<body>
+    <div id="controls">
+        <label>Grid Size (N) — creates ~N³ tetrahedrons</label>
+        <input type="number" id="nInput" value="6" min="2" max="12">
+        <button onclick="generateLattice()">Generate Lattice</button>
+        <small>Mouse drag = rotate • Scroll = zoom • Connected tetrahedral lattice</small>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <script>
+        let scene, camera, renderer;
+        let latticeGroup;
+        let isDragging = false;
+        let prevMouseX = 0, prevMouseY = 0;
+        let rotX = 0.4, rotY = 0.2;
+
+        function init() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0a0a0a);
+
+            camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(15, 18, 35);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            document.body.appendChild(renderer.domElement);
+
+            const ambient = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambient);
+            const dir = new THREE.DirectionalLight(0xaaffff, 1.1);
+            dir.position.set(20, 30, 25);
+            scene.add(dir);
+            const dir2 = new THREE.DirectionalLight(0xffaaff, 0.6);
+            dir2.position.set(-25, 15, -20);
+            scene.add(dir2);
+
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+
+            setupControls();
+            animate();
+        }
+
+        function createTetraLattice(n) {
+            if (latticeGroup) scene.remove(latticeGroup);
+            latticeGroup = new THREE.Group();
+
+            const edgeLen = 3.2;
+            const points = new Map(); // key: "x,y,z" → Vector3
+            const edges = new Set();  // unique edges as "i-j" with i < j
+
+            // Generate 3D grid points with tetrahedral-friendly spacing
+            for (let i = 0; i < n; i++) {
+                for (let j = 0; j < n; j++) {
+                    for (let k = 0; k < n; k++) {
+                        // Offset every other layer for better tetrahedral packing
+                        const offset = (j % 2) * (edgeLen * 0.5);
+                        const x = (i - (n-1)/2) * edgeLen * 1.1 + offset;
+                        const y = (j - (n-1)/2) * edgeLen * 0.95;
+                        const z = (k - (n-1)/2) * edgeLen * 1.1;
+
+                        const key = `${i},${j},${k}`;
+                        points.set(key, new THREE.Vector3(x, y, z));
+                    }
+                }
+            }
+
+            // Create tetrahedrons by connecting nearby points
+            const dirs = [
+                [1,0,0], [0,1,0], [0,0,1],
+                [1,1,0], [1,0,1], [0,1,1],
+                [1,1,1], [1,-1,0], [1,0,-1]
+            ];
+
+            points.forEach((p1, key1) => {
+                const [i,j,k] = key1.split(',').map(Number);
+                
+                dirs.forEach(([di,dj,dk]) => {
+                    const i2 = i + di, j2 = j + dj, k2 = k + dk;
+                    if (i2 >= n || j2 >= n || k2 >= n || i2 < 0 || j2 < 0 || k2 < 0) return;
+
+                    const key2 = `${i2},${j2},${k2}`;
+                    const p2 = points.get(key2);
+                    if (!p2) return;
+
+                    // Distance check to keep only reasonable edges
+                    const dist = p1.distanceTo(p2);
+                    if (dist > edgeLen * 1.8) return;
+
+                    const id1 = Array.from(points.keys()).indexOf(key1);
+                    const id2 = Array.from(points.keys()).indexOf(key2);
+                    const edgeKey = id1 < id2 ? `${id1}-${id2}` : `${id2}-${id1}`;
+                    edges.add(edgeKey);
+                });
+            });
+
+            // === Render unique edges ===
+            const positions = [];
+            edges.forEach(eKey => {
+                const [a, b] = eKey.split('-').map(Number);
+                const pA = Array.from(points.values())[a];
+                const pB = Array.from(points.values())[b];
+                positions.push(pA.x, pA.y, pA.z, pB.x, pB.y, pB.z);
+            });
+
+            const lineGeo = new THREE.BufferGeometry();
+            lineGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
+            const lineMat = new THREE.LineBasicMaterial({
+                color: 0x00ffff,
+                linewidth: 3.5,
+                transparent: true,
+                opacity: 0.95
+            });
+            const lines = new THREE.LineSegments(lineGeo, lineMat);
+            latticeGroup.add(lines);
+
+            // === Nodes (spheres) ===
+            const nodeGeo = new THREE.SphereGeometry(0.22, 20, 20);
+            const nodeMat = new THREE.MeshPhongMaterial({
+                color: 0xffffff,
+                emissive: 0x44ffff,
+                shininess: 90
+            });
+
+            points.forEach(p => {
+                const node = new THREE.Mesh(nodeGeo, nodeMat);
+                node.position.copy(p);
+                latticeGroup.add(node);
+            });
+
+            // Optional faint faces for depth (very light)
+            // ... (skipped for performance, but can be added)
+
+            scene.add(latticeGroup);
+            
+            // Center and scale camera
+            const extent = n * edgeLen * 1.1;
+            camera.position.set(extent * 0.9, extent * 0.8, extent * 1.6);
+            camera.lookAt(0, 0, 0);
+        }
+
+        function generateLattice() {
+            const n = Math.max(2, Math.min(12, parseInt(document.getElementById('nInput').value) || 6));
+            createTetraLattice(n);
+        }
+
+        function setupControls() {
+            const canvas = renderer.domElement;
+
+            canvas.addEventListener('mousedown', e => {
+                if (e.button === 0) {
+                    isDragging = true;
+                    prevMouseX = e.clientX;
+                    prevMouseY = e.clientY;
+                }
+            });
+
+            window.addEventListener('mouseup', () => isDragging = false);
+            window.addEventListener('mousemove', e => {
+                if (!isDragging || !latticeGroup) return;
+
+                const dx = (e.clientX - prevMouseX) * 0.005;
+                const dy = (e.clientY - prevMouseY) * 0.005;
+
+                rotY += dx;
+                rotX += dy;
+                rotX = Math.max(-Math.PI/2 + 0.2, Math.min(Math.PI/2 - 0.2, rotX));
+
+                latticeGroup.rotation.set(rotX, rotY, 0);
+
+                prevMouseX = e.clientX;
+                prevMouseY = e.clientY;
+            });
+
+            window.addEventListener('wheel', e => {
+                camera.position.z += e.deltaY * 0.1;
+                camera.position.z = Math.max(8, Math.min(120, camera.position.z));
+            });
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            if (latticeGroup && !isDragging) {
+                latticeGroup.rotation.y += 0.0006; // gentle idle spin
+            }
+            if (renderer && scene && camera) renderer.render(scene, camera);
+        }
+
+        window.onload = () => {
+            init();
+            generateLattice(); // initial lattice
+        };
+    </script>
+</body>
+</html>

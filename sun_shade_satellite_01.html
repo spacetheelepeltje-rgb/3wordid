@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Retrograde GEO Satellite - High Relative Speed</title>
+<style>
+  body { margin:0; background:#000; color:#fff; font-family:Arial; text-align:center; }
+  canvas { border:1px solid #444; margin:20px; }
+  h1 { margin:15px; }
+</style>
+</head>
+<body>
+  <h1>Retrograde Satellite at GEO Altitude (42,164 km)</h1>
+  <p><strong>Blue dot</strong> = Retrograde Satellite (very fast) | <strong>Green dot</strong> = Normal Prograde GEO | Yellow = Sun direction</p>
+  <canvas id="canvas" width="900" height="650"></canvas>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+const W = 900, H = 650;
+const CX = W/2, CY = H/2;
+
+const EARTH_R = 90;
+const ORBIT_R = 320;
+
+let time = 0;
+
+function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    // Space background
+    ctx.fillStyle = "#000511";
+    ctx.fillRect(0, 0, W, H);
+
+    // Sun rays from right
+    ctx.strokeStyle = "#ffdd44";
+    ctx.lineWidth = 4;
+    for(let i = -12; i <= 12; i+=3) {
+        ctx.beginPath();
+        ctx.moveTo(W-40, CY + i*22);
+        ctx.lineTo(CX + 100, CY + i*22);
+        ctx.stroke();
+    }
+    ctx.fillStyle = "#ffcc00";
+    ctx.beginPath();
+    ctx.arc(W-55, CY, 35, 0, Math.PI*2);
+    ctx.fill();
+
+    ctx.save();
+    ctx.translate(CX, CY);
+
+    // Earth
+    ctx.fillStyle = "#2277ff";
+    ctx.beginPath();
+    ctx.arc(0, 0, EARTH_R, 0, Math.PI*2);
+    ctx.fill();
+
+    // Night side shading
+    ctx.fillStyle = "rgba(0,0,0,0.45)";
+    ctx.beginPath();
+    ctx.rect(-EARTH_R, -EARTH_R*1.5, EARTH_R, EARTH_R*3);
+    ctx.fill();
+
+    // Noon point
+    const noonAng = time * 0.8 * Math.PI/180;
+    const nx = Math.cos(noonAng) * (EARTH_R - 8);
+    const ny = Math.sin(noonAng) * (EARTH_R - 8);
+    ctx.fillStyle = "#ff2222";
+    ctx.beginPath();
+    ctx.arc(nx, ny, 12, 0, Math.PI*2);
+    ctx.fill();
+
+    ctx.restore();
+
+    // Orbit circle
+    ctx.strokeStyle = "#555577";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(CX, CY, ORBIT_R, 0, Math.PI*2);
+    ctx.stroke();
+
+    // === SATELLITES ===
+
+    // 1. Normal Prograde GEO (almost stationary relative to Earth)
+    const proAng = time * 0.8 * Math.PI/180;           // same speed as Earth rotation
+    const px = CX + Math.cos(proAng) * ORBIT_R;
+    const py = CY + Math.sin(proAng) * ORBIT_R;
+    
+    ctx.fillStyle = "#00ff88";
+    ctx.beginPath();
+    ctx.arc(px, py, 11, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "14px Arial";
+    ctx.fillText("Normal GEO", px+18, py+5);
+
+    // 2. Retrograde Satellite (very fast opposite direction)
+    const retroAng = time * -15 * Math.PI/180;         // much faster retrograde
+    const rx = CX + Math.cos(retroAng) * ORBIT_R;
+    const ry = CY + Math.sin(retroAng) * ORBIT_R;
+    
+    ctx.fillStyle = "#00ddff";
+    ctx.beginPath();
+    ctx.arc(rx, ry, 11, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = "#ffffff";
+    ctx.fillText("Retrograde (Fast)", rx+18, ry-8);
+
+    // Relative speed indicator
+    ctx.fillStyle = "#ffff00";
+    ctx.font = "bold 16px Arial";
+    ctx.fillText("Huge Relative Speed (~6.6 km/s)", 20, 40);
+
+    time += 1;
+    requestAnimationFrame(draw);
+}
+
+draw();
+</script>
+
+<p style="max-width:800px;margin:15px auto;">
+    Notice how the <strong>retrograde satellite (blue)</strong> whips around the Earth extremely fast in the opposite direction, 
+    while the normal GEO satellite (green) stays nearly fixed above one spot.<br><br>
+    Even at this high speed, the retrograde satellite still spends half its time on the <strong>night side</strong>.
+</p>
+</body>
+</html>

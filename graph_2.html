@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graph Dynamics — Global Rules</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+        body { margin:0; padding:0; font-family:'Inter',sans-serif; background:#0f172a; color:#e2e8f0; height:100vh; overflow:hidden; display:flex; flex-direction:column; }
+        header { background:#1e2937; padding:12px 24px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #334155; }
+        h1 { margin:0; font-size:1.5rem; }
+        .controls { display:flex; gap:12px; align-items:center; }
+        button { padding:8px 18px; border:none; border-radius:9999px; font-weight:600; cursor:pointer; }
+        button.primary { background:#22d3ee; color:#0f172a; }
+        button.secondary { background:#334155; color:white; }
+        #canvas { flex:1; background:#1e2937; cursor:grab; }
+        .sidebar { width:340px; background:#1e2937; border-left:1px solid #334155; padding:20px; overflow-y:auto; display:flex; flex-direction:column; gap:20px; }
+        .panel { background:#334155; border-radius:12px; padding:18px; }
+        label { display:block; margin:12px 0 6px; font-size:0.9rem; }
+        input[type=number] { width:100%; padding:8px; background:#1e2937; border:none; border-radius:8px; color:white; }
+        .stat-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+        .stat-value { font-size:1.8rem; font-weight:700; color:#22d3ee; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Graph Dynamics</h1>
+    <div class="controls">
+        <button onclick="toggleAuto()" id="autoBtn">▶ Auto</button>
+        <button onclick="doStep()" class="secondary">Step →</button>
+        <button onclick="resetGraph()" class="secondary">Reset</button>
+    </div>
+</header>
+
+<div style="display:flex; flex:1; overflow:hidden;">
+    <canvas id="canvas" width="1100" height="700"></canvas>
+    
+    <div class="sidebar">
+        <div class="panel">
+            <h3>Global Rules (apply to every node)</h3>
+            
+            <label>Target minimum degree <span id="targetVal">3</span></label>
+            <input type="range" id="targetSlider" min="1" max="8" value="3" oninput="updateTarget(this.value)">
+            
+            <label>Spawn children when below target <span id="spawnVal">2</span></label>
+            <input type="range" id="spawnSlider" min="1" max="5" value="2" oninput="updateSpawn(this.value)">
+            
+            <div style="margin-top:20px; font-size:0.9rem; background:#1e2937; padding:12px; border-radius:8px;">
+                Every step:<br>
+                • Nodes with <strong>degree &lt; <span id="ruleTextTarget">3</span></strong> will spawn 
+                <strong><span id="ruleTextSpawn">2</span></strong> new nodes
+            </div>
+        </div>
+
+        <div class="panel stat-grid">
+            <div><div class="stat-value" id="statNodes">1</div><small>NODES</small></div>
+            <div><div class="stat-value" id="statEdges">0</div><small>EDGES</small></div>
+            <div><div class="stat-value" id="statStep">0</div><small>STEP</small></div>
+            <div><div class="stat-value" id="statActive">1</div><small>ACTIVE</small></div>
+        </div>
+
+        <div class="panel" style="font-size:0.85rem; line-height:1.5; opacity:0.85;">
+            New nodes are born with the same global rules.<br><br>
+            Drag nodes • Click to select • Spacebar = manual step
+        </div>
+    </div>
+</div>
+
+<script>
+// ====================== DATA ======================
+let nodes = [];
+let edges = [];
+let maxId = 1;
+let step = 0;
+let autoInterval = null;
+
+let targetDegree = 3;
+let spawnCount = 2;
+
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+class Node {
+    constructor(id, x, y) {
+        this.id = id;
+        this.x = x;
+        this.y = y;
+        this.vx = 0;
+        this.vy = 0;
+    }
+}
+
+// ====================== INIT ======================
+function init() {
+    nodes = [];
+    edges = [];
+    maxId = 1;
+    step = 0;
+    
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    
+    nodes.push(new Node(1, centerX, centerY));
+    updateStats();
+}
+
+function updateStats() {
+    document.getElementById('statNodes').textContent = nodes.length;
+    document.getElementById('statEdges').textContent = edges.length;
+    document.getElementById('statStep').textContent = step;
+    document.getElementById('statActive').textContent = nodes.length;
+}
+
+// ====================== PHYSICS ======================
+function applyPhysics() {
+    const repulsion = 2200;
+    const springK = 0.09;
+    const restLength = 110;
+    const damping = 0.78;
+
+    nodes.forEach(n => { n.fx = 0; n.fy = 0; });
+
+    // Repulsion
+    for (let i = 0; i < nodes.length; i++) {
+        for (let j = i+1; j < nodes.length; j++) {
+            const dx = nodes[i].x - nodes[j].x;
+            const dy = nodes[i].y - nodes[j].y;
+            const distSq = dx*dx + dy*dy || 1;
+            const dist = Math.sqrt(distSq);
+            const f = repulsion / distSq;
+
+            nodes[i].fx += dx/dist * f;
+            nodes[i].fy += dy/dist * f;
+            nodes[j].fx -= dx/dist * f;
+            nodes[j].fy -= dy/dist * f;
+        }
+    }
+
+    // Springs
+    edges.forEach(e => {
+        const a = nodes.find(n => n.id === e.from);
+        const b = nodes.find(n => n.id === e.to);
+        if (!a || !b) return;
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        const dist = Math.hypot(dx, dy) || 1;
+        const force = (dist - restLength) * springK;
+
+        const fx = dx/dist * force;
+        const fy = dy/dist * force;
+
+        a.fx += fx; a.fy += fy;
+        b.fx -= fx; b.fy -= fy;
+    });
+
+    // Apply
+    nodes.forEach(n => {
+        n.vx = (n.vx||0) * damping + (n.fx||0) * 0.1;
+        n.vy = (n.vy||0) * damping + (n.fy||0) * 0.1;
+        n.x += n.vx;
+        n.y += n.vy;
+
+        // bounds
+        if (n.x < 40) { n.x = 40; n.vx = 3; }
+        if (n.x > canvas.width-40) { n.x = canvas.width-40; n.vx = -3; }
+        if (n.y < 40) { n.y = 40; n.vy = 3; }
+        if (n.y > canvas.height-40) { n.y = canvas.height-40; n.vy = -3; }
+    });
+}
+
+// ====================== DRAW ======================
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Edges
+    ctx.strokeStyle = '#64748b';
+    ctx.lineWidth = 2.2;
+    edges.forEach(e => {
+        const a = nodes.find(n => n.id === e.from);
+        const b = nodes.find(n => n.id === e.to);
+        if (!a || !b) return;
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+        ctx.stroke();
+    });
+
+    // Nodes
+    nodes.forEach(node => {
+        const degree = edges.filter(e => e.from === node.id || e.to === node.id).length;
+        
+        ctx.shadowBlur = 18;
+        ctx.shadowColor = degree < targetDegree ? '#f43f5e' : '#22d3ee';
+        
+        ctx.fillStyle = '#22d3ee';
+        ctx.beginPath();
+        ctx.arc(node.x, node.y, 21, 0, Math.PI*2);
+        ctx.fill();
+
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = '#0f172a';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(node.x, node.y, 21, 0, Math.PI*2);
+        ctx.stroke();
+
+        ctx.fillStyle = '#0f172a';
+        ctx.font = '700 16px Inter';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(node.id, node.x, node.y);
+    });
+}
+
+// ====================== STEP (RULE ENGINE) ======================
+function doStep() {
+    step++;
+    const newNodes = [];
+    const newEdges = [];
+
+    nodes.forEach(node => {
+        const currentDegree = edges.filter(e => 
+            e.from === node.id || e.to === node.id
+        ).length;
+
+        if (currentDegree < targetDegree) {
+            const needed = Math.min(targetDegree - currentDegree, spawnCount);
+            
+            for (let i = 0; i < needed; i++) {
+                maxId++;
+                const angle = Math.random() * Math.PI * 2;
+                const dist = 70 + Math.random() * 40;
+                
+                const newNode = new Node(maxId, 
+                    node.x + Math.cos(angle) * dist,
+                    node.y + Math.sin(angle) * dist
+                );
+                
+                newNodes.push(newNode);
+                newEdges.push({ from: node.id, to: maxId });
+            }
+        }
+    });
+
+    if (newNodes.length > 0) {
+        nodes = nodes.concat(newNodes);
+        edges = edges.concat(newEdges);
+    }
+
+    updateStats();
+}
+
+// ====================== UI ======================
+function updateTarget(val) {
+    targetDegree = parseInt(val);
+    document.getElementById('targetVal').textContent = targetDegree;
+    document.getElementById('ruleTextTarget').textContent = targetDegree;
+}
+
+function updateSpawn(val) {
+    spawnCount = parseInt(val);
+    document.getElementById('spawnVal').textContent = spawnCount;
+    document.getElementById('ruleTextSpawn').textContent = spawnCount;
+}
+
+function toggleAuto() {
+    const btn = document.getElementById('autoBtn');
+    if (autoInterval) {
+        clearInterval(autoInterval);
+        autoInterval = null;
+        btn.textContent = '▶ Auto';
+    } else {
+        autoInterval = setInterval(() => doStep(), 420);
+        btn.textContent = '⏹ Stop';
+    }
+}
+
+function resetGraph() {
+    if (autoInterval) clearInterval(autoInterval);
+    autoInterval = null;
+    document.getElementById('autoBtn').textContent = '▶ Auto';
+    init();
+}
+
+// ====================== INTERACTION ======================
+let selected = null;
+let dragging = false;
+
+canvas.addEventListener('mousedown', e => {
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+
+    for (let i = nodes.length-1; i >= 0; i--) {
+        const n = nodes[i];
+        if (Math.hypot(n.x - mx, n.y - my) < 30) {
+            selected = n;
+            dragging = true;
+            return;
+        }
+    }
+});
+
+canvas.addEventListener('mousemove', e => {
+    if (!dragging || !selected) return;
+    const rect = canvas.getBoundingClientRect();
+    selected.x = e.clientX - rect.left;
+    selected.y = e.clientY - rect.top;
+});
+
+window.addEventListener('mouseup', () => dragging = false);
+
+window.addEventListener('keydown', e => {
+    if (e.key === ' ') { e.preventDefault(); doStep(); }
+});
+
+// ====================== ANIMATION ======================
+function loop() {
+    applyPhysics();
+    draw();
+    requestAnimationFrame(loop);
+}
+
+init();
+loop();
+</script>
+</body>
+</html>

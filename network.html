@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neural Network Activation Simulation with Moving Signals</title>
+    <style>
+        body { margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f0f0f0; }
+        canvas { border: 1px solid #000; background: #fff; }
+    </style>
+</head>
+<body>
+    <canvas id="network" width="800" height="600"></canvas>
+    <script>
+        const canvas = document.getElementById('network');
+        const ctx = canvas.getContext('2d');
+        const numNodes = 20;
+        const nodes = [];
+        const signals = [];
+
+        // Create nodes with random positions
+        for (let i = 0; i < numNodes; i++) {
+            nodes.push({
+                x: Math.random() * 780 + 10,  // Avoid edges
+                y: Math.random() * 580 + 10,
+                active: false,
+                connections: []
+            });
+        }
+
+        // Create random directed connections (2-4 per node)
+        for (let i = 0; i < numNodes; i++) {
+            const numConnections = Math.floor(Math.random() * 3) + 2;
+            for (let j = 0; j < numConnections; j++) {
+                let target = Math.floor(Math.random() * numNodes);
+                if (target !== i && !nodes[i].connections.includes(target)) {
+                    nodes[i].connections.push(target);
+                }
+            }
+        }
+
+        // Function to activate a node and propagate signals
+        function activateNode(index, now) {
+            const node = nodes[index];
+            if (!node.active) {
+                node.active = true;
+                node.connections.forEach(conn => {
+                    // Check if there's already a signal en route to this connection
+                    const existingSignal = signals.find(s => s.to === conn && s.progress < 1);
+                    if (!existingSignal && !nodes[conn].active) {
+                        signals.push({
+                            from: index,
+                            to: conn,
+                            startTime: now,
+                            duration: 500  // 500ms travel time
+                        });
+                    }
+                });
+            }
+        }
+
+        // Start activation with a random node
+        function startActivation() {
+            // Reset all nodes and signals
+            nodes.forEach(node => {
+                node.active = false;
+            });
+            signals.length = 0;
+
+            const startNode = Math.floor(Math.random() * numNodes);
+            activateNode(startNode, Date.now());
+        }
+
+        startActivation();
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const now = Date.now();
+
+            // Draw connections (gray lines)
+            nodes.forEach(node => {
+                node.connections.forEach(conn => {
+                    ctx.beginPath();
+                    ctx.moveTo(node.x, node.y);
+                    ctx.lineTo(nodes[conn].x, nodes[conn].y);
+                    ctx.strokeStyle = 'gray';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                });
+            });
+
+            // Update and draw nodes
+            nodes.forEach(node => {
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, 10, 0, Math.PI * 2);
+                ctx.fillStyle = node.active ? 'green' : 'blue';
+                ctx.fill();
+            });
+
+            // Update and draw signals
+            for (let i = signals.length - 1; i >= 0; i--) {
+                const signal = signals[i];
+                const progress = Math.min((now - signal.startTime) / signal.duration, 1);
+
+                if (progress >= 1) {
+                    // Signal has arrived, activate the target
+                    activateNode(signal.to, now);
+                    // Remove the signal
+                    signals.splice(i, 1);
+                } else {
+                    // Draw moving signal
+                    const fromNode = nodes[signal.from];
+                    const toNode = nodes[signal.to];
+                    const x = fromNode.x + (toNode.x - fromNode.x) * progress;
+                    const y = fromNode.y + (toNode.y - fromNode.y) * progress;
+
+                    ctx.beginPath();
+                    ctx.arc(x, y, 5, 0, Math.PI * 2);
+                    ctx.fillStyle = 'red';
+                    ctx.fill();
+
+                    // Update progress (though not necessary since recalculated)
+                    signal.progress = progress;
+                }
+            }
+
+            // Check if propagation is done (no more signals and some condition)
+            // If no signals and all active or stalled, restart after 2 seconds
+            if (signals.length === 0) {
+                setTimeout(startActivation, 2000);
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+</html>
