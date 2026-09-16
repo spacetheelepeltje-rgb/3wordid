@@ -50,6 +50,8 @@
       }
 
  $db_3wordid_list = db_3wordid_list_recent();
+ 
+ $loginUrl ='/login/options.php';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -93,13 +95,13 @@
             <a href="https://x.com/climatebabes/status/1921113933592584660">Docs</a>
         </nav>
         <div class="header-actions" id="userContainer">
-            <a href="<?php echo $loginUrl; ?>" class="btn btn-primary">Create ID</a>
-            <a href="<?php echo $loginUrl; ?>" class="login-icon" title="Log in (not all functions work on mobile devices)">
+            <a href="<?php echo $loginUrl; ?>" class="btn btn-primary">Log in/Create ID</a>
+            <!-- <a href="<?php echo $loginUrl; ?>" class="login-icon" title="Log in (not all functions work on mobile devices)">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="Login Icon">
                 <path d="M15 21h4a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-4"></path>
                 <polyline points="8 7 13 12 8 17"></polyline>
                 <line x1="13" y1="12" x2="1" y2="12"></line>
-              </svg>
+              </svg> -->
             </a>
         </div>
     </header>
@@ -170,7 +172,7 @@
 <script src="js/3wid_index_2.js"></script>
 <script>
     function handleGoogleLogin() {
-        window.location.href = '<?php echo $loginUrl; ?>';
+        //window.location.href = '<?php echo $loginUrl; ?>';
     }
 
     document.querySelector('.login-icon')?.addEventListener('click', function(e) {

@@ -333,14 +333,12 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
 
         <section class="stats">
             <div class="stat"><span>Active IDs</span><strong><?php echo $count_rows; ?></strong></div>
-            <div class="stat"><span>Remaining credit</span><strong><?php echo $remaining; ?></strong></div>
-            <div class="stat"><span>Account</span><strong>#<?php echo htmlspecialchars($data["id"]); ?></strong></div>
+            <div class="stat"><span>Remaining</span><strong><?php echo $remaining; ?></strong></div> <!-- needs to work -->
+            <div class="stat"><span>Visits</span><strong><!-- sum visits -->1253</strong></div>
         </section>
 
         <div class="toolbar">
-            <a class="btn btn-ghost <?php echo $state; ?>" <?php echo $style; ?> href="3wid_messageform.php" title="You need to create a 3WordID to send messages to 3WordIDs">Message</a>
-            <!--<a class="btn btn-ghost" href="3wid_reseller.php">Reseller</a>-->
-            <!--<a class="btn btn-ghost" href="3wid_credit.php">Add credit</a>-->
+            <a class="btn btn-ghost <?php echo $state; ?>" <?php echo $style; ?> href="3wid_messageform.php" title="You need to create a 3WordID to send messages to 3WordIDs">Compose Message</a>
         </div>
 
         <section class="panel">
