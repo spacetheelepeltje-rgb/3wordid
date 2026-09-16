@@ -52,6 +52,7 @@
  $db_3wordid_list = db_3wordid_list_recent();
  
  $loginUrl ='/login/options.php';
+ $helpertext ='';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -108,7 +109,7 @@
 
     <main>
         <section class="hero">
-            <div class="eyebrow">HUMAN-READABLE IDENTIFIERS</div>
+            <div class="eyebrow">HUMAN-READABLE IDENTIFIERS <b><style="color:black;">BETA version</style></b></div>
             <h1>Three words.<br>One destination.</h1>
             <p class="subhead">Look up a URL, notification, or private message box using any three-word ID. Easy to say. Easy to remember.</p>
             <div class="helper-note" id="helperText"><?php echo $helpertext; ?></div>
