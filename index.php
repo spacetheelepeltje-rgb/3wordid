@@ -67,8 +67,18 @@
     <meta name="twitter:site" content="@climatebabes">
     <meta name="twitter:title" content="3WordID - Your Unique Identity Solution">
     <meta name="twitter:description" content="Sign up for a 3WordID account to get a unique, easy-to-remember identity for all your online needs.">
-    <meta name="twitter:image" content="https://3WordID.com/img/3wid_big.png">
+    <meta name="twitter:image" content="https://3WordID.com/card_0926.png">
     <link rel="stylesheet" href="css/newstyle.css">
+    <style>
+        .lock.is-found {
+            color: #16a34a;
+            background: #ecfdf3;
+        }
+        .lock.is-disabled {
+            color: #d97706;
+            background: #fff7ed;
+        }
+    </style>
 </head>
 <body>
     <header class="site-header">
@@ -103,16 +113,16 @@
 
             <form id="searchform" name="searchform" action="3wid_forward.php" method="POST">
                 <div class="search-shell">
-                    <div class="lock" aria-hidden="true">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="4" y="11" width="16" height="9" rx="2"></rect>
-                            <path d="M8 11V8a4 4 0 0 1 8 0v3"></path>
+                    <div class="lock" id="searchLock" aria-hidden="true">
+                        <svg id="lockIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path id="lockShackle" d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                         </svg>
                     </div>
                     <input id="threewords" name="threewords" type="text" class="search-bar" placeholder="first  ·  second  ·  third" value="<?= htmlspecialchars($threewords); ?>" autocomplete="off">
                     <button type="submit" id="submitBtn">Lookup</button>
                 </div>
-                <div class="search-hints">Thy the thee word IDs listed below</div>
+                <div class="search-hints">Try the thee word IDs listed below</div>
                 <button type="button" id="createBtn" class="create-link" data-share-url="<?php echo $loginUrl; ?>">Create your own 3WordID →</button>
                 <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
             </form>

@@ -1,7 +1,6 @@
-	
- function containsDigitsOrSpecialCharacters(str) {
+function containsDigitsOrSpecialCharacters(str) {
     return /\d/.test(str) || /[^a-zA-Z0-9]/.test(str);
-}	
+}
 
 function sleep(miliseconds) {
    var currentTime = new Date().getTime();
@@ -11,120 +10,115 @@ function sleep(miliseconds) {
 }
 
 function validate_threeword(threeword) {
-
-		// not empty
         if (threewords.trim() === '' ) {
-            
             return false;
         }
-        
-        // Regular expression to match words (letters only)
+
         var regex = /^[a-zA-Z]+$/;
-
-        // Split the input value by spaces to get the words
         var words = threewords.trim().split(/\s+/);
-        
-        
-        if(words.length != 3) {
-			return false;    
-	    }
 
-        // Validate that there are exactly three words
-		return true;
-	}
-    // index page
+        if(words.length != 3) {
+            return false;    
+        }
+
+        return true;
+}
+
+function setSearchLock(state) {
+    var lock = document.getElementById('searchLock');
+    var shackle = document.getElementById('lockShackle');
+    var input = document.getElementById('threewords');
+    if (!lock || !shackle) return;
+
+    lock.classList.remove('is-found', 'is-disabled');
+
+    if (state === 'found') {
+        shackle.setAttribute('d', 'M7 11V7a5 5 0 0 1 9.9-1');
+        lock.classList.add('is-found');
+        if (input) input.style.color = 'green';
+    } else if (state === 'disabled') {
+        shackle.setAttribute('d', 'M7 11V7a5 5 0 0 1 10 0v4');
+        lock.classList.add('is-disabled');
+        if (input) input.style.color = 'orange';
+    } else {
+        shackle.setAttribute('d', 'M7 11V7a5 5 0 0 1 10 0v4');
+        if (input) input.style.color = '';
+    }
+}
 
  $(document).ready(function() {
 
-	$('#threewords').on('keyup', function() {
+    $('#threewords').on('keyup', function() {
 
               threewords = $('#threewords').val();
               
               threewords = threewords.trim();
 
               let threewords_array = threewords.trim().split(/\s+/);
-			  let nr_words = threewords_array.length;
-			  
-			   for (let word of threewords_array) {
-					if(containsDigitsOrSpecialCharacters(word)) {
-						return;
-					}
-					
-				}
+              let nr_words = threewords_array.length;
               
-              console.log(threewords)
-              
-             
+               for (let word of threewords_array) {
+                    if(containsDigitsOrSpecialCharacters(word)) {
+                        setSearchLock('closed');
+                        return;
+                    }
+                    
+                }
+
+              if(nr_words != 3) {
+                    setSearchLock('closed');
+                    return;
+              }
               
               if(nr_words == 3) {
-					  console.log('ajax call');
-					  $.ajax({
-						type: 'POST',
-						url: '3wid_exists.php', // Replace with your server endpoint
-						data: {
-							'threewords': threewords
-						},
-						success: function(response) {
-							//console.log('Post successful!');
-							// Here you might want to clear the input, show a success message, or update the UI to show the new post
-							
-							//console.log(response); // Log the server response
-							if(response =='exists') {
-								$("#helperText").html("3wid exists");
-								$("#threewords").css("color", "green");
-							} else {
-								if(response =='disabled') {
-									$("#helperText").html("3wid disabled");
-									$("#threewords").css("color", "orange");
-								} else {
-									$('#helperText').html("3wid does not exist log in to create");	
-								}
-							}
-						},
-						error: function(xhr, status, error) {
-							//console.error('An error occurred:', error);
-							// Handle errors appropriately, maybe show user an error message
-						}
-					});
+                      $.ajax({
+                        type: 'POST',
+                        url: '3wid_exists.php',
+                        data: {
+                            'threewords': threewords
+                        },
+                        success: function(response) {
+                            if(response =='exists') {
+                                $("#helperText").html("3wid exists");
+                                setSearchLock('found');
+                            } else {
+                                if(response =='disabled') {
+                                    $("#helperText").html("3wid disabled");
+                                    setSearchLock('disabled');
+                                } else {
+                                    $('#helperText').html("3wid does not exist log in to create");
+                                    setSearchLock('closed');
+                                }
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                        }
+                    });
 
-				  } 
+                  } 
                 
        }); 
-	
+    
 
    $('#submitBtn').on('click', function(event) {
-    event.preventDefault(); // Prevent the default button action
+    event.preventDefault();
 
-    console.log("index submit");
-
-    // Get the form element
     let form = $(this).closest('form');
     let threewords = $('#threewords').val();
+    let send = 1;
 
-    console.log(threewords);
-
-    // Add validation logic if needed
-    let send = 1; // Replace with actual validation if desired
-
-		if (send === 1) {
-			console.log('to 3wid_forward.php');
-			// Submit the form programmatically
-			form.off('submit'); // Remove any existing submit handlers to prevent loops
-			form.submit(); // Trigger the form submission
-		}
-	});
-	
-	 $(document).on('click', '#createBtn', function(event) {
-    event.preventDefault(); // Prevent default behavior (e.g., form submission)
+        if (send === 1) {
+            form.off('submit');
+            form.submit();
+        }
+    });
+    
+     $(document).on('click', '#createBtn', function(event) {
+    event.preventDefault();
     var shareUrl = $(this).data('share-url');
     
-    // Log for debugging
-    console.log('Redirecting to:', shareUrl);
-    
-    // Validate URL
     if (shareUrl && typeof shareUrl === 'string' && shareUrl.trim() !== '') {
       try {
-        // Ensure URL is properly encoded
         window.location.href = shareUrl;
       } catch (e) {
         console.error('Redirect failed:', e);
@@ -136,4 +130,3 @@ function validate_threeword(threeword) {
     
   
 });
-	
