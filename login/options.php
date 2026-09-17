@@ -206,7 +206,7 @@ if (isset($_GET['message'])) {
 <body>
     <header class="site-header">
         <a class="brand" href="../index.php">
-            <span class="brand-mark">W<br>W</span>
+            <span class="brand-mark"><img width='35' src='https://3WordID.com/img/3wid_big.png'></span>
             3WordID
         </a>
         <div class="header-actions">
