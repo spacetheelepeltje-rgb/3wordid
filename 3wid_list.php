@@ -307,7 +307,7 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
             3WordID
         </a>
         <div class="header-actions">
-            <a class="btn btn-ghost" href="3wid_signup.php">Subscribe</a>
+            
             <a class="btn btn-primary" href="3wid_add.php?user_token=<?php echo $_SESSION["user_token"]; ?>" title="<?php echo $title; ?>" <?php echo $pointer; ?>><?php echo $create_label; ?></a>
             <a href="login/logout.php" class="logout-icon" title="log out">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="Logout Icon">
@@ -334,7 +334,7 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
         <section class="stats">
             <div class="stat"><span>Active IDs</span><strong><?php echo $count_rows; ?></strong></div>
             <div class="stat"><span>Remaining</span><strong><?php echo $remaining; ?></strong></div> <!-- needs to work -->
-            <div class="stat"><span>Visits</span><strong><!-- sum visits -->1253</strong></div>
+            <div class="stat"><span>Visits</span><strong><div id='totalviewcount'></div></strong></div>
         </section>
 
         <div class="toolbar">
@@ -347,13 +347,18 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
             echo '<div class="id-row"><div>No 3WordIDs yet. Create your first one to start linking URLs and mailboxes.</div></div>';
         }
 
+		$count_total = 0;
+
         foreach ($db_3wordid_list as $db_3wordid_item) {
+		
             $message_count = db_3wordid_count_messages($db_3wordid_item['id']);
             $msg_state = ($message_count['count'] == 0) ? 'disabled' : '';
             $url = "https://3wordid.com/index.php?threewords=" . urlencode($db_3wordid_item['threeword']);
             $threeword_url = implode('.', explode(' ', $db_3wordid_item["threeword"]));
             $enabled = ($db_3wordid_item['enabled'] == 1);
             $days = db_3wid_daysUntilNWeeksAfter($db_3wordid_item['creation_date'], 4);
+            
+            $count_total += $db_3wordid_item['views'];
         ?>
             <div class="id-row">
                 <div>
@@ -417,11 +422,12 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
 
         <div class="foot-card">
             <div class="reseller">
-                Reseller code: <code><?php echo htmlspecialchars($reseller_code); ?></code>
-                (<a href="3wid_reseller.php">?</a>)
+				If you want to use this app professionally contact our administrator at <a href='mailto:frits@rincker.nl'>frits@rincker.nl</a> we are working on our subscription process.
+                <!-- Reseller code: <code><?php echo htmlspecialchars($reseller_code); ?></code>
+                -->
             </div>
-            <div class="icon-row">
-                <!--<a class="btn btn-ghost" href="3wid_credit.php" title="Add credit to extend your 3WordID 5 days grace period not included">Add credit</a>-->
+            <!-- <div class="icon-row">
+                
                 <?php if ($data['id'] == '4') { ?>
                 <span class="admin-links">
                     <a href="3wid_list_ips.php">I</a>
@@ -430,6 +436,7 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
                 </span>
                 <?php } ?>
             </div>
+            -->
         </div>
     </main>
     <footer class="site-footer"><?php echo $footer; ?></footer>
@@ -449,5 +456,10 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
                 console.error('Failed to copy: ', err);
             });
     }
+    
+    $(document).ready(function () {
+		$('#totalviewcount').text(<?php echo json_encode($count_total); ?>);
+	});
+    
 </script>
 </html>
