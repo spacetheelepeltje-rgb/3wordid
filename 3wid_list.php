@@ -338,7 +338,7 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
         </section>
 
         <div class="toolbar">
-            <a class="btn btn-ghost <?php echo $state; ?>" <?php echo $style; ?> href="3wid_messageform.php" title="You need to create a 3WordID to send messages to 3WordIDs">Compose Message</a>
+            <a class="btn btn-ghost <?php echo $state; ?>" <?php echo $style; ?> href="3wid_messageform.php" title="You need to create a 3WordID to send messages to 3WordIDs">Compose Message to other 3WID</a>
         </div>
 
         <section class="panel">

@@ -16,19 +16,19 @@
   $loginUrl = $client->createAuthUrl();
   
   if($data != NULL) {
-	//header('location:' . $main_url);
+    //header('location:' . $main_url);
   } 
   
   if(isset($_GET['wid_id'])) {  
-	$threeword_id = $_GET['wid_id'];  
+    $threeword_id = $_GET['wid_id'];  
   } else {
-	//header('location:' . $main_url);
+    //header('location:' . $main_url);
   }
   
   if(isset($_GET['threeword'])) {  
-	$threeword = $_GET['threeword'];  
+    $threeword = $_GET['threeword'];  
   } else {
-	//header('location:' . $main_url);
+    //header('location:' . $main_url);
   }
 
   //error_log('list messages 3wid ' . $threeword_id . ' ' . json_encode($data));
@@ -40,182 +40,151 @@
   //error_log('messages found ' . json_encode($messages));
 
   if($messages == NULL ) {
-	header('location:3wid_list.php'); 
-	die('no messages'); 
+    header('location:3wid_list.php'); 
+    die('no messages'); 
   }
  
 ?>   
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<?php echo $google_stats; ?>
+    <?php echo $google_stats; ?>
     <meta charset="UTF-8"> 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3wordid.com</title>
+    <title>Messages — 3WordID</title>
     <link rel="icon" type="image/x-icon" href="img/favicon.ico">
-    <link rel="stylesheet" href="css/styles_2.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/newstyle.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-   
     <style>
-body, html {
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-main {
-    width: 100%;
-    margin: 0;
-    padding: 0;
-}
-
-.message-list {
-    width: 100%;
-    max-width: 1200px; /* Optional: limits width on large screens */
-    margin: 0 auto; /* Centers content without restricting width */
-    padding: 0 10px;
-    box-sizing: border-box;
-}
-
-.row {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    border-bottom: 1px solid #ddd;
-    padding: 10px 0;
-    gap: 10px;
-    flex-wrap: nowrap;
-    width: 100%;
-}
-
-.row.header {
-    border-bottom: 2px solid #ccc;
-    padding-bottom: 5px;
-    margin-bottom: 10px;
-}
-
-.avatar {
-    width: 50px;
-    height: 50px;
-    border-radius: 5px;
-    object-fit: cover;
-    flex-shrink: 0;
-}
-
-.avatar-header {
-    width: 50px;
-    padding: 10px 0;
-    font-weight: bold;
-}
-
-.text {
-    flex: 1 1 auto;
-    overflow: visible;
-    white-space: normal;
-    word-break: break-word;
-    display: block;
-}
-
-.text a {
-    color: #000;
-    text-decoration: none;
-    font-size: 16px;
-    display: inline-block;
-    max-width: 100%;
-}
-
-.text-header {
-    flex: 1;
-    padding: 10px 0;
-    font-weight: bold;
-}
-
-.icons {
-    display: flex;
-    gap: 10px;
-    flex-shrink: 0;
-}
-
-.icons svg {
-    width: 24px;
-    height: 24px;
-    stroke: #333;
-    stroke-width: 2;
-}
-
-.icons-header {
-    width: 60px;
-    padding: 10px 0;
-    font-weight: bold;
-    text-align: right;
-}
-
-.mail-icon[disabled] svg {
-    stroke: gray;
-}
-
-.logo {
-    margin: 20px 0;
-}
-
-.logo h2, .logo p {
-    margin: 10px 0;
-}
-
-@media (max-width: 600px) {
-    .text {
-        font-size: 14px;
-    }
-    .icons svg {
-        width: 20px;
-        height: 20px;
-    }
-    .row {
+      .page {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 28px 26px 64px;
+      }
+      .page .subhead { margin-left: 0; text-align: left; }
+      .btn-ghost {
+        background: #fff;
+        color: var(--navy);
+        border: 1px solid var(--line);
+        padding: 10px 16px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        border-radius: 10px;
+        font-weight: 600;
+        font-family: inherit;
+      }
+      .btn-ghost:hover { background: #f3f1ec; }
+      .panel {
+        background: #fff;
+        border: 1px solid #eceae4;
+        border-radius: 16px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+      .message-list { width: 100%; }
+      .row {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 14px 16px;
+        border-top: 1px solid #f0eee8;
+        width: 100%;
+      }
+      .row.header {
+        border-top: 0;
+        border-bottom: 1px solid #eceae4;
+        color: var(--slate);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      .avatar-header { width: 50px; flex-shrink: 0; }
+      .text-header { flex: 1; }
+      .icons-header { width: 72px; text-align: right; flex-shrink: 0; }
+      .avatar, .thumbnail {
+        width: 50px;
+        height: 50px;
+        border-radius: 10px;
+        object-fit: cover;
+        flex-shrink: 0;
+        cursor: pointer;
+        background: #f3f1ec;
+      }
+      .text {
+        flex: 1 1 auto;
+        overflow: visible;
+        white-space: normal;
+        word-break: break-word;
+        display: block;
+        font-size: 15px;
+        color: var(--navy);
+        cursor: pointer;
+        line-height: 1.45;
+      }
+      .text a { color: var(--navy); text-decoration: none; }
+      .icons {
+        display: flex;
         gap: 6px;
-    }
-    .message-list {
-        padding: 0 5px;
-    }
-}
-
-  .thumbnail {
-            cursor: pointer;
-            max-width: 200px; /* Adjust thumbnail size */
-        }
-
-        /* Modal (hidden by default) */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.8); /* Semi-transparent background */
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        .modal img {
-            width: 100vw; /* Full viewport width */
-            height: auto; /* Maintain aspect ratio */
-            max-height: 95vh; /* Prevent overflow */
-            object-fit: contain; /* Ensure proper scaling */
-        }
-
-        /* Close button */
-        .close {
-            position: absolute;
-            top: 20px;
-            right: 30px;
-            color: white;
-            font-size: 30px;
-            cursor: pointer;
-        }
-
+        flex-shrink: 0;
+      }
+      .icons a {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        border: 1px solid var(--line);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--navy);
+        background: #fff;
+      }
+      .icons a:hover { background: #f3f1ec; }
+      .icons a[title="Delete"]:hover { color: #9b1c1c; }
+      .icons svg {
+        width: 18px;
+        height: 18px;
+        stroke: currentColor;
+        stroke-width: 2;
+        fill: none;
+      }
+      .mail-icon[disabled] svg { stroke: var(--muted); }
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(15, 28, 63, 0.72);
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+      }
+      .modal img {
+        width: 100vw;
+        height: auto;
+        max-height: 95vh;
+        object-fit: contain;
+      }
+      .close {
+        position: absolute;
+        top: 20px;
+        right: 30px;
+        color: white;
+        font-size: 30px;
+        cursor: pointer;
+      }
+      @media (max-width: 800px) {
+        .page { padding: 22px 16px 48px; }
+        .text { font-size: 14px; }
+        .row { gap: 8px; }
+      }
     </style>
 </head>
 <script>
@@ -224,29 +193,28 @@ main {
   }
 </script>
 <body>
-   <header>    
-	   <div class="top-right" id="userContainer">
-      
+   <header class="site-header">
+        <a class="brand" href="<?php echo $main_url;?>">
+            <span class="brand-mark"><img width='35' src='https://3WordID.com/img/3wid_big.png'></span>
+            3WordID
+        </a>
+        <div class="header-actions" id="userContainer">
+            <a class="btn-ghost" href="3wid_list.php">Back to list</a>
             <a href="<?php echo $loginUrl; ?>" class="login-icon" title="Log in (not all functions work on mobile devices)">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="Login Icon">
-				<path d="M15 21h4a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-4"></path>
-				<polyline points="8 7 13 12 8 17"></polyline>
-				<line x1="13" y1="12" x2="1" y2="12"></line>
-			  </svg>
+                <path d="M15 21h4a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-4"></path>
+                <polyline points="8 7 13 12 8 17"></polyline>
+                <line x1="13" y1="12" x2="1" y2="12"></line>
+              </svg>
             </a>
-       
-		</div> 
+        </div>
    </header>
-   <main>
-    <div class="logo" style="text-align: center;">
-        <a href='<?php echo $main_url;?>' title="to 3wordID.com">
-            <img width="100" src="img/3wid_big.png" alt="3wordID Logo">
-        </a>
-        <h2>Messages for <?php echo htmlspecialchars($threeword); ?></h2>
-        <p>Click on the message title to read the message</p>
-    </div>
-   
-    <div class="message-list">
+   <main class="page">
+        <p class="eyebrow">Inbox</p>
+        <h1>Messages for '<?php echo htmlspecialchars($threeword); ?>'</h1>
+        <p class="subhead">Click a title to read the message.</p>
+
+    <div class="panel message-list">
         <div class="row header">
             <span class="avatar-header">User</span>
             <span class="text-header">Title/Message</span>
@@ -256,11 +224,6 @@ main {
         <div class="row">
             <img onclick="openModal(this.src)" src="<?php echo htmlspecialchars($message['picture']); ?>" alt="User" class="thumbnail avatar" title="<?php echo $message["threeword"];?>">
             
-             <div id="imageModal" class="modal">
-				<span class="close" onclick="closeModal()">&times;</span>
-				<img id="fullImage" src="" alt="Full Image">
-			</div>
-            
             <div class="text"
                  data-title="<?php echo $message["threeword"] . " : " . htmlspecialchars($message['title'], ENT_QUOTES); ?>"
                  data-message="<?php echo htmlspecialchars($message['message'], ENT_QUOTES); ?>"
@@ -268,10 +231,10 @@ main {
                 <?php echo $message["threeword"] . " : " . htmlspecialchars($message['title']); ?>
             </div>
             <div class="icons">
-				<?php 
-				// block in case of external message
-				if($message["from_id"]!=25) {
-				?>
+                <?php 
+                // block in case of external message
+                if($message["from_id"]!=25) {
+                ?>
                 <a class="mail-icon" disabled href="3wid_messageform.php?threeword=<?php echo $message["threeword"];?>" title="Reply to <?php echo ucfirst($message["threeword"]);?>">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="Message Icon">
                         <path d="M21 4H3a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path>
@@ -292,7 +255,12 @@ main {
         <?php endforeach; ?>
     </div>
 </main>
-    <?php echo $footer; ?>
+
+             <div id="imageModal" class="modal">
+                <span class="close" onclick="closeModal()">&times;</span>
+                <img id="fullImage" src="" alt="Full Image">
+            </div>
+
 </body>
 <script>
      // Open modal and set image source

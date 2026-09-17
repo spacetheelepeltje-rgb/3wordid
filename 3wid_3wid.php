@@ -235,14 +235,7 @@
         </a>
         <div class="header-actions" id="userPortrait">
             <a class="btn btn-ghost" href="3wid_list.php?user_token=<?php echo $data['token']; ?>">Back to list</a>
-            <button type="submit" form="3widForm" id="submitBtn" class="btn btn-primary">Update</button>
-            <a href="#" class="login-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="Login Icon">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="12" cy="7" r="4"></circle>
-                </svg>
-            </a>
-            <img id="userPortrait" style="display:none;" alt="User Portrait">
+            <button type="submit" form="3widForm" id="submitBtn" class="btn btn-primary">Update</button>           
         </div>
     </header>
 
@@ -262,8 +255,8 @@
 
                 <div class="meta">hash # <?php echo htmlspecialchars($row["hash"]); ?></div>
                 <div class="qr-links">
-                    <a class="btn btn-ghost" href="3wid_gen_qr.php?csrf_token=<?php echo $_SESSION['csrf_token'];?>&hash=<?= $row["hash"]; ?>">Enc QR code</a>
-                    <a class="btn btn-ghost" href="3wid_gen_qr_threeword.php?csrf_token=<?php echo $_SESSION['csrf_token'];?>&threeword=<?= $row["threeword"]; ?>">Clear QR code</a>
+                    <a class="btn btn-ghost" href="3wid_gen_qr.php?csrf_token=<?php echo $_SESSION['csrf_token'];?>&hash=<?= $row["hash"]; ?>" title='so https://www.3wordid.com/index.php?hash=<?= $row["hash"]; ?>'>Hash QR URL</a>
+                    <a class="btn btn-ghost" href="3wid_gen_qr_threeword.php?csrf_token=<?php echo $_SESSION['csrf_token'];?>&threeword=<?= $row["threeword"]; ?>" title='so https://www.3wordid.com/index.php?threeword=<?= $row["threeword"]; ?>'>Human readable QR URL</a>
                 </div>
 
                 <label class="field" for="notification">Message</label>

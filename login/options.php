@@ -234,7 +234,7 @@ if (isset($_GET['message'])) {
         <div class="divider">or</div>
 
         <div class="card">
-            <h2>Email</h2>
+            <h2>Email login (up by 15/09)</h2>
             <p>Register once, then sign in with your password. The address is stored as a hash only.</p>
             <div class="stack">
                 <a class="btn btn-ghost" href="email_login.php">Sign in with email</a>
