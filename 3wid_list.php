@@ -334,7 +334,7 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
         <section class="stats">
             <div class="stat"><span>Active IDs</span><strong><?php echo $count_rows; ?></strong></div>
             <div class="stat"><span>Remaining</span><strong><?php echo $remaining; ?></strong></div> <!-- needs to work -->
-            <div class="stat"><span>Visits</span><strong><div id='totalviewcount'></div></strong></div>
+            <div class="stat"><span>Total searches</span><strong><div id='totalviewcount'></div></strong></div>
         </section>
 
         <div class="toolbar">
@@ -368,7 +368,7 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
                     <div class="id-meta">
                         <?php echo htmlspecialchars($threeword_url); ?>
                         · <?php echo (int)$db_3wordid_item['views']; ?> views
-                        · <?php echo htmlspecialchars($days); ?> days left
+                        
                         <span class="badge <?php echo $enabled ? 'badge-on' : 'badge-off'; ?>"><?php echo $enabled ? 'On' : 'Off'; ?></span>
                     </div>
                 </div>
@@ -439,7 +439,7 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
             -->
         </div>
     </main>
-    <footer class="site-footer"><?php echo $footer; ?></footer>
+    <footer class="site-footer"></footer>
 </body>
 <script>
     function copyToClipboard(button) {

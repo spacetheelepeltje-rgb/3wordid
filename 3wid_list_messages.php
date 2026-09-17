@@ -200,13 +200,7 @@
         </a>
         <div class="header-actions" id="userContainer">
             <a class="btn-ghost" href="3wid_list.php">Back to list</a>
-            <a href="<?php echo $loginUrl; ?>" class="login-icon" title="Log in (not all functions work on mobile devices)">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="Login Icon">
-                <path d="M15 21h4a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-4"></path>
-                <polyline points="8 7 13 12 8 17"></polyline>
-                <line x1="13" y1="12" x2="1" y2="12"></line>
-              </svg>
-            </a>
+          
         </div>
    </header>
    <main class="page">

@@ -90,10 +90,7 @@
             3WordID
         </a>
         <nav class="nav-links">
-            <a href="#how-it-works">How it works</a>
-            <a href="#use-cases">Use cases</a>
-            <a href="3wid_reseller.php">Pricing</a>
-            <a href="https://x.com/climatebabes/status/1921113933592584660">Docs</a>
+            <a href="https://x.com/climatebabes/status/1921113933592584660">Docs on X.com</a>         
         </nav>
         <div class="header-actions" id="userContainer">
             <a href="<?php echo $loginUrl; ?>" class="btn btn-primary">Log in/Create ID</a>

@@ -227,7 +227,7 @@ if (isset($_GET['message'])) {
             <h2>Google</h2>
             <p>Use your existing Google account.</p>
             <a class="btn btn-primary" href="<?php echo htmlspecialchars($googleUrl, ENT_QUOTES, 'UTF-8'); ?>">
-                Continue with Google
+                Log in with Google
             </a>
         </div>
 
