@@ -58,6 +58,7 @@
 <html lang="en">
 <head>
     <?php echo $google_stats; ?>
+    <meta http-equiv="refresh" content="60">
     <meta charset="UTF-8"> 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>3WordID — Three words. One destination.</title>
@@ -90,7 +91,7 @@
             3WordID
         </a>
         <nav class="nav-links">
-            <a href="https://x.com/climatebabes/status/1921113933592584660">Docs on X.com</a>         
+            <a href="https://x.com/climatebabes/status/1921113933592584660">Docs on X.com</a> <a href="https://github.com/spacetheelepeltje-rgb/3wordid">Open Source on Github</a>               
         </nav>
         <div class="header-actions" id="userContainer">
             <a href="<?php echo $loginUrl; ?>" class="btn btn-primary">Log in/Create ID</a>
@@ -142,7 +143,7 @@
             <article class="card">
                
                 <h3>Share without QR codes</h3>
-                <p>Works anywhere words do — on signs, print, tickets, name badges, and more. No scanning. No app. No barriers.</p>
+                <p>Works anywhere words do — on signs, print, tickets, name badges, and more. No scanning required. You can also secure your QR codes via a 3WordID!</p>
             </article>
         </section>
 

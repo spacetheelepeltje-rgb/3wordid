@@ -210,7 +210,7 @@ if (isset($_GET['message'])) {
             3WordID
         </a>
         <div class="header-actions">
-            <a class="btn btn-ghost" href="../index.php" style="width:auto;height:36px;">Lookup</a>
+           
         </div>
     </header>
 
@@ -234,21 +234,19 @@ if (isset($_GET['message'])) {
         <div class="divider">or</div>
 
         <div class="card">
-            <h2>Email login (up by 15/09)</h2>
+            <h2>Email login (soon)</h2>
             <p>Register once, then sign in with your password. The address is stored as a hash only.</p>
             <div class="stack">
                 <a class="btn btn-ghost" href="email_login.php">Sign in with email</a>
-                <a class="btn btn-ghost" href="email_register.php">Create email account</a>
+                <a class="btn btn-ghost" href="email_register.php">Register with email</a>
             </div>
         </div>
 
-        <p class="hint"><a href="../index.php">Back to lookup</a></p>
+       
     </main>
 
     <footer>
-        <a href="../about.php">About</a>
-        <a href="../contact.php">Contact</a>
-        <a href="../terms.php">Terms</a>
+
     </footer>
 </body>
 </html>
