@@ -50,8 +50,8 @@ $count_rows = count($db_3wordid_list);
 
 if ($max - $count_rows == 0) {
     $pointer = 'style="pointer-events: none;opacity: 0.5"';
-    $title = "You need to add credit for more 3WordIDs";
-    $create_label = "Add credit for more IDs";
+    $title = "Unsubscribed users can create only one 3WID";
+    $create_label = "Unsubscribed users can create only one 3WID";
 } else {
     $pointer = '';
     $title = "Create Three Word ID (" . ($max - $count_rows) . " remaining)";
@@ -323,7 +323,7 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
         <div class="page-head">
             <div>
                 <h1>Your 3WordIDs</h1>
-                <p class="lede">Create, share, enable, and manage destinations from one place.</p>
+                <p class="lede"></p>
             </div>
         </div>
 
@@ -344,7 +344,7 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
         <section class="panel">
         <?php
         if ($count_rows === 0) {
-            echo '<div class="id-row"><div>No 3WordIDs yet. Create your first one to start linking URLs and mailboxes.</div></div>';
+            echo '<div class="id-row"><div>No 3WordIDs yet. Top right corner. </div></div>';
         }
 
 		$count_total = 0;

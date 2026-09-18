@@ -124,14 +124,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
     <header class="site-header">
-        <a class="brand" href="../index.php"><span class="brand-mark">W<br>W</span>3WordID</a>
-        <a class="btn-header" href="options.php">All options</a>
+        <a class="brand" href="../index.php"><span class="brand-mark"><img width='35' src='https://3WordID.com/img/3wid_big.png'></span>3WordID</a>
+
+        <a class="btn-header" href="../index.php">Home page</a>
     </header>
 
     <main class="wrap">
         <div class="eyebrow">Account</div>
         <h1>Create account</h1>
-        <p class="sub">Email and password. The address is hashed before it is saved.</p>
+        <p class="sub">Email and password. The address is hashed before it is saved. Unused accounts will be deleted after 3 months.</p>
 
         <?php if ($error !== ''): ?>
             <div class="flash"><?php echo htmlspecialchars($error, ENT_QUOTES, 'UTF-8'); ?></div>
@@ -160,9 +161,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </main>
 
     <footer>
-        <a href="../about.php">About</a>
-        <a href="../contact.php">Contact</a>
-        <a href="../terms.php">Terms</a>
+        
     </footer>
 </body>
 </html>

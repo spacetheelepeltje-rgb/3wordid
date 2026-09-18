@@ -2312,7 +2312,7 @@ function db_message_delete($id) {
 function db_3wordid_exists($threeword) {
     // Validation: threeword must be a string
     if (!is_string($threeword)) {
-        error_log("Invalid threeword: must be a string");
+        //error_log("Invalid threeword: must be a string");
     }
     
     // Database connection
@@ -2387,8 +2387,8 @@ function db_3wordid_insert($user_id, $threeword, $notification, $linkthru, $link
 	}
     
     if (!is_string($threeword)) {
-        error_log("Invalid threeword: must be a string");
-        die();
+        //error_log("Invalid threeword: must be a string");
+        // die();
     }
     
     $check = db_3wordid_exists($threeword);

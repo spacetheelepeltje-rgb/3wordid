@@ -163,9 +163,9 @@
             <div id="textbox"><?php echo $word_row["notification"]; ?></div>
         </div>
 
-        <div class="buttons">
+        <!--<div class="buttons">
             <a class="btn btn-ghost" href="<?php echo $main_url; ?>">To Homepage</a>
-        </div>
+        </div> -->
     </main>
     <footer class="site-footer"><?php echo $footer; ?></footer>
 </body>

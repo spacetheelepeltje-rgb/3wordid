@@ -65,7 +65,8 @@ function validate_threeword(threewords) {
 		
 		flag = 1;
 		
-		if(subscribed == 0) {
+		
+		/*if(subscribed == 0) {
 			words.forEach(function(word) {
 				if (!isOnlyAlpha(word)) {
 					$('#helperText').html('The 3WordID can only contain a-z and A-Z characters');					
@@ -87,6 +88,8 @@ function validate_threeword(threewords) {
 		}
 	    
 	    console.log(threewords + ' flag ' + flag + ' is valid');
+	    
+	    */
 	    
 	    return flag;
 

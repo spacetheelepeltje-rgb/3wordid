@@ -290,7 +290,7 @@
     </header>
 
     <main class="page">
-      <p class="eyebrow">New record</p>
+      <p class="eyebrow">New Three Word ID</p>
       <h1>Create 3WordID</h1>
       <p class="subhead">Choose three words, an optional message, and how this ID should behave.</p>
 
