@@ -215,6 +215,12 @@
             <span class="icons-header">Actions</span>
         </div>
         <?php foreach ($messages as $message): ?>
+        <?php if($message['picture'] == "") {
+			
+			     $message['picture'] ="https://3wordid.com/img/3wid_big.png";
+			}
+			
+		?>	
         <div class="row">
             <img onclick="openModal(this.src)" src="<?php echo htmlspecialchars($message['picture']); ?>" alt="User" class="thumbnail avatar" title="<?php echo $message["threeword"];?>">
             
@@ -222,14 +228,14 @@
                  data-title="<?php echo $message["threeword"] . " : " . htmlspecialchars($message['title'], ENT_QUOTES); ?>"
                  data-message="<?php echo htmlspecialchars($message['message'], ENT_QUOTES); ?>"
                  data-state="title">
-                <?php echo $message["threeword"] . " : " . htmlspecialchars($message['title']); ?>
+                <?php echo $message["threeword"] . " : " . htmlspecialchars($message['title']) ; ?>
             </div>
             <div class="icons">
                 <?php 
                 // block in case of external message
                 if($message["from_id"]!=25) {
                 ?>
-                <a class="mail-icon" disabled href="3wid_messageform.php?threeword=<?php echo $message["threeword"];?>" title="Reply to <?php echo ucfirst($message["threeword"]);?>">
+                <a class="mail-icon" disabled href="3wid_messageform.php?threeword_id=<?php echo $threeword_id; ?>&threeword=<?php echo $message["threeword"];?>" title="Reply to <?php echo ucfirst($message["threeword"]);?>">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="Message Icon">
                         <path d="M21 4H3a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path>
                         <path d="M1 6l11 7 11-7"></path>

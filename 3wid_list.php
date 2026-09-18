@@ -36,6 +36,8 @@ if ($id != NULL) {
 
 $db_3wordid_list = db_3wordid_list($id);
 
+// $id contains the user id
+
 $nr_of_3wordid = count($db_3wordid_list);
 
 if ($nr_of_3wordid == 0) {
@@ -403,7 +405,7 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
                             <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
                         </svg>
                     </a>
-                    <a href="3wid_list_messages.php?wid_id=<?php echo $db_3wordid_item['id']; ?>&threeword=<?php echo $db_3wordid_item['threeword']; ?>" class="icon-btn mail-icon <?php echo $msg_state; ?>" title="<?php echo $message_count['count']; ?> messages for this 3WordID">
+                    <a href="3wid_list_messages.php?uid=<?php echo $id; ?>&wid_id=<?php echo $db_3wordid_item['id']; ?>&threeword=<?php echo $db_3wordid_item['threeword']; ?>" class="icon-btn mail-icon <?php echo $msg_state; ?>" title="<?php echo $message_count['count']; ?> messages for this 3WordID">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="Message Icon">
                             <path d="M21 4H3a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path>
                             <path d="M1 6l11 7 11-7"></path>

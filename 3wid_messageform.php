@@ -27,14 +27,22 @@
      $reply_to='';
  }
  
+  if(isset($_GET["threeword_id"])) {
+	  
+     $wid_id = $_GET["threeword_id"];
+     
+ } else {
+	 
+     $wid_id = '';
+     
+ }
+ 
  $user_threeword_rows = db_3wid_get_3wids($data["id"]);
 
- if($user_threeword_rows == NULL) {
+ if($user_threeword_rows == NULL || ($reply_to == '')) {
      header('location:3wid_list.php?message=Create a 3WordID first to send a message from');  
  }
  
- //error_log('messageform threeword found ' . json_encode($user_threeword_rows));
-
 ?>  
 <!DOCTYPE html>
 <html lang="en">
@@ -314,9 +322,23 @@
                   <label class="lbl" for="from_id">From</label>
                   <select class="search-bar" name="from_id" id="from_id">
                     <?php
+                    
+					   if (isset ($wid_id)) {
+					   foreach( $user_threeword_rows as $select_row) {
+						   
+						   if( $select_row["id"] == $wid_id) {
+								echo "<option selected value='" .  $select_row["id"] . "'>Send from : " .  $select_row["threeword"] . "</option>"; 
+								
+                           }
+                           
+					   }
+					   
+					   } else {
                        foreach( $user_threeword_rows as $select_row) {
                            echo "<option value='" .  $select_row["id"] . "'>Send from : " .  $select_row["threeword"] . "</option>"; 
                            }
+                           
+					   }
                      ?>
                   </select>
                 </div>
