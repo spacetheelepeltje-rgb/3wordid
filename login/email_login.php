@@ -1,9 +1,7 @@
 <?php
 require_once 'config.php';
-
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+require_once __DIR__ . '/../php/session_boot.php';
+start_app_session();
 
 if (!empty($_SESSION['user_token'])) {
     header('Location: ../3wid_list.php');
@@ -41,14 +39,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $error = 'Invalid email or password.';
             }
         } else {
-            $newToken = bin2hex(random_bytes(32));
-            $upd = $conn->prepare('UPDATE google_users SET token = ? WHERE id = ?');
-            $upd->bind_param('si', $newToken, $user['id']);
-            $upd->execute();
+           establish_user_session($conn, (int)$user['id']);
 
-            session_regenerate_id(true);
-            $_SESSION['user_token'] = $newToken;
-            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+
+            
             header('Location: ../3wid_list.php');
             exit;
         }

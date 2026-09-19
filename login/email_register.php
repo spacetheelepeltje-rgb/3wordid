@@ -70,9 +70,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             );
 
             if ($ins->execute()) {
-                session_regenerate_id(true);
-                $_SESSION['user_token'] = $token;
-                $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+                $userId = (int)$ins->insert_id;
+                $ins->close();
+                establish_user_session($conn, $userId);
                 header('Location: ../3wid_list.php');
                 exit;
             }

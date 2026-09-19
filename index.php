@@ -15,9 +15,6 @@ if (isset($_GET['hash'])) {
 db_3wid_log_ip($client_ip);
 
 $data = current_user_from_session($conn);
-if (!$data) {
-    $data = check_auth(); // fallback to your existing helper
-}
 
 $image_url = $data['picture'] ?? '';
 
