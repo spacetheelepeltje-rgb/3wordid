@@ -1,7 +1,8 @@
 <?php
 
 include_once( __DIR__ . '/../login/config.php');
-
+require_once __DIR__ . '/session_boot.php';
+start_app_session();
 
 //error_log('path is ' . __DIR__);
 

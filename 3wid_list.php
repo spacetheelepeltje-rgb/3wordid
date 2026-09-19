@@ -6,33 +6,26 @@ $time = substr(time(), -4);
 
 $client_ip = get_client_ip();
 
-$data = check_credentials($_SESSION, $_POST, $_GET);
+$data = current_user_from_session($conn);
 
 if ($data == NULL) {
-    header('location:index.php?message=Could not log you in');
-    die('had to go');
+    header('Location: login/options.php?message=' . rawurlencode('Please log in.'));
+    exit;
 }
 
-if($data['privacy_consent']==0) {
-    header('location:3wid_privacy_consent.php');
-    die('had to go');
+if ((int)$data['privacy_consent'] === 0) {
+    header('Location: 3wid_privacy_consent.php');
+    exit;
 }
 
-$message = "";
+$message = isset($_GET['message']) ? $_GET['message'] : '';
 
-if (isset($_GET["message"])) {
-    $message = $_GET["message"];
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
-$csrf_token = bin2hex(random_bytes(32));
-$_SESSION['csrf_token'] = $csrf_token;
-$_SESSION['token'] = $data["token"];
-$id = $data['id'];
+$id  = $data['id'];
 $max = $data['max_3wids'] + 1;
-
-if ($id != NULL) {
-    db_3wordid_set_csrf_token($id, $csrf_token);
-}
 
 $db_3wordid_list = db_3wordid_list($id);
 
@@ -310,7 +303,7 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
         </a>
         <div class="header-actions">
             
-            <a class="btn btn-primary" href="3wid_add.php?user_token=<?php echo $_SESSION["user_token"]; ?>" title="<?php echo $title; ?>" <?php echo $pointer; ?>><?php echo $create_label; ?></a>
+            <a class="btn btn-primary" href="3wid_add.php" title="<?php echo $title; ?>" <?php echo $pointer; ?>><?php echo $create_label; ?></a>
             <a href="login/logout.php" class="logout-icon" title="log out">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="Logout Icon">
                     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
@@ -393,19 +386,19 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
                 </div>
 
                 <div class="icon-row">
-                    <a href="3wid_3wid.php?id=<?php echo $db_3wordid_item['id']; ?>&csrf_token=<?php echo $_SESSION['csrf_token']; ?>" class="icon-btn edit-icon" title="Edit Three Word ID">
+                    <a href="3wid_3wid.php?id=<?php echo (int)$db_3wordid_item['id']; ?>" class="icon-btn edit-icon" title="Edit Three Word ID">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="Edit Icon">
                             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                         </svg>
                     </a>
-                    <a href="3wid_toggle.php?id=<?php echo $db_3wordid_item['id']; ?>&csrf_token=<?php echo $_SESSION['csrf_token']; ?>" class="icon-btn toggle-icon <?php echo $enabled ? 'enabled' : 'disabled-toggle'; ?>" title="<?php echo $enabled ? 'Disable, 3wid is currently enabled' : 'Enable, 3wid is currently disabled'; ?>">
+                    <a href="3wid_toggle.php?id=<?php echo (int)$db_3wordid_item['id']; ?>" class="icon-btn toggle-icon <?php echo $enabled ? 'enabled' : 'disabled-toggle'; ?>" title="<?php echo $enabled ? 'Disable, 3wid is currently enabled' : 'Enable, 3wid is currently disabled'; ?>">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="Toggle Icon">
                             <path d="M12 2v10"></path>
                             <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
                         </svg>
                     </a>
-                    <a href="3wid_list_messages.php?uid=<?php echo $id; ?>&wid_id=<?php echo $db_3wordid_item['id']; ?>&threeword=<?php echo $db_3wordid_item['threeword']; ?>" class="icon-btn mail-icon <?php echo $msg_state; ?>" title="<?php echo $message_count['count']; ?> messages for this 3WordID">
+                    <a href="3wid_delete.php?id=<?php echo (int)$db_3wordid_item['id']; ?>" class="icon-btn mail-icon <?php echo $msg_state; ?>" title="<?php echo $message_count['count']; ?> messages for this 3WordID">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="Message Icon">
                             <path d="M21 4H3a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path>
                             <path d="M1 6l11 7 11-7"></path>

@@ -12,17 +12,14 @@
 		  }
 	  }
   
-  $data = check_credentials($_SESSION, $_POST, $_GET);
-
-  if($data == NULL) {
-	 error_log('add data is NULL '); 
-	 header('location:' . $main_url);
-  } 
+ $data = current_user_from_session($conn);
+	if ($data == NULL) {
+		header('Location: login/options.php?message=' . rawurlencode('Please log in.'));
+		exit;
+	}
  
   $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 
- 
- error_log('max_3wids' . $data['max_3wids']);
 
 ?>  
 <!DOCTYPE html>

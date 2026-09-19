@@ -5,11 +5,11 @@
   
   error_log('credit page');
    
-  $data = check_auth();
- 
-  if($data == NULL) {
-		$data = check_session();
-  }
+  $data = current_user_from_session($conn);
+if ($data == NULL) {
+    header('Location: login/options.php?message=' . rawurlencode('Please log in.'));
+    exit;
+}
    
 ?>  
 <!DOCTYPE html>

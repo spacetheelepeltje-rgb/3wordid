@@ -3,30 +3,17 @@
   require_once 'login/config.php';
   require_once 'php/functions.php';
   
-  $loginUrl = $client->createAuthUrl();
-  
- if(isset($_GET['csrf_token'])) { 
-    $csrf_token = $_GET['csrf_token']; 
- } else {
-    header('location:' . $main_url);
- }
- 
- $data = check_csrf_token($csrf_token);
- 
- if($data == NULL) {
-    error_log('auth is null');
-    $data = check_session();
- }
-  
- if($data == NULL) { 
-    $data = check_csrf_token($csrf_token);
-     
-     if($data == NULL) {
-     
-     header('location:' . $main_url);
-     
-    }
-  } 
+  $data = current_user_from_session($conn);
+	if ($data == NULL) {
+		header('Location: login/options.php?message=' . rawurlencode('Please log in.'));
+		exit;
+	}
+
+	$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+	if ($id < 1) {
+		header('Location: 3wid_list.php');
+		exit;
+	}
   
   
  

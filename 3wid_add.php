@@ -1,38 +1,18 @@
 <?php
 
-  require_once 'login/config.php';
-  require_once 'php/functions.php';
+require_once 'login/config.php';
+require_once 'php/functions.php';
 
+$data = current_user_from_session($conn);
 
-  //error_log('add page ip ' . get_client_ip() . ' time ' . time() . ' session  ' . json_encode($_SESSION) . ' session id ' . session_id() . ' user token ' . $_SESSION["user_token"] );
+if ($data == NULL) {
+    header('Location: login/options.php?message=' . rawurlencode('Please log in.'));
+    exit;
+}
 
-  if(isset($_GET['user_token'])) {
-      if(!isset($_SESSION['user_token'])) {
-          $_SESSION['user_token']=$_GET['user_token'];
-          }
-      }
-  
-  $data = check_auth();
-  
-  //error_log('data auth ' . json_encode($data));
- 
- if($data == NULL) {
-    error_log('auth is null');
-    $data = check_session();
- }
-  
-  //error_log('sesse ' . json_encode($sess));
-  
-
-   
-   //error_log('add page token ' . json_encode($_SESSION) . ' session id ' . session_id()); 
-   
-  if($data == NULL) {
-     error_log('add data is NULL '); 
-     header('location:' . $main_url);
-  } 
- 
- $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
 
  if(isset($_GET["id"])) {
     $user_id = $_GET["id"];

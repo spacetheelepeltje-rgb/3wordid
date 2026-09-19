@@ -2,13 +2,13 @@
 
   require_once 'php/functions.php';
   require_once 'login/config.php';
-  
-  $data = check_credentials($_SESSION, $_POST, $_GET);
+ 
+  $data = current_user_from_session($conn);
   
   if ($data == NULL) {
-    header('location:index.php?message=Login expired. Log in again.');
-    die('had to go');
-}
+    header('Location: login/options.php?message=' . rawurlencode('Login expired. Log in again.'));
+    exit;
+  }
   
  // error_log('post ' . json_encode($_POST) . ' get ' . json_encode($_GET) . ' session ' . json_encode($_SESSION));
   

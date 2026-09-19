@@ -9,15 +9,16 @@
   
   //error_log('list messages ' . $client_ip . ' get ' . json_encode($_GET));
   
-  $data = check_credentials($_SESSION,$_POST,$_GET);
+ $data = current_user_from_session($conn);
+	if ($data == NULL) {
+    header('Location: login/options.php?message=' . rawurlencode('Please log in.'));
+    exit;
+	}
   
     
   // Generate Google Login URL
-  $loginUrl = $client->createAuthUrl();
+  //$loginUrl = $client->createAuthUrl();
   
-  if($data != NULL) {
-    //header('location:' . $main_url);
-  } 
   
   if(isset($_GET['wid_id'])) {  
     $threeword_id = $_GET['wid_id'];  

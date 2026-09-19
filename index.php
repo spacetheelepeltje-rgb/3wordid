@@ -103,7 +103,7 @@ $db_3wordid_list = db_3wordid_list_recent();
         <section class="hero">
             <div class="eyebrow">HUMAN-READABLE IDENTIFIERS <b><style="color:black;">BETA version</style></b></div>
             <h1>Three words<br>Every destination</h1>
-            <p class="subhead">Look up a URL, notification, or private message box using any three-word ID. Easy to say. Easy to remember.</p>
+            <p class="subhead">Look up a URL, notification, or private message box using any three-word ID. Easy to communicate. Easy to remember.</p>
             <div class="helper-note" id="helperText"><?php echo $helpertext; ?></div>
 
             <form id="searchform" name="searchform" action="3wid_forward.php" method="POST">

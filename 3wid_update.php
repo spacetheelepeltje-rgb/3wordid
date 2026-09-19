@@ -13,15 +13,12 @@
 	header('location:' . $main_url);
  }
 
- $data = check_credentials($_SESSION,$_POST,$_GET);
- 
- error_log('update data test ' . json_encode($data));
- 
- error_log('update post ' . json_encode($_POST));
- 
- if($data == NULL) {
-	error_log('auth is null');
- }
+$data = current_user_from_session($conn);
+
+if ($data == NULL) {
+    header('Location: login/options.php?message=' . rawurlencode('Please log in.'));
+    exit;
+}
   
  $csrf_token =  bin2hex(random_bytes(32));
  
