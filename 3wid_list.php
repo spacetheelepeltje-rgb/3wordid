@@ -424,7 +424,7 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
 
         <div class="foot-card">
             <div class="reseller">
-				If you want to use this app professionally contact our administrator at <a href='mailto:frits@rincker.nl'>frits@rincker.nl</a> we are working on our subscription process.
+				If you want to use this app professionally contact our administrator at <a href='mailto:frits@rincker.nl'>frits@rincker.nl</a> we are working on our subscription process. 
                 <!-- Reseller code: <code><?php echo htmlspecialchars($reseller_code); ?></code>
                 -->
             </div>

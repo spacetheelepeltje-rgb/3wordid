@@ -1,55 +1,52 @@
 <?php
 
-  require_once 'php/functions.php';
-  require_once 'login/config.php';
-  //require_once 'cookie_consent.php';
-  
-  //db_3wid_log_update('banaan');
- 
-  $client_ip = get_client_ip();
-  
-  error_log('index page ip ' . $client_ip . ' on ' . check_mobile());
-  
-  if(isset($_GET["hash"])) {
-    header('location:3wid_show_qr.php?hash=' . $_GET["hash"]);
-  }
- 
-    session_unset();
-    session_destroy();
-    session_start();
 
-    db_3wid_log_ip($client_ip);	
+require_once 'php/functions.php';
+require_once 'login/config.php';
 
-    $loginUrl = $client->createAuthUrl();
-    
-    $data = check_auth();
-    
-    if($data) {
-        $image_url = $data["picture"];
-    } else {
-        $image_url = "";
-    }
-    
+$client_ip = get_client_ip();
+error_log('index page ip ' . $client_ip . ' on ' . check_mobile());
+
+if (isset($_GET['hash'])) {
+    header('Location: 3wid_show_qr.php?hash=' . rawurlencode($_GET['hash']));
+    exit;
+}
+
+db_3wid_log_ip($client_ip);
+
+$data = current_user_from_session($conn);
+if (!$data) {
+    $data = check_auth(); // fallback to your existing helper
+}
+
+$image_url = $data['picture'] ?? '';
+
+if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-    
-    if(isset($_GET["message"])) {
-        $helpertext = $_GET["message"]; 			
-    } else {
-        $helpertext = '<a href="https://x.com/climatebabes/status/1921113933592584660">What is this site? Explanation on X.com</a>';
-    }
-    
-  if(check_mobile()=="mobile") {
-        $helpertext = 'Log in top right to create you own 3WordID'; 
-  }
-    
-    if(isset($_GET["threewords"])) {
-        $threewords = sanitizeInput($_GET["threewords"]);
-        header('location:3wid_forward.php?threewords=' . $threewords);
-      } else {  
-        $threewords = "";  
-      }
+}
 
- $db_3wordid_list = db_3wordid_list_recent();
+$loginUrl = '/login/options.php';
+
+if (isset($_GET['message'])) {
+    $helpertext = htmlspecialchars($_GET['message'], ENT_QUOTES, 'UTF-8');
+} else {
+    $helpertext = '<a href="https://x.com/climatebabes/status/1921113933592584660">What is this site? Explanation on X.com</a>';
+}
+
+if (check_mobile() === 'mobile') {
+    $helpertext = 'Log in top right to create you own 3WordID';
+}
+
+if (isset($_GET['threewords'])) {
+    $threewords = sanitizeInput($_GET['threewords']);
+    header('Location: 3wid_forward.php?threewords=' . rawurlencode($threewords));
+    exit;
+}
+
+$threewords = '';
+$db_3wordid_list = db_3wordid_list_recent();
+
+
  
  $loginUrl ='/login/options.php';
  $helpertext ='';
@@ -108,7 +105,7 @@
     <main>
         <section class="hero">
             <div class="eyebrow">HUMAN-READABLE IDENTIFIERS <b><style="color:black;">BETA version</style></b></div>
-            <h1>Three words.<br>One destination.</h1>
+            <h1>Three words<br>Every destination</h1>
             <p class="subhead">Look up a URL, notification, or private message box using any three-word ID. Easy to say. Easy to remember.</p>
             <div class="helper-note" id="helperText"><?php echo $helpertext; ?></div>
 

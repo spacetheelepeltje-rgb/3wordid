@@ -1,18 +1,21 @@
 <?php
 require_once 'config.php';
+require_once __DIR__ . '/../php/session_boot.php';
+start_app_session();
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
-if (!empty($_SESSION['user_token'])) {
+if (current_user_from_session($conn)) {
     header('Location: ../3wid_list.php');
     exit;
 }
 
-$_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
 
+$_SESSION['oauth_state'] = bin2hex(random_bytes(16));
+$client->setState($_SESSION['oauth_state']);
 $googleUrl = $client->createAuthUrl();
+
 $message = '';
 if (isset($_GET['message'])) {
     $message = htmlspecialchars($_GET['message'], ENT_QUOTES, 'UTF-8');

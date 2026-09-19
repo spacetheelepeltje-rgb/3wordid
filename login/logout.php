@@ -1,8 +1,7 @@
 <?php
-// logout.php
-session_start();
-session_unset();
-session_destroy();
-header('Location:../index.php');
-exit();
-?>
+require_once 'config.php';
+require_once __DIR__ . '/../php/session_boot.php';
+
+destroy_app_session($conn);
+header('Location: ../index.php');
+exit;
