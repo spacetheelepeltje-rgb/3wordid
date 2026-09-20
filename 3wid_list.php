@@ -348,8 +348,9 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
 		
             $message_count = db_3wordid_count_messages($db_3wordid_item['id']);
             $msg_state = ($message_count['count'] == 0) ? 'disabled' : '';
-            $url = "https://3wordid.com/index.php?threewords=" . urlencode($db_3wordid_item['threeword']);
-            $threeword_url = implode('.', explode(' ', $db_3wordid_item["threeword"]));
+            //$url = "https://3wordid.com/index.php?threewords=" . urlencode($db_3wordid_item['threeword']);
+            $url = "https://3wordid.com/" .  $threeword_url;
+            $threeword_url = implode('.', explode(' ', $db_3wordid_item['threeword']));
             $enabled = ($db_3wordid_item['enabled'] == 1);
             $days = db_3wid_daysUntilNWeeksAfter($db_3wordid_item['creation_date'], 4);
             
@@ -358,7 +359,7 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
             <div class="id-row">
                 <div>
                     <a href="3wid_forward.php?threewords=<?php echo $db_3wordid_item['threeword'] ?>" class="id-name <?php echo $enabled ? '' : 'grayed-out'; ?>" title="id : <?php echo $db_3wordid_item['id'] ?> views : <?php echo $db_3wordid_item['views']; ?> created : <?php echo $db_3wordid_item['creation_date']; ?> days to expire : <?php echo $days; ?>">
-                        <?php echo htmlspecialchars($db_3wordid_item['threeword']); ?>
+                        <?php echo htmlspecialchars($db_3wordid_item['threeword']); ?> 
                     </a>
                     <div class="id-meta">
                         <?php echo htmlspecialchars($threeword_url); ?>
@@ -382,7 +383,7 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
                         </svg>
                         <span class="tooltip">Copy URL for <?php echo htmlspecialchars($db_3wordid_item['threeword']); ?></span>
                     </button>
-                    <span class="hidden-url"><?php echo htmlspecialchars($url); ?></span>
+                    <span class="hidden-url"><?php echo htmlspecialchars("https://3wordid.com/" . $threeword_url); ?></span>
                 </div>
 
                 <div class="icon-row">
@@ -398,7 +399,7 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
                             <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
                         </svg>
                     </a>
-                    <a href="3wid_delete.php?id=<?php echo (int)$db_3wordid_item['id']; ?>" class="icon-btn mail-icon <?php echo $msg_state; ?>" title="<?php echo $message_count['count']; ?> messages for this 3WordID">
+                    <a href="3wid_list_messages.php?uid=<?php echo $id; ?>&wid_id=<?php echo $db_3wordid_item['id']; ?>&threeword=<?php echo $db_3wordid_item['threeword']; ?>" class="icon-btn mail-icon <?php echo $msg_state; ?>" title="<?php echo $message_count['count']; ?> messages for this 3WordID">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="Message Icon">
                             <path d="M21 4H3a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path>
                             <path d="M1 6l11 7 11-7"></path>

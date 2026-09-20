@@ -3,22 +3,14 @@
   require_once 'php/functions.php';
   require_once 'login/config.php';
   
-  $time = substr(time(),-4);
-  
-  $client_ip = get_client_ip();
-  
-  //error_log('list messages ' . $client_ip . ' get ' . json_encode($_GET));
-  
- $data = current_user_from_session($conn);
+  $data = current_user_from_session($conn);
+ 
 	if ($data == NULL) {
     header('Location: login/options.php?message=' . rawurlencode('Please log in.'));
     exit;
 	}
   
-    
-  // Generate Google Login URL
-  //$loginUrl = $client->createAuthUrl();
-  
+ 
   
   if(isset($_GET['wid_id'])) {  
     $threeword_id = $_GET['wid_id'];  

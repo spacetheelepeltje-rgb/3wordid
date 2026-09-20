@@ -7,12 +7,7 @@
   require_once 'php/functions.php';
   require_once 'login/config.php';
   
-  //error_log('messageform page');
-  
-  // Generate Google Login URL
-  $loginUrl = $client->createAuthUrl();
-  
-  $data = check_credentials($_SESSION,$_POST,$_GET);
+  $data = current_user_from_session($conn);
   
   if(!$data) {
       error_log('no user credentials');
@@ -38,8 +33,8 @@
  }
  
  $user_threeword_rows = db_3wid_get_3wids($data["id"]);
-
- if($user_threeword_rows == NULL || ($reply_to == '')) {
+ 
+ if($user_threeword_rows == NULL) {
      header('location:3wid_list.php?message=Create a 3WordID first to send a message from');  
  }
  
@@ -323,22 +318,31 @@
                   <select class="search-bar" name="from_id" id="from_id">
                     <?php
                     
-					   if (isset ($wid_id)) {
+					  /* if (isset ($wid_id)) {
 					   foreach( $user_threeword_rows as $select_row) {
 						   
 						   if( $select_row["id"] == $wid_id) {
-								echo "<option selected value='" .  $select_row["id"] . "'>Send from : " .  $select_row["threeword"] . "</option>"; 
+								echo "<option selected value='" .  $select_row["id"] . "'>xSend from : " .  $select_row["threeword"] . "</option>"; 
 								
                            }
                            
 					   }
 					   
 					   } else {
+						*/   
                        foreach( $user_threeword_rows as $select_row) {
-                           echo "<option value='" .  $select_row["id"] . "'>Send from : " .  $select_row["threeword"] . "</option>"; 
+						   
+						   if($select_row["id"] == $wid_id ) { 
+							   $selected ="selected";
+							   } else {
+							   $selected ="";
+							   }
+						   
+                           echo "<option value='" .  $select_row["id"] . "' " . $selected . ">Send from : " .  $select_row["threeword"] . "</option>"; 
+                           
                            }
                            
-					   }
+					   //}
                      ?>
                   </select>
                 </div>
