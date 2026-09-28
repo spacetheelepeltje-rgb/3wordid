@@ -253,6 +253,10 @@
                 <span class="close" onclick="closeModal()">&times;</span>
                 <img id="fullImage" src="" alt="Full Image">
             </div>
+            
+    <footer class="site-footer">
+        <div><?php echo $footer; ?></div>
+    </footer>
 
 </body>
 <script>

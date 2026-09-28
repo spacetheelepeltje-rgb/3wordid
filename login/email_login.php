@@ -3,7 +3,7 @@ require_once 'config.php';
 require_once __DIR__ . '/../php/session_boot.php';
 start_app_session();
 
-if (!empty($_SESSION['user_token'])) {
+if (current_user_from_session($conn)) {
     header('Location: ../3wid_list.php');
     exit;
 }

@@ -5,11 +5,13 @@
 
   require_once 'php/functions.php';
   require_once 'login/config.php';
-
+  require_once __DIR__ . '/php/session_boot.php';
+  
+  start_app_session();
   $client_ip = get_client_ip();
   error_log('external message page ip ' . $client_ip . ' on ' . check_mobile());
 
-  $loginUrl = $client->createAuthUrl();
+  //$loginUrl = $client->createAuthUrl();
 
   //$data = check_credentials($_SESSION,$_POST,$_GET);
 
@@ -245,31 +247,34 @@
     </style>
 </head>
 <body>
-    <header class="site-header">
-        <a class="brand" href="<?php echo $main_url; ?>">
-            <span class="brand-mark"><img src="img/3wid_big.png" alt=""></span>
+     <header class="site-header">
+        <a class="brand" href="<?php echo $main_url;?>">
+            <span class="brand-mark"><img width='35' src='https://3WordID.com/img/3wid_big.png'></span>
             3WordID
         </a>
+        <nav class="nav-links">
+            <a href="https://x.com/climatebabes/status/1921113933592584660">Docs on X.com</a> <a href="https://github.com/spacetheelepeltje-rgb/3wordid">Open Source on Github</a>               
+        </nav>
         <div class="header-actions" id="userContainer">
-            <a href="<?php echo $loginUrl; ?>" class="btn btn-ghost">Log in</a>
-            <a href="<?php echo $loginUrl; ?>" class="login-icon" title="Log in">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="Login Icon">
-                    <path d="M15 21h4a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-4"></path>
-                    <polyline points="8 7 13 12 8 17"></polyline>
-                    <line x1="13" y1="12" x2="1" y2="12"></line>
-                </svg>
+            <a href="<?php echo $loginUrl; ?>" class="btn btn-primary">Log in/Create ID</a>
+            <!-- <a href="<?php echo $loginUrl; ?>" class="login-icon" title="Log in (not all functions work on mobile devices)">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="Login Icon">
+                <path d="M15 21h4a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-4"></path>
+                <polyline points="8 7 13 12 8 17"></polyline>
+                <line x1="13" y1="12" x2="1" y2="12"></line>
+              </svg> -->
             </a>
         </div>
     </header>
 
+
     <main class="wrap">
         <div class="eyebrow">Message Form</div>
         <h1><?php echo $has_note ? 'Leave a message' : 'Leave your message here'; ?></h1>
+        <?php if (!$has_note): ?>           
         <p class="sub">Send a note to <strong><?php echo $reply_to_safe; ?></strong>. Add contact details or log in and send a direct message if you want a reply.</p>
-
-        <?php if ($has_note): ?>
-            <div class="flash"><?php echo $notification; ?></div>
         <?php endif; ?>
+        <div class="flash"><?php echo $notification; ?></div>
 
         <div class="card search-container">
             <form id="3widForm" action="3wid_messageform_ext_process.php" method="post">
@@ -291,7 +296,7 @@
             </form>
         </div>
 
-        <p class="hint">Want a reply box of your own? <a href="<?php echo $loginUrl; ?>">Create a 3WordID</a></p>
+        <p class="hint">Want a receive a direct reply? <a href="<?php echo $loginUrl; ?>">Log in and create your own 3WordID!</a></p>
     </main>
 
     <footer>
