@@ -52,6 +52,7 @@
     <title>Leave a message — 3WordID</title>
     <link rel="icon" type="image/x-icon" href="img/favicon.ico">
     <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
@@ -64,38 +65,60 @@
             --paper: #F7F6F3;
             --white: #FFFFFF;
             --gold: #B45309;
+            --ok: #16794A;
+            --danger: #9B1C1C;
             --shadow: 0 10px 30px rgba(15,28,63,.08);
+            --chip: #EFECE6;
+            --well: #F3F1EC;
+            --divider: #F0EEE8;
+            --card-line: #ECEAE4;
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * { box-sizing: border-box; }
+        html, body { margin: 0; padding: 0; }
         body {
-            font-family: Inter, system-ui, sans-serif;
+            font-family: Inter, system-ui, -apple-system, Segoe UI, sans-serif;
             background: var(--paper);
             color: var(--navy);
+            font-size: 16px;
+            line-height: 1.5;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
         }
+        a { color: var(--navy); text-decoration: none; }
+        a:hover { color: var(--navy-hover); }
+
         .site-header {
             position: sticky;
             top: 0;
-            z-index: 20;
+            z-index: 40;
+            background: var(--paper);
+            border-bottom: 1px solid var(--line);
+        }
+        .header-inner,
+        .page,
+        .site-footer .footer-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 16px 26px;
+        }
+        .header-inner {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 16px 28px;
-            background: var(--paper);
-            border-bottom: 1px solid var(--line);
+            gap: 16px;
         }
         .brand {
             display: flex;
             align-items: center;
             gap: 10px;
-            text-decoration: none;
             color: var(--navy);
-            font-weight: 800;
-            letter-spacing: -0.04em;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            font-size: 16px;
+            flex: 0 0 auto;
         }
-        .brand-mark {
+        .mark {
             width: 34px;
             height: 34px;
             border-radius: 10px;
@@ -105,35 +128,65 @@
             align-items: center;
             justify-content: center;
             overflow: hidden;
+            flex: 0 0 34px;
         }
-        .brand-mark img { width: 34px; height: 34px; object-fit: cover; }
-        .header-actions { display: flex; align-items: center; gap: 10px; }
+        .mark img { width: 34px; height: 34px; object-fit: cover; display: block; }
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            margin-left: auto;
+            margin-right: 12px;
+        }
+        .nav-links a {
+            color: var(--slate);
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .nav-links a:hover { color: var(--navy); }
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 0 0 auto;
+        }
         .btn {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            height: 44px;
-            padding: 0 16px;
+            height: 36px;
+            padding: 0 14px;
             border-radius: 10px;
             font-size: 14px;
             font-weight: 600;
-            text-decoration: none;
-            cursor: pointer;
             border: 1px solid transparent;
+            cursor: pointer;
             font-family: inherit;
+            text-decoration: none;
         }
-        .btn-primary { background: var(--navy); color: #fff; }
-        .btn-primary:hover { background: var(--navy-hover); }
+        .btn-primary,
+        #submitBtn {
+            background: var(--navy);
+            color: #fff;
+            border-color: var(--navy);
+        }
+        .btn-primary:hover,
+        #submitBtn:hover {
+            background: var(--navy-hover);
+            border-color: var(--navy-hover);
+            color: #fff;
+        }
         .btn-ghost {
             background: var(--white);
             color: var(--navy);
             border-color: var(--line);
         }
-        .btn-ghost:hover { background: #f3f1ec; }
+        .btn-ghost:hover { background: var(--well); }
+        .icon-btn,
         .login-icon {
             width: 36px;
             height: 36px;
+            padding: 0;
             border-radius: 10px;
             border: 1px solid var(--line);
             background: var(--white);
@@ -142,165 +195,190 @@
             align-items: center;
             justify-content: center;
         }
-        .wrap {
-            width: 100%;
-            max-width: 560px;
-            margin: 48px auto 0;
-            padding: 0 24px 48px;
+        .icon-btn svg,
+        .login-icon svg {
+            width: 18px;
+            height: 18px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+
+        .page {
+            padding-top: 28px;
+            padding-bottom: 48px;
             flex: 1;
+            width: 100%;
         }
         .eyebrow {
             color: var(--gold);
             font-size: 12px;
-            font-weight: 700;
-            letter-spacing: .08em;
+            font-weight: 600;
+            letter-spacing: 0.04em;
             text-transform: uppercase;
-            margin-bottom: 8px;
+            margin: 0 0 8px;
         }
         h1 {
-            font-size: 32px;
+            margin: 0 0 8px;
+            font-size: 40px;
             font-weight: 800;
             letter-spacing: -0.04em;
-            margin-bottom: 8px;
+            line-height: 1.1;
+            color: var(--navy);
         }
-        .sub {
+        .subhead {
+            margin: 0 0 24px;
             color: var(--slate);
-            font-size: 15px;
-            line-height: 1.5;
-            margin-bottom: 24px;
+            font-size: 16px;
+            max-width: 920px;
         }
         .flash {
             background: var(--white);
-            border: 1px solid #ECEAE4;
+            border: 1px solid var(--card-line);
             border-left: 4px solid var(--gold);
             border-radius: 14px;
             padding: 12px 14px;
             color: var(--slate);
             font-size: 14px;
             line-height: 1.5;
-            margin-bottom: 16px;
+            margin: 0 0 16px;
+            max-width: 720px;
         }
-        .card {
+        .panel {
             background: var(--white);
-            border: 1px solid #ECEAE4;
+            border: 1px solid var(--card-line);
             border-radius: 16px;
-            padding: 22px;
             box-shadow: var(--shadow);
+            padding: 22px;
+            max-width: 720px;
         }
-        label {
+        .field { margin: 0 0 12px; }
+        .field label,
+        label.lbl {
             display: block;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 600;
+            color: var(--slate);
             margin: 0 0 6px;
         }
-        input[type="text"],
-        textarea {
+        .search-bar,
+        input.search-bar,
+        textarea.search-bar {
             width: 100%;
+            background: var(--white);
             border: 1px solid var(--line);
             border-radius: 10px;
-            padding: 12px;
-            font: inherit;
-            margin-bottom: 14px;
-            background: var(--white);
+            padding: 11px 12px;
+            font: 500 15px/1.4 Inter, system-ui, sans-serif;
             color: var(--navy);
+            outline: none;
+            box-shadow: var(--shadow);
         }
-        input[type="text"] { height: 44px; padding-top: 0; padding-bottom: 0; }
-        input:focus,
-        textarea:focus {
-            outline: 2px solid var(--navy);
-            outline-offset: 1px;
-        }
-        input:disabled {
-            background: #F3F1EC;
+        textarea.search-bar { min-height: 140px; resize: vertical; }
+        .search-bar:focus { border-color: var(--navy); }
+        input:disabled,
+        .search-bar:disabled {
+            background: var(--well);
             color: var(--slate);
+            box-shadow: none;
         }
-        textarea { min-height: 140px; resize: vertical; }
+        .hint {
+            margin: 14px 0 0;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.55;
+            max-width: 720px;
+        }
+        .hint a { color: var(--navy); font-weight: 600; }
         .buttons {
             display: flex;
             align-items: center;
             gap: 12px;
+            flex-wrap: wrap;
             margin-top: 4px;
+        }
+        #submitBtn {
+            height: 40px;
+            padding: 0 18px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
         }
         #helperText {
             color: var(--muted);
             font-size: 13px;
         }
-        .hint {
+        .site-footer {
             color: var(--muted);
             font-size: 13px;
-            margin-top: 16px;
+            border-top: 1px solid var(--line);
         }
-        .hint a { color: var(--navy); font-weight: 600; text-decoration: none; }
-        footer {
-            text-align: center;
-            color: var(--muted);
-            font-size: 13px;
-            padding: 24px;
-        }
-        footer a { color: var(--muted); margin: 0 8px; text-decoration: none; }
+        .site-footer a { color: var(--muted); margin: 0 8px; }
+        .site-footer a:hover { color: var(--navy); }
         @media (max-width: 800px) {
-            .site-header { padding: 14px 20px; }
-            h1 { font-size: 28px; }
-            .wrap { margin-top: 32px; }
+            .header-inner, .page, .site-footer .footer-inner { padding-left: 24px; padding-right: 24px; }
+            h1 { font-size: 32px; }
+            .nav-links { display: none; }
             .header-actions .btn-primary { display: none; }
+            .panel { padding: 16px; }
         }
     </style>
 </head>
 <body>
-     <header class="site-header">
-        <a class="brand" href="<?php echo $main_url;?>">
-            <span class="brand-mark"><img width='35' src='https://3WordID.com/img/3wid_big.png'></span>
-            3WordID
-        </a>
-        <nav class="nav-links">
-            <a href="https://x.com/climatebabes/status/1921113933592584660">Docs on X.com</a> <a href="https://github.com/spacetheelepeltje-rgb/3wordid">Open Source on Github</a>               
-        </nav>
-        <div class="header-actions" id="userContainer">
-            <a href="<?php echo $loginUrl; ?>" class="btn btn-primary">Log in/Create ID</a>
-            <!-- <a href="<?php echo $loginUrl; ?>" class="login-icon" title="Log in (not all functions work on mobile devices)">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="Login Icon">
-                <path d="M15 21h4a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-4"></path>
-                <polyline points="8 7 13 12 8 17"></polyline>
-                <line x1="13" y1="12" x2="1" y2="12"></line>
-              </svg> -->
+    <header class="site-header">
+        <div class="header-inner">
+            <a class="brand" href="<?php echo $main_url; ?>">
+                <span class="mark" aria-hidden="true"><img width="35" src="https://3WordID.com/img/3wid_big.png" alt=""></span>
+                <span>3WordID</span>
             </a>
+            <nav class="nav-links">
+                <a href="https://x.com/climatebabes/status/1921113933592584660">Docs on X.com</a>
+                <a href="https://github.com/spacetheelepeltje-rgb/3wordid">Open Source on Github</a>
+            </nav>
+            <div class="header-actions" id="userContainer">
+                <a href="<?php echo $loginUrl; ?>" class="btn btn-primary">Log in/Create ID</a>
+            </div>
         </div>
     </header>
 
-
-    <main class="wrap">
-        <div class="eyebrow">Message Form</div>
+    <main class="page">
+        <p class="eyebrow">Message form</p>
         <h1><?php echo $has_note ? 'Leave a message' : 'Leave your message here'; ?></h1>
-        <?php if (!$has_note): ?>           
-        <p class="sub">Send a note to <strong><?php echo $reply_to_safe; ?></strong>. Add contact details or log in and send a direct message if you want a reply.</p>
+        <?php if (!$has_note): ?>
+        <p class="subhead">Send a note to <strong><?php echo $reply_to_safe; ?></strong>. Add contact details or log in and send a direct message if you want a reply.</p>
         <?php endif; ?>
+        <?php if ($has_note): ?>
         <div class="flash"><?php echo $notification; ?></div>
+        <?php endif; ?>
 
-        <div class="card search-container">
+        <div class="panel search-container">
             <form id="3widForm" action="3wid_messageform_ext_process.php" method="post">
-                <label for="threeword">Recipient</label>
-                <input disabled type="text" name="" id="threeword" class="search-bar" placeholder="Enter recipient 3WordID" value="to : <?php echo $reply_to_safe; ?>">
-
-                <label for="title">Title</label>
-                <input type="text" name="title" id="title" class="search-bar" placeholder="Enter a message title" value="">
-
-                <label for="message">Message</label>
-                <textarea name="message" id="message" class="search-bar" placeholder="Enter your message here. If you want a reply provide contact info or log in and create your own 3WordID" rows="4"></textarea>
-
+                <div class="field">
+                    <label class="lbl" for="threeword">Recipient</label>
+                    <input disabled type="text" name="" id="threeword" class="search-bar" placeholder="first  ·  second  ·  third" value="to : <?php echo $reply_to_safe; ?>">
+                </div>
+                <div class="field">
+                    <label class="lbl" for="title">Title</label>
+                    <input type="text" name="title" id="title" class="search-bar" placeholder="Enter a message title" value="">
+                </div>
+                <div class="field">
+                    <label class="lbl" for="message">Message</label>
+                    <textarea name="message" id="message" class="search-bar" placeholder="Enter your message here. If you want a reply provide contact info or log in and create your own 3WordID" rows="4"></textarea>
+                </div>
                 <div class="buttons">
                     <button type="submit" id="submitBtn" class="btn btn-primary">Send</button>
                     <div id="helperText"></div>
                 </div>
-
                 <input type="hidden" name="threeword" value="<?php echo $reply_to_safe; ?>">
             </form>
         </div>
 
-        <p class="hint">Want a receive a direct reply? <a href="<?php echo $loginUrl; ?>">Log in and create your own 3WordID!</a></p>
+        <p class="hint">Want a direct reply? <a href="<?php echo $loginUrl; ?>">Log in and create your own 3WordID</a></p>
     </main>
 
-    <footer>
-        <?php echo $footer; ?>
+    <footer class="site-footer">
+        <div class="footer-inner"><?php echo $footer; ?></div>
     </footer>
 </body>
 <script src="js/3wid_messageform_ext.js"></script>

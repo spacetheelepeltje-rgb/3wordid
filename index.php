@@ -55,7 +55,7 @@ $db_3wordid_list = db_3wordid_list_recent();
     <meta http-equiv="refresh" content="60">
     <meta charset="UTF-8"> 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3WordID — Three words. One destination.</title>
+    <title>3WordID — Three words. Every destination.</title>
     <link rel="icon" type="image/x-icon" href="img/favicon.ico">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -127,18 +127,18 @@ $db_3wordid_list = db_3wordid_list_recent();
         <section class="cards" id="use-cases">
             <article class="card">
                 
-                <h3>Find anything</h3>
-                <p>Link any three words to a URL. Share a page, profile, file, or resource with a memorable ID anyone can look up.</p>
+                <h3>Three Word aliasses</h3>
+                <p>Link any three words to any URL. Share the words and thus share the profile, file, or resource. Easy to remember, easy to communicate</p>
             </article>
             <article class="card">
                 
-                <h3>Leave a message</h3>
-                <p>Each 3WordID can have a notification or private mailbox. Perfect for contact forms, inquiries, tips, or direct messages.</p>
+                <h3>Three Word Message Box</h3>
+                <p>Create a private mailbox linked to three words, which can also be a number or alias or license plate</p>
             </article>
             <article class="card">
                
-                <h3>Share without QR codes</h3>
-                <p>Works anywhere words do — on signs, print, tickets, name badges, and more. No scanning required. You can also secure your QR codes via a 3WordID!</p>
+                <h3>Get rid of QR codes</h3>
+                <p>Use three words instead of QR codes, or create a QR code based on three words, which means you can prevent tampering. Musea can get a cleaner look on their labels, menu cards can just have the restaurant name.</p>
             </article>
         </section>
 
