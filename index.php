@@ -85,7 +85,7 @@ $db_3wordid_list = db_3wordid_list_recent();
             3WordID
         </a>
         <nav class="nav-links">
-             <a href="terms.php">Terms</a> <a href="https://x.com/climatebabes/status/1921113933592584660">Docs on X.com</a> <a href="https://github.com/spacetheelepeltje-rgb/3wordid">Open Source on Github</a>               
+              <a href="plans.php">Subscription Plans</a> <a href="terms.php">Terms</a> <a href="https://x.com/climatebabes/status/1921113933592584660">Docs on X.com</a> <a href="https://github.com/spacetheelepeltje-rgb/3wordid">Open Source on Github</a>               
         </nav>
         
         <div class="header-actions" id="userContainer">

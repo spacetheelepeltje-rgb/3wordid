@@ -218,9 +218,9 @@ if (isset($_GET['message'])) {
     </header>
 
     <main class="wrap">
-        <div class="eyebrow">Account</div>
+        <div class="eyebrow">Manage your three word IDs</div>
         <h1>Log in</h1>
-        <p class="sub">Choose Google or an email account. Both open the same workspace.</p>
+        <p class="sub">Choose Google or an email account. We store your email encrypted atm so we can't spam you.</p>
 
         <?php if ($message !== ''): ?>
             <div class="flash"><?php echo $message; ?></div>
@@ -238,7 +238,7 @@ if (isset($_GET['message'])) {
 
         <div class="card">
             <h2>Email login</h2>
-            <p>Register once, then sign in with your password. The address is stored as a hash only.</p>
+            <p>Register once, then sign in with your password.</p>
             <div class="stack">
                 <a class="btn btn-ghost" href="email_login.php">Sign in with email</a>
                 <a class="btn btn-ghost" href="email_register.php">Register with email</a>

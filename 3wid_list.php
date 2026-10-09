@@ -301,6 +301,10 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
             <span class="brand-mark"><img width='35' src='https://3WordID.com/img/3wid_big.png'></span>
             3WordID
         </a>
+        
+        <nav class="nav-links">
+             <a href="plans.php">Subscription Plans</a>               
+            </nav>
         <div class="header-actions">
             <a href="https://wa.me/31644311561?text=From 3WordID.com : "
    target="_blank"
@@ -308,7 +312,14 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
    class="btn btn-primary" style='background:#25D366;'>
   Whatsapp admin
 </a>
+
+ 
+
             <a class="btn btn-primary" href="3wid_add.php" title="<?php echo $title; ?>" <?php echo $pointer; ?>><?php echo $create_label; ?></a>
+            
+           
+            
+            
             <a href="login/logout.php" class="logout-icon" title="log out">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="Logout Icon">
                     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
