@@ -25,6 +25,7 @@
   
 	if($data == NULL) {
 	   header('location:' . $main_url);
+	   exit;
     } 
 	  
    $message = $_POST["message"];

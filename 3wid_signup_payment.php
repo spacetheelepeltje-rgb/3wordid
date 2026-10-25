@@ -60,7 +60,7 @@ main {
    <main>
   <div class="logo">
     <a href='<?php echo $main_url;?>'><img width="100" src="img/3wid_big.png" alt="Logo"></a><br>
-    <strong><?php echo $message; ?></strong>
+    <strong><?php echo htmlspecialchars($message, ENT_QUOTES, 'UTF-8'); ?></strong>
   </div>
   <?php 
   // BANK TRANSFER

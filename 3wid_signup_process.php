@@ -7,8 +7,9 @@
   $client_ip = get_client_ip();
 
   if(isset($_POST['csrf_token'])) {
-	if($_SESSION['csrf_token'] != $_POST['csrf_token']) {
+	if(!isset($_SESSION['csrf_token']) || $_SESSION['csrf_token'] != $_POST['csrf_token']) {
 	  header('location:' . $main_url);
+	  exit;
 	 }
   } else {
 	  error_log('index page ip ' . $client_ip . ' on ' . check_mobile() . ' time ' . time() . ' POST >>' . json_encode($_POST) . '<<');
