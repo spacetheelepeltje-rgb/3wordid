@@ -129,7 +129,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <main class="wrap">
         <div class="eyebrow">Account</div>
         <h1>Create account</h1>
-        <p class="sub">Email and password. The address is hashed before it is saved. Unused accounts will be deleted after 3 months.</p>
+        <p class="sub">Email and password. The address is hashed before it is saved. Unused accounts will be deactivated after 3 months.</p>
 
         <?php if ($error !== ''): ?>
             <div class="flash"><?php echo htmlspecialchars($error, ENT_QUOTES, 'UTF-8'); ?></div>

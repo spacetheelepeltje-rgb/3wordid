@@ -951,8 +951,16 @@ function db_3wordid_get_google_users($page,$page_size,$order) {
 	$limit_low = $page*$page_size;
 
 	// Prepare and execute query (LIMIT offset, number of rows)
-	$query = "SELECT * FROM google_users ORDER BY id " . $order . " LIMIT " . $limit_low . "," . $page_size . ";";
-	error_log($query);
+	// One query: every user plus how many 3WordIDs they own (a subquery that
+	// only runs for the users on this page) and, once the column exists,
+	// their last login. The 3WordIDs count is never a separate query per row.
+	$last_login = google_users_has_column($conn, 'last_login') ? 'u.last_login' : 'NULL';
+	$query = "SELECT u.*,
+	                 (SELECT COUNT(*) FROM 3wordid w WHERE w.user_id = u.id) AS nr_3wids,
+	                 " . $last_login . " AS last_login_at
+	          FROM google_users u
+	          ORDER BY u.id " . $order . "
+	          LIMIT " . $limit_low . "," . $page_size;
 	$stmt = $conn->prepare($query);
 	$stmt->execute();
 	$result = $stmt->get_result();

@@ -47,6 +47,8 @@ function establish_user_session(mysqli $conn, int $userId): string
     $stmt->execute();
     $stmt->close();
 
+    record_last_login($conn, $userId);
+
     session_regenerate_id(true);
 
     $_SESSION['user_id']    = $userId;
@@ -55,6 +57,64 @@ function establish_user_session(mysqli $conn, int $userId): string
     unset($_SESSION['action_token']); // new action token after login
 
     return $rawToken;
+}
+
+/**
+ * True when google_users has the given column. Cached per request.
+ * Used so new columns (like last_login) are only used after the SQL
+ * migration in sql/ has been run on the server.
+ */
+function google_users_has_column(mysqli $conn, string $column): bool
+{
+    static $cache = [];
+    if (array_key_exists($column, $cache)) {
+        return $cache[$column];
+    }
+
+    $has = false;
+    try {
+        $stmt = $conn->prepare(
+            'SELECT 1 FROM information_schema.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?
+             LIMIT 1'
+        );
+        if ($stmt) {
+            $table = 'google_users';
+            $stmt->bind_param('ss', $table, $column);
+            $stmt->execute();
+            $has = (bool)$stmt->get_result()->fetch_row();
+            $stmt->close();
+        }
+    } catch (Throwable $e) {
+        error_log('google_users_has_column(' . $column . '): ' . $e->getMessage());
+        $has = false;
+    }
+
+    $cache[$column] = $has;
+    return $has;
+}
+
+/**
+ * Stores the date and time of a successful login in google_users.last_login.
+ * Does nothing (and never breaks the login) when the column does not exist yet.
+ * Run sql/2026-10-25_add_last_login.sql once to add the column.
+ */
+function record_last_login(mysqli $conn, int $userId): void
+{
+    if (!google_users_has_column($conn, 'last_login')) {
+        return;
+    }
+
+    try {
+        $stmt = $conn->prepare('UPDATE google_users SET last_login = NOW() WHERE id = ?');
+        if ($stmt) {
+            $stmt->bind_param('i', $userId);
+            $stmt->execute();
+            $stmt->close();
+        }
+    } catch (Throwable $e) {
+        error_log('record_last_login(' . $userId . '): ' . $e->getMessage());
+    }
 }
 
 function current_user_from_session(mysqli $conn): ?array
