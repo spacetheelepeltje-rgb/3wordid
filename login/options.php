@@ -28,8 +28,7 @@ if (isset($_GET['message'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Log in — 3WordID</title>
     <link rel="icon" type="image/x-icon" href="../img/favicon.ico">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="/css/inter.css" rel="stylesheet">
     <style>
         :root {
             --navy: #0F1C3F;
@@ -220,7 +219,7 @@ if (isset($_GET['message'])) {
     <main class="wrap">
         <div class="eyebrow">Manage your three word IDs</div>
         <h1>Log in</h1>
-        <p class="sub">Choose Google or an email account. We store your email encrypted atm so we can't spam you.</p>
+        <p class="sub">Choose Google or an email account. Your email address is stored as a one-way hash, not as readable text, so we can't send you emails.</p>
 
         <?php if ($message !== ''): ?>
             <div class="flash"><?php echo $message; ?></div>

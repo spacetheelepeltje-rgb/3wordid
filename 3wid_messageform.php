@@ -48,9 +48,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Send message — 3WordID</title>
     <link rel="icon" type="image/png" href="3wid_1.png">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="/css/inter.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
       :root {
@@ -362,6 +360,7 @@
                 </div>
                 <p class="hint">You can only send one message until you get a reply. Your google login image will be shared with the recipient. By checking the below checkbox you consent in sharing your google user image and (re-)confirm you consent in us storing the identification data google shares with us when you log in to this website.</p>
                 <label class="consent"><input type="checkbox" id="terms" name="terms">I consent with the above</label>
+                <p class="hint">Your message is shown to the recipient. Your message and IP address are stored and kept, also for lawful requests from law enforcement. <a href="/terms.php#data">Read more</a></p>
                 <div class="buttons">
                     <button type="submit" id="submitBtn">Send</button>
                     <div id="helperText"></div>

@@ -27,6 +27,20 @@
     </IfModule>
 </FilesMatch>
 
+# --- Error log viewer and PHP error logs: never public ------------------------
+# errors.php showed visitor IP addresses to anyone. The logs are kept (nothing is
+# deleted), they just can't be opened from the web anymore. This also covers
+# error_log files PHP writes into any folder, and rotated copies like error_log.1.
+<FilesMatch "^(errors\.php|error_log.*|php_errors.*|.*\.log(\..*)?)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
 <IfModule mod_rewrite.c>
     RewriteEngine On
 

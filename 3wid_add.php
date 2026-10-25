@@ -30,9 +30,7 @@ if (empty($_SESSION['csrf_token'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create ID — 3WordID</title>
     <link rel="icon" type="image/x-icon" href="img/favicon.ico">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="/css/inter.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
       :root {

@@ -26,9 +26,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Privacy consent — 3WordID</title>
     <link rel="icon" type="image/x-icon" href="img/favicon.ico">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="/css/inter.css" rel="stylesheet">
     <link rel="stylesheet" href="css/newstyle.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
@@ -188,7 +186,7 @@
                     <ul>
                         <li>first name and last name;</li>
                         <li>a link to your avatar;</li>
-                        <li>your email address, stored hashed, so we cannot use it to email you;</li>
+                        <li>your email address, stored as a one-way hash, not as readable text, so we cannot use it to email you;</li>
                         <li>messages you send and receive;</li>
                         <li>text you put in the notification field of a 3WordID;</li>
                         <li>the 3WordIDs you create and related lookup data.</li>
@@ -196,6 +194,9 @@
                     <p>
                         We share this data with third parties only if we are legally obligated to, or as needed to host and process the service — not to sell it.
                         We may show this page again so you can reconfirm.
+                    </p>
+                    <p>
+                        Messages, IP addresses and account data are logged and kept, also after an account is deactivated, so we can respond to lawful requests from law enforcement.
                     </p>
                 </div>
 
