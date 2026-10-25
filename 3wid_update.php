@@ -75,8 +75,9 @@ if ($data == NULL) {
    if (filter_var($linkthru, FILTER_VALIDATE_URL)) {
 		//echo("$url is a valid URL");
 		} else {
+		// no exit here on purpose: empty or "example.com" style URLs are
+		// normalised and validated in db_3wordid_update()
 		header('location:3wid_list.php');
-		exit;
 	}
    
    //error_log( " id:". $id . " not:" . $notification . " linkthru:" . $linkthru . " linkthruflag:" . $linkthruflag. " email:" . $email . " emailform:" . $emailform);
