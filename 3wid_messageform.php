@@ -12,6 +12,7 @@
   if(!$data) {
       error_log('no user credentials');
       header('location:3wid_list.php');  
+      exit;
   }
   
   //error_log('message form user ' . json_encode($data));
@@ -36,6 +37,7 @@
  
  if($user_threeword_rows == NULL) {
      header('location:3wid_list.php?message=Create a 3WordID first to send a message from');  
+     exit;
  }
  
 ?>  
@@ -293,8 +295,8 @@
           <span>3WordID</span>
         </a>
         <div class="header-actions" id="userContainer">
-          <a class="btn btn-ghost" href="3wid_list.php?user_token=<?php echo $data['token']; ?>">Back to list</a>
-          <a class="btn btn-primary" href="3wid_list.php?user_token=<?php echo $data['token']; ?>">My IDs</a>
+          <a class="btn btn-ghost" href="3wid_list.php">Back to list</a>
+          <a class="btn btn-primary" href="3wid_list.php">My IDs</a>
           <a href="<?php echo $loginUrl; ?>" class="icon-btn login-icon" title="Log in (not all functions work on mobile devices)">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="Login Icon">
               <path d="M15 21h4a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-4"></path>

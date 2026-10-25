@@ -6,11 +6,7 @@
 
   //error_log('add page ip ' . get_client_ip() . ' time ' . time() . ' session  ' . json_encode($_SESSION) . ' session id ' . session_id() . ' user token ' . $_SESSION["user_token"] );
 
-  if(isset($_GET['user_token'])) {
-      if(!isset($_SESSION['user_token'])) {
-          $_SESSION['user_token']=$_GET['user_token'];
-          }
-      }
+  // The login token is only taken from the session, never from the URL.
   
  $data = current_user_from_session($conn);
     if ($data == NULL) {
