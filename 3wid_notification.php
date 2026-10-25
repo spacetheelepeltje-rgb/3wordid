@@ -9,12 +9,14 @@
     $id = $_GET["id"];
   } else {
     header("location:" . $main_url);
+    exit;
   }
   
   $word_row = db_3wordid_get($id); 
   
   if($word_row == NULL) {  
       header("location:" . $main_url);
+      exit;
   }
 
 ?>  

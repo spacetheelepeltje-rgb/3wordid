@@ -11,6 +11,7 @@
 	$csrf_token =  $_POST['csrf_token']; 
  } else {
 	header('location:' . $main_url);
+	exit;
  }
 
 $data = current_user_from_session($conn);
@@ -29,7 +30,14 @@ if ($data == NULL) {
 	 
   } 
 
-   $id = $_POST["id"];
+   $id = isset($_POST["id"]) ? (int)$_POST["id"] : 0;
+
+   // Only the owner of the 3WordID (or the admin, same rule as 3wid_3wid.php) may update it
+   if ($data["id"] != 4 && !db_3wordid_owned_by($id, $data["id"])) {
+       error_log('update: user ' . $data['id'] . ' does not own 3wid ' . $id);
+       header('location:3wid_list.php');
+       exit;
+   }
    
    $notification = $_POST["notification"];
    
@@ -67,6 +75,8 @@ if ($data == NULL) {
    if (filter_var($linkthru, FILTER_VALIDATE_URL)) {
 		//echo("$url is a valid URL");
 		} else {
+		// no exit here on purpose: empty or "example.com" style URLs are
+		// normalised and validated in db_3wordid_update()
 		header('location:3wid_list.php');
 	}
    
@@ -82,6 +92,7 @@ try {
     
     //3wid_list.php?csrf_token=' .  $csrf_token);
     header('location:3wid_list.php');
+    exit;
     
 } catch (Exception $e) {
     echo "Error: " . $e->getMessage();

@@ -309,7 +309,6 @@ if (empty($_SESSION['csrf_token'])) {
             <div id="helperText"></div>
           </div>
 
-          <input type='hidden' name='user_token' value='<?php echo $_SESSION['user_token']; ?>'>
           <input type='hidden' id='subscribed' value='<?= $data["user_type"]; ?>'>
           <input type='hidden' name='csrf_token' value='<?php echo $_SESSION['csrf_token']; ?>'>
           <input type='hidden' name='user_id' value='<?= $data["id"]; ?>'>

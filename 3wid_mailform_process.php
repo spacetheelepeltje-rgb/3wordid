@@ -19,14 +19,16 @@
 
 */	 
   
-if($_SESSION['csrf_token'] != $_POST['csrf_token']) {
+if(!isset($_SESSION['csrf_token'], $_POST['csrf_token']) || $_SESSION['csrf_token'] != $_POST['csrf_token']) {
 	header('location:' . $main_url);
+	exit;
  }
 	  
  if(isset($_POST["id"])) {
 	$id = $_POST["id"];
  } else {
 	header('location:' . $main_url);
+	exit;
  }
 
    $mailmessage = $_POST["mailmessage"];

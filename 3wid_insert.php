@@ -31,6 +31,7 @@ try {
    if(!$threeword) {
 	   //error_log($threeword);
 	   header('location:3wid_list.php'); 
+	   exit;
    }
    
    
@@ -74,6 +75,7 @@ try {
     
    //header('location:' .   $loginUrl);
    header('location:3wid_list.php'); 
+   exit;
    
    //3wid_list.php?csrf_token=' . $_POST['csrf_token']);
 } catch (Exception $e) {

@@ -221,7 +221,7 @@
             3WordID
         </a>
         <div class="header-actions" id="userPortrait">
-            <a class="btn btn-ghost" href="3wid_list.php?user_token=<?php echo $data['token']; ?>">Back to list</a>
+            <a class="btn btn-ghost" href="3wid_list.php">Back to list</a>
             <button type="submit" form="3widForm" id="submitBtn" class="btn btn-primary">Update</button>           
         </div>
     </header>

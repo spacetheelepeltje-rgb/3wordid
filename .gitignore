@@ -1,0 +1,29 @@
+# Credentials - never commit these
+/login/config.php
+config.local.php
+.env
+.env.*
+*.pem
+*.key
+credentials*.json
+client_secret*.json
+service-account*.json
+
+# Libraries installed with Composer on the server (not part of this repo)
+/vendor/
+/login/vendor/
+/node_modules/
+
+# Logs, backups and old copies that live only on the server
+*.log
+/logging/
+/backups/
+/old/
+/old_april/
+/old_error/
+
+# Editor / OS files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
