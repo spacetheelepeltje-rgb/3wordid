@@ -2562,10 +2562,32 @@ function db_3wordid_admin_search($q, $page, $page_size) {
 }
 
 
+// True only when outgoing mail settings are present in login/config.php.
+// config.php is not in the repo; add these lines there when SMTP sending is
+// set up (example values, use your own; never commit real ones):
+//   define('SMTP_HOST', 'smtp.example.com');
+//   define('SMTP_PORT', 587);
+//   define('SMTP_USER', 'user@example.com');
+//   define('SMTP_PASS', 'your-password');
+//   define('SMTP_FROM', 'noreply@3wordid.com');
+// Until all five are defined and non-empty, email features stay hidden.
+function email_sending_configured() {
+	foreach (array('SMTP_HOST', 'SMTP_PORT', 'SMTP_USER', 'SMTP_PASS', 'SMTP_FROM') as $name) {
+		if (!defined($name) || trim((string) constant($name)) === '') {
+			return false;
+		}
+	}
+	return true;
+}
+
+
 // Emails the logged-in user a plain-text list of their 3WordIDs (words plus target).
 // $email comes from get_session_email(); it is never stored or logged.
 // Returns true when PHP mail() accepted the message.
 function send_3wid_list_email($email, $rows) {
+	if (!email_sending_configured()) {
+		return false;
+	}
 	if (!is_string($email) || !filter_var($email, FILTER_VALIDATE_EMAIL) || preg_match('/[\r\n]/', $email)) {
 		return false;
 	}

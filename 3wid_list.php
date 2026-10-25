@@ -33,12 +33,16 @@ $max = $data['max_3wids'] + 1;
 $db_3wordid_list = db_3wordid_list($id);
 
 // "Send to my email": POST with the action token, only the logged-in owner's
-// own list, at most once per 5 minutes per session.
-$can_email_list = has_session_email();
+// own list, at most once per 5 minutes per session. Hidden until outgoing
+// mail is configured in login/config.php (see email_sending_configured).
+$email_configured = email_sending_configured();
+$can_email_list = has_session_email() && $email_configured;
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_list_email'])) {
     $last_sent = (int)($_SESSION['email_list_sent_at'] ?? 0);
     if (!check_action_token($_POST['action_token'] ?? '')) {
         $result = 'Session expired. Try again.';
+    } elseif (!$email_configured) {
+        $result = 'Sending email is not available yet. Please try again later.';
     } elseif (!$can_email_list) {
         $result = 'Email is not available. Log out and log in again to use it.';
     } elseif ($last_sent > 0 && time() - $last_sent < 300) {
