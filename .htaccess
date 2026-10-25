@@ -1,0 +1,77 @@
+# 3WordID.com - Apache settings
+# Upload this file to the web root (the folder that contains index.php).
+# It REPLACES the .htaccess on the server: the rewrite rules for the
+# three-word links below are the same as the previous version.
+
+# --- No directory listings (e.g. /vendor/ showed all files) ---------------
+<IfModule mod_autoindex.c>
+    Options -Indexes
+</IfModule>
+
+# --- Security headers ------------------------------------------------------
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set Content-Security-Policy "frame-ancestors 'self'"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# --- Block files that must never be downloaded (works without mod_rewrite) --
+<FilesMatch "^(config\.php|composer\.(json|lock)|.*\.(sql|log|bak|md|ini|sh))$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # --- Always use https ----------------------------------------------------
+    RewriteCond %{HTTPS} off
+    RewriteCond %{HTTP:X-Forwarded-Proto} !https
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # --- Deny web access to non-public files and folders ---------------------
+    # Hidden files and folders (.git, .env, .htaccess ...), except .well-known
+    RewriteRule (^|/)\.(?!well-known(/|$)) - [F,L]
+
+    # Libraries, include files, logs and backups: only used by PHP itself
+    RewriteRule ^(vendor|login/vendor|php|logging|backups|old|old_april|old_error)(/|$) - [F,L]
+
+    # Credentials
+    RewriteRule ^login/config\.php$ - [F,L]
+
+    # Scripts in the admin folder (images there stay reachable)
+    RewriteRule ^admin/.*\.php$ - [F,L]
+
+    # Notes and data files that exist on disk (robots.txt and ads.txt stay public).
+    # Only real files are blocked, so three-word links like a.b.txt keep working.
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteCond %{REQUEST_URI} !^/(robots|ads)\.txt$
+    RewriteRule \.(txt|md|log|sql|lock|bak|ini|sh)$ - [F,L]
+
+    # --- 3WordID links (unchanged from the previous .htaccess) ---------------
+    # Rule for MD5 hash (32 hexadecimal characters)
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^([a-f0-9]{32})$ index.php?hash=$1 [QSA,L]
+
+    # Rule for three words
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^([\w\s-]+)\s([\w\s-]+)\s([\w\s-]+)$ 3wid_forward.php?threewords=$1+$2+$3 [QSA,L]
+
+    # Rule for three alphanumeric strings separated by dots
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^([a-zA-Z0-9]+)\.([a-zA-Z0-9]+)\.([a-zA-Z0-9]+)$ 3wid_forward.php?threewords=$1+$2+$3 [QSA,L]
+
+    # Catch-all rule
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ index.php [L]
+</IfModule>
