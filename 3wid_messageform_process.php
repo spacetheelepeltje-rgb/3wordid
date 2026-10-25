@@ -19,7 +19,8 @@
 
 */	 
 
-	$data = check_credentials($_SESSION,$_POST,$_GET);
+	// Login comes from the session only (no csrf_token login any more)
+	$data = current_user_from_session(get_db_conn());
 	
     //error_log('veriables ' . json_encode($_POST) . ' session ' . json_encode($_SESSION));
   
@@ -27,6 +28,13 @@
 	   header('location:' . $main_url);
 	   exit;
     } 
+
+	// The form must come from our own message page (CSRF protection)
+	if (!check_action_token($_POST['action_token'] ?? '')) {
+	   error_log('messageform process: missing or wrong action token for user ' . $data['id']);
+	   header('location:3wid_list.php?message=' . rawurlencode('Your session expired, please send your message again.'));
+	   exit;
+	}
 	  
    $message = $_POST["message"];
  

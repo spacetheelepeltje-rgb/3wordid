@@ -2,7 +2,7 @@
 require_once 'login/config.php';
 require_once 'php/functions.php';
 
-$data = check_credentials($_SESSION, $_POST, $_GET);
+$data = current_user_from_session(get_db_conn());
 
 if ($data == NULL) {
     header('location:index.php?message=You need to Log in to subscribe');

@@ -106,7 +106,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $note = $ok ? 'User saved.' : 'Update failed.';
     header(
         'Location: 3wid_user_edit.php?id=' . $edit_id .
-        '&csrf_token=' . rawurlencode($_SESSION['csrf_token']) .
         '&message=' . rawurlencode($note)
     );
     exit;

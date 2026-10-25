@@ -903,86 +903,21 @@ function check_expiration($user_id) {
 
 	}				
 	
-function check_credentials($session,$post,$get) {
-	
-	$result = NULL;
-	
-	if(isset($session['user_token'])) {
-		
-		$token = $session['user_token'];
-		
-		error_log('cred token set ' . json_encode($token));
-		
-		$conn = get_db_conn();
-		
-		$conn->real_escape_string($token);		
-		
-		$query = "SELECT * FROM google_users WHERE token =? ";
+// Returns the logged in user (row from google_users) or false.
+// Login is taken from the session only (the same check as
+// current_user_from_session in php/session_boot.php). A csrf_token in the
+// address bar or in a form is NOT accepted as a login any more.
+// The parameters are kept so older callers keep working; $post and $get are ignored.
+function check_credentials($session = null, $post = null, $get = null) {
 
-		$stmt = $conn->prepare($query);
-
-		// Bind the parameter to prevent SQL injection
-		$stmt->bind_param("s", $token);
-
-		// Execute the query
-		$stmt->execute();
-
-		// Get the result
-		$result = $stmt->get_result();
-		
-		// Fetch the row as an associative array
-		$row = $result->fetch_assoc();
-		
-		$result = $row;
-		
-	    error_log('row ' . json_encode($result));
-		
-    } else {
-		
-		error_log('cred no token set session content ' . json_encode($session));
-		// no user token in session
-		// maybe csrf token is set?
-		
-		$csrf_token = '';
-		
-		if(isset($session["csrf_token"])) {
-			error_log('cred session csrf token');
-			$csrf_token = $session["csrf_token"];
-		}
-		
-		if(isset($get["csrf_token"])) {
-			error_log('cred get csrf token');
-			$csrf_token = $get["csrf_token"];
-		}
-		
-		if(isset($post["csrf_token"])) {
-			error_log('cred post csrf token');
-			$csrf_token = $post["csrf_token"];
-		}
- 		
- 		if($csrf_token!='') {
- 		
-			$data = check_csrf_token($csrf_token);
-			
-			if($data) {
-				// csrf token was recognized from session
-				error_log('cred csrf token recognized');
-				$result = $data;
-				error_log('data ' . json_encode($result));
-			}
- 		
-		}
-			
+	if (session_status() !== PHP_SESSION_ACTIVE) {
+		start_app_session();
 	}
-	
-	if($result == NULL || $result['user_type']== 9) {
-			// blocked users can't see the pages
-			return false;
-		} else {
-			error_log('return result');
-			return $result;
-		}
-	
+
+	$user = current_user_from_session(get_db_conn());
+
+	// current_user_from_session already refuses blocked users (user_type 9)
+	return $user ? $user : false;
 }	
 	
 function db_3wid_log_update($json) {

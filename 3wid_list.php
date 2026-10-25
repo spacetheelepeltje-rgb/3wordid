@@ -451,7 +451,7 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
                 <span class="admin-links">
                     <a href="3wid_list_ips.php">I</a>
                     <a href="3wid_signup_list.php">S</a>
-                    <a href="3wid_user_list.php?csrf_token=<?php echo $_SESSION['csrf_token']; ?>">U</a>
+                    <a href="3wid_user_list.php">U</a>
                 </span>
                 <?php } ?>
             </div>
