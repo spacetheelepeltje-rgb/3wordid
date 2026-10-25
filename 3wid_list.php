@@ -445,9 +445,9 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
                 <!-- Reseller code: <code><?php echo htmlspecialchars($reseller_code); ?></code>
                 -->
             </div>
-            <!-- <div class="icon-row">
+            <div class="icon-row">
                 
-                <?php if ($data['id'] == '4') { ?>
+                <?php if ((int)$data['id'] === 4) { ?>
                 <span class="admin-links">
                     <a href="3wid_list_ips.php">I</a>
                     <a href="3wid_signup_list.php">S</a>
@@ -455,7 +455,6 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
                 </span>
                 <?php } ?>
             </div>
-            -->
         </div>
     </main>
     <footer class="site-footer">
