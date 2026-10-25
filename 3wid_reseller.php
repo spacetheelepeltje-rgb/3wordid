@@ -41,7 +41,7 @@
     </header>
    <main>
    <div class="search-container-mid">
-    <a href="index_2.php" class="logo-link">
+    <a href="index.php" class="logo-link">
       <img width="100" src="img/3wid_big.png" alt="3WordID Logo">
     </a>
     <h2>Become a Reseller of 3WordID.com</h2>
