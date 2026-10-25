@@ -148,47 +148,6 @@ function get_client_ip() {
     return $ipaddress;
 }	
 
-function db_3wordid_messages_double($wid_from_id,$wid_id) {
-	
-	
-	// Create connection
-    $conn = get_db_conn();
-    
-    // Check connection
-    if ($conn->connect_error) {
-        die("Connection failed: " . $conn->connect_error);
-    }
-    
-    // Prepare the SQL statement
-    $sql = "SELECT count(*) as count FROM 3wordid_messages WHERE 3wid_id = ?,3wid_from_id= ?";
-    $stmt = $conn->prepare($sql);
-    
-    if ($stmt === false) {
-        die("Prepare failed: " . $conn->error);
-    }
-    
-    // Bind the ID parameter
-    $stmt->bind_param("ii", $wid_id); // "i" indicates integer type
-    
-    // Execute the query
-    $stmt->execute();
-    
-    // Get the result
-    $result = $stmt->get_result();
-    
-    // Fetch the data
-    $rows = $result->fetch_assoc();
-    
-     // Clean up
-    $stmt->close();
-    $conn->close();
-	
-	return $rows;
-	
-	
-	
-	}
-
 function db_3wordid_count_messages($wid_id) {
 	
 	// Create connection
@@ -227,44 +186,6 @@ function db_3wordid_count_messages($wid_id) {
 	
 	}
 
-function db_3wordid_messages($wid_id) {
-	
-	// Create connection
-    $conn = get_db_conn();
-    
-    // Check connection
-    if ($conn->connect_error) {
-        die("Connection failed: " . $conn->connect_error);
-    }
-    
-    // Prepare the SQL statement
-    $sql = "SELECT * FROM 3wordid_messages WHERE 3wid_id = ?";
-    $stmt = $conn->prepare($sql);
-    
-    if ($stmt === false) {
-        die("Prepare failed: " . $conn->error);
-    }
-    
-    // Bind the ID parameter
-    $stmt->bind_param("i", $wid_id); // "i" indicates integer type
-    
-    // Execute the query
-    $stmt->execute();
-    
-    // Get the result
-    $result = $stmt->get_result();
-    
-    // Fetch the data
-    $rows = $result->fetch_all(MYSQLI_ASSOC);
-    
-     // Clean up
-    $stmt->close();
-    $conn->close();
-	
-	return $rows;
-    
-} 
-	
 function db_3wordid_list_messages($wid_id) {
 	
 	// Create connection
@@ -441,105 +362,6 @@ function db_3wordid_messageform_insert($from_id,$to_3wordid,$from_3wid_id,$to_us
     }
 }
 
-function db_3wordid_mailform_insert_old($wid_id,$mailmessage, $email, $terms)  {
-	
-	// Create MySQLi connection
-    $conn = get_db_conn();
-    
-    // Check connection
-    if ($conn->connect_error) {
-        error_log("Connection failed: " . $conn->connect_error);
-        return false;
-    }
-    
-    $ip_address = get_client_ip();
-    
-    // Prepare the SQL statement
-    $sql = "INSERT INTO 3wordid_messages (3wid_id, email, message, terms, ip_address, status) 
-            VALUES (?, ?, ?, ?, ?, ?)";
-    
-    // Prepare statement
-    $stmt = $conn->prepare($sql);
-    
-    if ($stmt === false) {
-        error_log("Prepare failed: " . $conn->error);
-        return false;
-    }
-    
-    // Get IP address and set default status
-    $status = "unread";  // Default status
-    
-    // Bind parameters
-    // 'ssssss' means all parameters are strings (adjust types if needed)
-    $stmt->bind_param("sssiss", $wid_id, $email, $mailmessage, $terms, $ip_address, $status);
-    
-    // Execute the statement
-    $success = $stmt->execute();
-    
-    if (!$success) {
-        error_log("Execute failed: " . $stmt->error);
-    }
-    
-    // Close statement and connection
-    $stmt->close();
-    $conn->close();
-    
-    error_log('end insert ' . $sql);
-    
-    return $success;
-
-	}
-
-function get_3wordid_list($user_id) {
-	
-	$conn = get_db_conn();
-
-	if (is_int($user_id)) {
-
-	$user_id = $conn->real_escape_string($user_id); // Escaping is optional with prepared statements
-
-	$query = "SELECT * FROM 3wordid WHERE user_id = ?";
-
-	//echo $query; // For debugging, remove in production
-
-	$stmt = $conn->prepare($query);
-
-	if ($stmt === false) {
-		die("Prepare failed: " . $conn->error); // Add error checking
-	}
-
-	// Bind the parameter (user_id is likely an integer, so use "i")
-	$stmt->bind_param("i", $user_id); // Corrected from $threewords to $user_id
-
-	// Execute the query
-	$stmt->execute();
-
-	// Get the result
-	$result = $stmt->get_result();
-
-	// Fetch the row as an associative array
-	$rows = $result->fetch_all(MYSQLI_ASSOC); // Changed $rows to $row (singular, as it's one row)
-
-	// Check if a row was found and process it
-	foreach ($rows as $row) {
-		echo $row['threeword'] . " " . $row['id'];
-	} 
-
-	// Close the statement and result
-	$stmt->close();
-
-	} else {
-		return "wrong id";
-	}
-	
-	}
-	
-function db_3wordid_hasThreeAlphabetic($string) {
-    // Match exactly three alphabetic parts separated by spaces
-    $pattern = '/^[a-zA-Z]+\s+[a-zA-Z]+\s+[a-zA-Z]+$/';
-    return preg_match($pattern, $string) === 1;
-}	
-
 function db_3wordid_hasThreeAlphabeticNumeric($string) {
     // Match exactly three alphanumeric parts separated by spaces
     $pattern = '/^[a-zA-Z0-9]+\s+[a-zA-Z0-9]+\s+[a-zA-Z0-9]+$/';
@@ -631,82 +453,6 @@ function db_3wordid_get_hash($hash) {
 	
 	}
 
-function DB_insert_3wordid($db,$user_id,$threeword,$notification,$linkthru,$linkthruflag,$email) {
-	
-	$hash =  makehash($threeword);
-	
-	$data = ['id'=>NULL,
-    'user_id'=>$user_id,
-    'threeword'=>$threeword,
-    'hash'=>$hash,
-    'notification'=>$notification,
-    'linkthru'=>$linkthru,
-    'linkthruflag'=>$linkthruflag,
-    'email'=>$email,
-    'creation_date' => date('Y-m-d H:i:s'), // Current date and time
-    'update_date' => date('Y-m-d H:i:s'),   // Current date and time for example
-    'subscribed'=>false
-];
-
-$db = new PDO('mysql:host=localhost;dbname=' . DATABASE, WRITEUSER, WRITEPASSWORD);
-$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
-try {	
-    $sql = "INSERT INTO 3wordid (user_id, threeword, notification, linkthru, linkthruflag, email, creation_date, update_date, subscribed,hash) VALUES 
-    (:user_id, :threeword, :notification, :linkthru, :linkthruflag, :email, :creation_date, :update_date, :subscribed, :hash);";
-    
-    // Prepare the SQL statement
-    $stmt = $db->prepare($sql);
-
-    // Bind parameters
-    $stmt->bindParam(':user_id', $data['user_id'], PDO::PARAM_INT);
-    $stmt->bindParam(':threeword', $data['threeword'], PDO::PARAM_STR);
-    $stmt->bindParam(':hash', $data['hash'], PDO::PARAM_STR);
-    $stmt->bindParam(':notification', $data['notification'], PDO::PARAM_STR);
-    $stmt->bindParam(':linkthru', $data['linkthru'], PDO::PARAM_STR);
-    $stmt->bindParam(':linkthruflag', $data['linkthruflag'], PDO::PARAM_BOOL);
-    $stmt->bindParam(':email', $data['email'], PDO::PARAM_STR);
-    $stmt->bindParam(':creation_date', $data['creation_date'], PDO::PARAM_STR);
-    $stmt->bindParam(':update_date', $data['update_date'], PDO::PARAM_STR);
-    $stmt->bindParam(':subscribed', $data['subscribed'], PDO::PARAM_BOOL);
-
-    // Execute the prepared statement
-    $stmt->execute();
-
-
-    
-	} catch(PDOException $e) {
-		echo "integrity constraint inserting in other table";
-		
-		$sql = "INSERT INTO 3wordid_waiting (user_id, threeword, notification, linkthru, linkthruflag, email, creation_date, update_date, subscribed,hash) VALUES 
-		(:user_id, :threeword, :notification, :linkthru, :linkthruflag, :email, :creation_date, :update_date, :subscribed, :hash);";
-		
-		// Prepare the SQL statement
-		$stmt = $db->prepare($sql);
-
-		// Bind parameters
-		$stmt->bindParam(':user_id', $data['user_id'], PDO::PARAM_INT);
-		$stmt->bindParam(':threeword', $data['threeword'], PDO::PARAM_STR);
-		$stmt->bindParam(':hash', $data['hash'], PDO::PARAM_STR);
-		$stmt->bindParam(':notification', $data['notification'], PDO::PARAM_STR);
-		$stmt->bindParam(':linkthru', $data['linkthru'], PDO::PARAM_STR);
-		$stmt->bindParam(':linkthruflag', $data['linkthruflag'], PDO::PARAM_BOOL);
-		$stmt->bindParam(':email', $data['email'], PDO::PARAM_STR);
-		$stmt->bindParam(':creation_date', $data['creation_date'], PDO::PARAM_STR);
-		$stmt->bindParam(':update_date', $data['update_date'], PDO::PARAM_STR);
-		$stmt->bindParam(':subscribed', $data['subscribed'], PDO::PARAM_BOOL);
-
-		// Execute the prepared statement
-		$stmt->execute();
-
-		
-		
-    error_log($e->getMessage());
-	}
-	
-	
-	}
-
 function sanitizeInput($data) {
 	
 	//error_log('before ' . $data);
@@ -722,135 +468,6 @@ function sanitizeInput($data) {
     return $data;
 }
 
-function check_url($url) {
-	
-
-	if(!strpos($url,'.')) {
-
-		 return "invalid";
-		 
-		 };			  	 
-		 
-	if(strpos($url,'ftp')!== false) {
-
-		 return "invalid";
-		 
-		 };	
-
-    if (strpos($url, 'http://') === 0) {
-
-        $url = str_replace('http://', 'https://', $url);
-        
-        return $url;    
-    }
-    
-    if (strpos($url, 'https://') === 0) {
-    
-        return $url;    
-    }
-    
-    if (substr_count($url, '.') ==1 or substr_count($url, '.') ==2) {
-		
-		return "https://" . $url;
-	}
-    
-    return "invalid";
-}
-
-function setcontent($hash,$notification,$password,$cleaned_xdotcom,$linkthru,$linkthruflag,$email,$subscribed) {
-	
-	$email = md5($email);
-	
-	$tostore = array('notification'=>$notification,'password'=>$password,'xdotcom'=>$cleaned_xdotcom,'linkthru'=>$linkthru,'linkthruflag'=>$linkthruflag,'email'=>$email,'subscribed'=>$subscribed);
-	
-	$serialized = serialize($tostore);
-	
-	$filename = './3wids/' . $hash;
-	
-	file_put_contents($filename,$serialized);
-
-	return true;
-	
-	}
-	
-function setcontent_db($hash, $notification, $password, $cleaned_xdotcom, $linkthru, $linkthruflag, $email, $subscribed) {
-    
-    // Hash the email for privacy
-    $email = md5($email);
-    
-    // Prepare data array
-    $tostore = array(
-        'notification' => $notification,
-        'password' => $password,
-        'xdotcom' => $cleaned_xdotcom,
-        'linkthru' => $linkthru,
-        'linkthruflag' => $linkthruflag,
-        'email' => $email,
-        'subscribed' => $subscribed
-    );
-    
-    // Serialize the data
-    $serialized = serialize($tostore);
-    
-    // Assume $conn is your database connection object
-    $conn = new mysqli(SERVER,WRITEUSER,WRITEPASSWORD,DATABASE);
-    
-   
-
-    // Prepare SQL statement to insert or update the blob data
-    $stmt = $conn->prepare("INSERT INTO 3wordid (hash, data) VALUES (?, ?) ON DUPLICATE KEY UPDATE data = VALUES(data)");
-    
-    if ($stmt === false) {
-        error_log("Prepare failed: " . $conn->error);
-        return false;
-    }
-    
-    // Bind parameters
-    $stmt->bind_param("sb", $hash, $serialized);
-    
-    // Execute the statement
-    if (!$stmt->execute()) {
-        error_log("Execute failed: " . $stmt->error);
-        $stmt->close();
-        return false;
-    }
-    
-    $stmt->close();
-    return true;
-}
-
-function db_set_userdata($hash,$email) {
-	
-	
-		return false;
-	}	
-	
-function setcontent_threewords($content,$hash) {
-	
-	$serialized = serialize($content);
-	$filename = './3wids/' . $hash[0];
-	file_put_contents($filename,$serialized);
-	
-	}	
-
-function setuserdata($hash,$email) {
-	
-	$timestamp = date("Y-m-d H:i:s", time());
-	
-	$email = md5($email);
-	
-	$tostore = array('email'=>$email,'subscription_plan'=>"",'subscription_id'=>"",'hash'=>$hash,'timestamp'=>"",'subscribed'=>"no");
-	
-	$serialized = serialize($tostore);
-	
-	$filename = './users/' . $email;
-	
-	file_put_contents($filename,$serialized);
-
-	return true;
-	
-	}
-		
 function store_paypal_data ($post_data) {
 	
 	$threewords = $post_data['threewords'];
@@ -875,24 +492,6 @@ function store_paypal_data ($post_data) {
 	
 	}	
 	
-function logcontent($threewords,$hash,$notification,$password,$cleaned_xdotcom,$linkthru,$email,$action) {
-	
-	$email = md5($email);
-	
-	$timestamp = date("Y-m-d H:i:s", time());
-	
-	$tologging = array('timestamp'=>$timestamp,'threewords'=>$threewords,'action'=>$action,'notification'=>$notification,'password'=>$password,'xdotcom'=>$cleaned_xdotcom,'linkthru'=>$linkthru,'email'=>$email,'remote addres'=>$_SERVER['REMOTE_ADDR'],'user agent'=>$_SERVER['HTTP_USER_AGENT']);
-	
-	$filename = './logging/' . $hash . " " . time();
-	
-	$serialized = serialize($tologging);
-	
-	file_put_contents($filename,$serialized);
-	
-	return true;
-	
-}	
-
 function makehash($string) {
 	
 	$magickey = md5("zappaincaroads");
@@ -901,49 +500,6 @@ function makehash($string) {
 	
 	}
 
-
-function delete_threeword($threeword,$password,$email) {
-	
-	if(!validate_password($threeword,$password)) return "Wrong 3wordID/Password combination";
-	
-	$hash_array  = gethash($threeword);
-	
-	$hash = $hash_array[0];
-	
-	logcontent($threeword,$hash,'',$password,$cleaned_xdotcom,$linkthru,$email,'delete');
-	
-	$filename = './3wids/' . $hash;
-	
-	unlink($filename);
-	
-	$filename = './threewords/' . $threeword;
-	
-	unlink($filename);
-	
-	return "Deleted";
-	
-	}
-
-function validate_password($threeword,$password) {
-	
-	if($threeword == "") return false;
-	if(trim($password) == "") return false;
-	
-	$hash = gethash($threeword);
-
-	$content = getcontenthash($hash[0]);
-	
-	//$password =  preg_replace('/[^a-zA-Z ]/', '', $password);
-
-    //$password = strtolower($password);
-
-	if($content['password'] == $password) {
-		return true;
-	}
-		
-	return false; //$content;
-	
-	}
 
 function gethash($threewords) {
 	
@@ -959,38 +515,6 @@ function gethash($threewords) {
 
 }
 
-function countusers() {
-	 
-	 $dirname = './3wids';
-	 
-	 return (count(scandir($dirname))-2);
-	
-	}
-
-function deletecontent($hash,$password) {
-	
-	$content = getcontenthash($hash);
-	
-	if($content['password']==$password or $content['password']=="") {
-		
-		    $filename = './3wids/' . $hash;
-		
-			if(file_exists($filename)) {
-				unlink($filename);
-			}
-		
-		}
-		
-	}
-
-
-
-function logevent($string) {
-	
-	 file_put_contents('./logging/general.php',$string);
-	 
-	}
-	
 function doeshashexist($hash) {
 	
 		$filename = './3wids/' . $hash;
@@ -1000,240 +524,6 @@ function doeshashexist($hash) {
 	    return False;		
 		
 	}	
-
-function getcontenthash($hash) {
-	
-	$filename = './3wids/' . $hash;
-	
-		if(file_exists($filename)) {
-
-			$content = file_get_contents($filename);
-			
-			return unserialize($content);
-		
-		} else {
-			
-		  return array('notification'=>"",'password'=>"",'xdotcom'=>"",'linkthru'=>"",'linkthruflag'=>"off",'email'=>"",'subscribed'=>"no");
-
-		}
-	
-	}
-	
-// messages	
-	
-function check_messages($threeword) {
-	
-	$hash = gethash($threeword);
-	
-	$messagecontent = getmessagehash($hash[0]);
-
-	if(count($messagecontent['messages']) == 0) {
-		
-		return "No messages";
-		
-		} else {
-			
-		 return "You have messages";	
-		}
-
-	}	
-
-function getmessagehash($hash) {
-	
-	$filename = './messages/' . $hash;
-	
-	if(file_exists($filename)) {
-
-		$content = file_get_contents($filename);
-		
-		return unserialize($content);
-	
-	} else {
-		
-	  return array('blocked'=>array(),'messages'=>array());
-
-    }
-	
-	}	
-	
-function setmessagehash($hash,$content) {
-		
-	$serialized = serialize($content);
-	
-	$filename = './messages/' . $hash;
-	
-	file_put_contents($filename,$serialized);
-
-	return true;
-	}	
-
-function  getcontent($threewords) {
-	
-	$threewords = strtolower($threewords);
-	
-	$hash = gethash($threewords);
-
-	$content = getcontenthash($hash[0]);
-	
-	return unserialize($content);
-	
-	}
-
-function checkexists($hash) {
-	
-	$filename = './3wids/' . $hash;
-
-	if(file_exists($filename)) {
-
-		return "known";
-	
-	} else {
-		
-	    return "unknown";	
-    }
-
-}
-
-
-function check3wid() {
-	
-	if(session_status() !== PHP_SESSION_ACTIVE) session_start();
-	
-	if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-		//echo "<br>post ";
-		//echo $_SESSION['csrf_token'];
-		if (isset($_POST['csrf_token']) && isset($_SESSION['csrf_token'])) {
-			//echo "<br>token set";
-
-			$threewords = $_POST["threewords"];
-			
-			//echo "<br>" . $threewords;
-
-			if($threewords=="") return '{  "status": "nok","message": "No input"}';
-
-			if(strlen($threewords) > 80) return '{  "status": "nok","message": "Input too long"}';
-
-			$threewords = preg_replace('/\s+/x', ' ', $threewords); // remove double spaces
-
-			$exploded = explode(' ',$threewords);
-
-			if(count($exploded) != 3) return '{  "status": "nok","message": "Too many words"}';
-
-			$result = gethash($threewords);
-
-			$exists = checkexists($result[0]);
-
-			return '{  "status": "ok","clean_3wid":"' . $result[1] . '","message": "3wordid : ' . $result[1] .  '","hash":"' . $result[0] . '","exists":"' . $exists . '"}';
-		}
-	} else {
-		return '{  "status": "nok","message": "No input"}';
-		
-	}
-
-}
-
-function report_auth() {
-	
-	// get google auth data
-	// get session data
-	
-	echo "<!--";
-	
-	if(isset(SESSION['user_data'])) {
-		
-		
-		var_dump($_SESSION['user_data']);
-		
-		
-		$google_user_record = get_google_user_data($_SESSION['user_data']['token']);
-		
-		
-		
-		
-		
-		} else {
-			
-	echo "No google user data\n";		
-	
-	}
-	$visitor_ip = $_SERVER['REMOTE_ADDR'];
-	
-	$session_data = get_session_data($visitor_ip);
-	
-	echo "-->";
-	
-	
-	
-	}
-
-function sortByCreationTimeDesc($a, $b) {
-	
-	//$errorMessage = " threewords : " . print_r($a) . " feedback: " . print_r($b);
-	//$errorLevel = E_USER_WARNING; // You can use different levels like E_USER_ERROR, E_USER_WARNING, E_USER_NOTICE
-	//trigger_error($errorMessage, $errorLevel);
-	
-	
-	if(!isset($a['creation_time'])) return 0;
-	if(!isset($b['creation_time'])) return 0;
-	
-	
-    // Convert creation time strings to timestamps for comparison
-    $timestampA = strtotime($a['creation_time']);
-    $timestampB = strtotime($b['creation_time']);
-    
-    // Sort in descending order (most recent first)
-    return $timestampB - $timestampA;
-}
-
-function getCookieAge($name) {
-    // Check if the '3wordid' cookie exists
-    if (isset($_COOKIE[$name])) {
-        // Get the cookie's creation time from its metadata
-        // Note: This assumes the browser sends the cookie's timestamp
-        // In practice, you might need to store the creation time elsewhere (like in the cookie value or database)
-        
-        // For this example, let's assume the cookie value contains a timestamp
-        $cookieValue = $_COOKIE['3wordid'];
-        
-        // If your cookie value is just the ID and you stored the timestamp elsewhere,
-        // you'd need to retrieve it from that source (e.g., database)
-        // Here, I'll assume the timestamp is part of the cookie value for simplicity
-        // Example cookie value format: "id:timestamp"
-        $parts = explode(':', $cookieValue);
-        $creationTime = isset($parts[1]) ? (int)$parts[1] : null;
-
-        if ($creationTime) {
-            $currentTime = time();
-            $ageInSeconds = $currentTime - $creationTime;
-            
-            // Convert to more readable format
-            $ageInMinutes = round($ageInSeconds / 60);
-            $ageInHours = round($ageInSeconds / 3600);
-            $ageInDays = round($ageInSeconds / 86400);
-
-            return [
-                'exists' => true,
-                'value' => $parts[0], // The actual 3wordid
-                'age_seconds' => $ageInSeconds,
-                'age_minutes' => $ageInMinutes,
-                'age_hours' => $ageInHours,
-                'age_days' => $ageInDays,
-                'created_at' => date('Y-m-d H:i:s', $creationTime)
-            ];
-        } else {
-            return [
-                'exists' => true,
-                'value' => $cookieValue,
-                'age' => 'Unknown (timestamp not available)'
-            ];
-        }
-    } else {
-        return [
-            'exists' => false,
-            'message' => 'Cookie 3wordid not found'
-        ];
-    }
-}
 
 function check_auth() {
 	
@@ -1601,20 +891,16 @@ function check_csrf_token($csrf_token) {
 function db_3wid_log_credit_mutation($user_id,$change,$update_string) {
 	// prints a line to a log file which 
 	// user id, credit amount, json of update query	
-	
-	
-	
-	
+
+
 	}	
 	
 function check_expiration($user_id) {
 	
 	// select 3wid of user id
 	// 
-	
-	
-	
-	
+
+
 	}				
 	
 function check_credentials($session,$post,$get) {
@@ -1703,9 +989,8 @@ function db_3wid_log_update($json) {
 	// prints a line to a log file which 
 	// user id, credit amount, json of update query	
 	file_put_contents('logging/update_log.html',$json . '<br>');
-	
-	
-	
+
+
 	}
 	
 function db_3wid_log_login($json) {
@@ -1718,9 +1003,7 @@ function db_3wid_log_login($json) {
 
 function calculate_cost($yearly_base,$nr_of_threewords,$nr_of_threewords_enabled) {
 
-	
-	
-	
+
 	}
 
 function check_mobile() {
@@ -1770,9 +1053,8 @@ function check_session() {
 	}	
 
 function set_csrf_token($user_id,$csrf_token) {
-	
-		
-	
+
+
 	}
 
 function db_3wordid_get_user($id,$user_id) {
@@ -1798,34 +1080,7 @@ function db_3wordid_get_user($id,$user_id) {
 	$row = $result->fetch_assoc();
 	
 	return $row;
-	
-	
-	
-	}
 
-function db_3wordid_check_owner($id,$user_id) {
-	
-	//error_log("get data for id " . $id);
-	
-	$conn = get_db_conn();
-	
-	$query = "SELECT * FROM 3wordid WHERE id=?, user_id=?";
-
-	$stmt = $conn->prepare($query);
-
-	// Bind the parameter to prevent SQL injection
-	$stmt->bind_param("ii", $id,$user_id);
-
-	// Execute the query
-	$stmt->execute();
-
-	// Get the result
-	$result = $stmt->get_result();
-	
-	// Fetch the row as an associative array
-	$row = $result->fetch_assoc();
-	
-	return $row;
 
 	}
 
@@ -1852,9 +1107,8 @@ function db_3wordid_get($id) {
 	$row = $result->fetch_assoc();
 	
 	return $row;
-	
-	
-	
+
+
 	}
 
 function db_3wordid_toggle($id, $user_id) {
@@ -2088,9 +1342,8 @@ function db_message_backup($id) {
         $stmt->close();
         die("Execute failed: " . $error);
     }
-	
-	
-	
+
+
 	}	
 
 function db_3wordid_backup($id) {
@@ -2140,75 +1393,12 @@ function db_3wordid_backup($id) {
 		error_log('backup failed');
         $error = $stmt->error;
         $stmt->close();
-        error_loge("Execute failed: " . $error);
-    }
-	
-	
-	
-	}
-
-
-function db_3wordid_delete_user($id,$user_id) {
-	
-	$id = (int) $id;
-	$user_id = (int) $user_id;
-
-    if(gettype($id)!='integer') {
-		die("user_id must be a int " . $id . " " . gettype($id));
-	}
-	
-	if($user_id == 4 || db_3wordid_check_owner($id,$user_id) != NULL) {
-	
-	db_3wordid_backup($id);
-	
-	 // Database connection
-    $conn = get_db_conn();
-
-    // Prepare the DELETE query
-    $query = "DELETE FROM 3wordid WHERE id = ?";
-
-    // Prepare the statement
-    $stmt = $conn->prepare($query);
-
-    if (!$stmt) {
-        die("Prepare failed: " . $conn->error);
+        error_log("Execute failed: " . $error);
     }
 
-    // Bind the parameter (id is an integer)
-    $stmt->bind_param("i", $id);
 
-    // Construct the actual query for debugging
-    $debug_query = "DELETE FROM 3wordid WHERE id = " . $id;
-    
-    error_log("Executed query: " . $debug_query);  // Logs to error log
-  
-    // Execute the statement
-    if ($stmt->execute()) {
-        $affected_rows = $stmt->affected_rows; // Number of deleted rows
-        $stmt->close();
-
-        if ($affected_rows > 0) {
-            return true; // Success, record was deleted
-        } else {
-            return false; // No record found with that ID
-        }
-    } else {
-        $error = $stmt->error;
-        $stmt->close();
-        die("Execute failed: " . $error);
-    }
-    
-	} else {
-		
-		error_log('attempt to delete 3wid ' . $id . ' by user ' . $user_id);
-		
-		return false;
-	
 	}
-	
-	
-	}	
-	
+
 
 function db_3wordid_delete($id) {
 	
@@ -2649,9 +1839,7 @@ function db_3wordid_get_signups($status) {
 		try {
 			// Create connection
 			$conn = get_db_conn();  
-			
-			
-	
+
 
 			// Prepare the query
 			$stmt = $conn->prepare("SELECT * FROM 3wordid_signup WHERE status = ? ORDER by id DESC;");
@@ -2738,9 +1926,8 @@ function db_3wordid_set_csrf_token($id, $csrf_token) {
 
     // Prepare the statement
     $stmt = $conn->prepare($query);
-    
-   
-    
+
+
     if (!$stmt) {
         die("Prepare failed: " . $conn->error);
     }
@@ -3217,14 +2404,6 @@ function db_3wordid_create($conn, $threeword, $user_id, $linkthru = null, $linkt
 
 
 //error_log('end of functions ' . json_encode($_SESSION) . ' session id ' . session_id());
-
-
-
-
-
-
-
-
 
 
 // ---------------------------------------------------------------------------
