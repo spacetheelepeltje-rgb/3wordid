@@ -13,9 +13,7 @@ $loginUrl = '/login/options.php';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Terms and Conditions — 3WordID</title>
     <link rel="icon" type="image/x-icon" href="img/favicon.ico">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="/css/inter.css" rel="stylesheet">
     <link rel="stylesheet" href="css/newstyle.css">
     <style>
         .legal-wrap {
@@ -250,13 +248,23 @@ $loginUrl = '/login/options.php';
                 </p>
             </section>
 
-            <section>
+            <section id="data">
                 <h2>10. Data</h2>
                 <p>
-                    To run the lookup tool the Operator may store data supplied by Google sign-in and data you submit: name, avatar URL, a hashed email, 3WordIDs, notifications, and messages.
+                    To run the lookup tool the Operator may store data supplied by Google sign-in and data you submit: name, avatar URL, your email address, 3WordIDs, notifications, and messages.
+                    Your email address is stored as a one-way hash, not as readable text.
                     Data is shared with third parties only if the Operator is legally required to do so, or as needed to host and process the service.
                     Separate consent screens may appear again from time to time.
                     Do not treat 3WordID as a confidential archive.
+                </p>
+                <p>
+                    Messages, IP addresses and account data are logged and kept, also after an account is deactivated, so we can respond to lawful requests from law enforcement.
+                    This also applies to messages sent through the public message form by people without an account: the message is shown to the owner of the 3WordID, and the message and the sender's IP address are stored and kept.
+                </p>
+                <p>
+                    Cookies: logging in uses one strictly necessary session cookie (3WIDSESS).
+                    Google Analytics, which sets _ga cookies and sends your IP address and browser details to Google, is only loaded if you click Accept in the cookie banner.
+                    <a href="#cookie-settings">Change your cookie choice</a>.
                 </p>
             </section>
 

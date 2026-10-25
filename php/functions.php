@@ -12,19 +12,135 @@ $session_path = ini_get('session.save_path');
 
 $email_consent = 'We collect and store email addresses to provide our services and communicate with you. By checking below checkbox, you consent to the collection and use of your email address as outlined in our Privacy Policy. If you do not agree, please refrain from using this site or contact us to opt out.';
 
-$email_consent_encrypt = 'We use Google Authentication with your consent, we store your email encrypted so we can use it to identify you, but we can not send you emails and the email address can not be stolen because its in its encrypted form. We log all changes atm with IP so no illegal stuff!';
+$email_consent_encrypt = 'We use Google Authentication with your consent. Your email address is stored as a one-way hash, not as readable text. We use the hash to recognise you when you log in, and we cannot use it to send you emails. Messages, IP addresses and account data are logged and kept, also after an account is deactivated, so we can respond to lawful requests from law enforcement.';
 
-$google_stats = '
-
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-TJWBJT8GJC"></script>
+// Google Analytics, only after the visitor clicks "Accept" in the cookie banner.
+// Every page that echoes $google_stats gets the banner. Nothing is sent to Google
+// and no _ga cookies are set before Accept. The choice is stored in this browser
+// (localStorage key "3wid_cookie_consent") and can be changed with the
+// "Cookie settings" link that is added to the page footer, or with any link to
+// "#cookie-settings" (for example on terms.php).
+$google_stats = <<<'HTML'
+<style>
+  #cc-banner{position:fixed;left:16px;right:16px;bottom:16px;z-index:9999;max-width:560px;margin:0 auto;
+    background:#fff;color:#0f1c3f;border:1px solid #e6e3dc;border-radius:14px;box-shadow:0 10px 30px rgba(15,28,63,.15);
+    padding:18px 20px;font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:14px;line-height:1.5}
+  #cc-banner p{margin:0 0 12px}
+  #cc-banner a{color:#0f1c3f}
+  #cc-banner .cc-buttons{display:flex;gap:10px;flex-wrap:wrap}
+  #cc-banner button{flex:1 1 140px;min-height:44px;padding:10px 16px;border-radius:10px;border:1px solid #0f1c3f;
+    background:#fff;color:#0f1c3f;font:inherit;font-weight:600;cursor:pointer}
+  #cc-banner button:hover,#cc-banner button:focus{background:#0f1c3f;color:#fff}
+  .cc-settings-link{display:inline-block;margin:8px;color:#8a93a6;font-size:13px}
+  .cc-settings-wrap{text-align:center;padding:12px}
+</style>
 <script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag("js", new Date());
+(function () {
+  var KEY = "3wid_cookie_consent";
+  var GA_ID = "G-TJWBJT8GJC";
+  var loaded = false;
 
-  gtag("config", "G-TJWBJT8GJC");
+  function getChoice() {
+    try { return localStorage.getItem(KEY); } catch (e) { return null; }
+  }
+  function setChoice(v) {
+    try { localStorage.setItem(KEY, v); } catch (e) {}
+  }
+  function loadGa() {
+    if (loaded) { return; }
+    loaded = true;
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function () { dataLayer.push(arguments); };
+    gtag("js", new Date());
+    gtag("config", GA_ID);
+    var s = document.createElement("script");
+    s.async = true;
+    s.src = "https://www.googletagmanager.com/gtag/js?id=" + GA_ID;
+    document.head.appendChild(s);
+  }
+  function removeGaCookies() {
+    var host = location.hostname.replace(/^www\./, "");
+    document.cookie.split(";").forEach(function (c) {
+      var name = c.split("=")[0].trim();
+      if (name === "_ga" || name.indexOf("_ga_") === 0 || name === "_gid" || name === "_gat") {
+        var past = "=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
+        document.cookie = name + past;
+        document.cookie = name + past + "; domain=." + host;
+        document.cookie = name + past + "; domain=" + location.hostname;
+      }
+    });
+  }
+  function hideBanner() {
+    var b = document.getElementById("cc-banner");
+    if (b) { b.parentNode.removeChild(b); }
+  }
+  function showBanner() {
+    if (document.getElementById("cc-banner")) { return; }
+    var b = document.createElement("div");
+    b.id = "cc-banner";
+    b.setAttribute("role", "dialog");
+    b.setAttribute("aria-label", "Cookie choice");
+    b.innerHTML =
+      "<p>May we use Google Analytics to count visits? It sets cookies (_ga) and sends your IP address and browser details to Google. " +
+      "We only do this if you click Accept. Logging in only uses one necessary session cookie. " +
+      "<a href=\"/terms.php#data\">More about your data</a></p>" +
+      "<div class=\"cc-buttons\">" +
+      "<button type=\"button\" id=\"cc-reject\">Reject</button>" +
+      "<button type=\"button\" id=\"cc-accept\">Accept</button>" +
+      "</div>";
+    document.body.appendChild(b);
+    document.getElementById("cc-accept").onclick = function () {
+      setChoice("accepted"); hideBanner(); loadGa();
+    };
+    document.getElementById("cc-reject").onclick = function () {
+      var wasLoaded = loaded;
+      setChoice("rejected"); hideBanner(); removeGaCookies();
+      if (wasLoaded) { location.reload(); }
+    };
+  }
+  window.threewidCookieSettings = function () { showBanner(); };
+
+  function addSettingsLink() {
+    if (document.querySelector(".cc-settings-link")) { return; }
+    var a = document.createElement("a");
+    a.href = "#cookie-settings";
+    a.className = "cc-settings-link";
+    a.textContent = "Cookie settings";
+    var footer = document.querySelector("footer");
+    if (footer) {
+      footer.appendChild(a);
+    } else {
+      var wrap = document.createElement("div");
+      wrap.className = "cc-settings-wrap";
+      wrap.appendChild(a);
+      document.body.appendChild(wrap);
+    }
+  }
+
+  document.addEventListener("click", function (e) {
+    var t = e.target;
+    while (t && t.tagName !== "A") { t = t.parentNode; }
+    if (t && t.getAttribute && /#cookie-settings$/.test(t.getAttribute("href") || "")) {
+      e.preventDefault();
+      showBanner();
+    }
+  });
+
+  var choice = getChoice();
+  if (choice === "accepted") { loadGa(); }
+  function onReady() {
+    addSettingsLink();
+    if (choice !== "accepted" && choice !== "rejected") { showBanner(); }
+    if (location.hash === "#cookie-settings") { showBanner(); }
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", onReady);
+  } else {
+    onReady();
+  }
+})();
 </script>
-';
+HTML;
 
 
 function get_db_conn() {
