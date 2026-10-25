@@ -833,10 +833,9 @@ function db_3wordid_get_google_users($page,$page_size,$order) {
     if(!in_array($order,['ASC','DESC'])) return false;
 
 	$limit_low = $page*$page_size;
-	$limit_high= $page*$page_size+$page_size;
 
-	// Prepare and execute query
-	$query = "SELECT * FROM google_users ORDER BY id " . $order . " LIMIT " . $limit_low . "," . $limit_high . ";";
+	// Prepare and execute query (LIMIT offset, number of rows)
+	$query = "SELECT * FROM google_users ORDER BY id " . $order . " LIMIT " . $limit_low . "," . $page_size . ";";
 	error_log($query);
 	$stmt = $conn->prepare($query);
 	$stmt->execute();
@@ -2396,3 +2395,45 @@ function db_3wordid_message_for_user($message_id, $user_id) {
 	}
 	return false;
 }
+
+// ---------------------------------------------------------------------------
+// Admin helpers (only call these after checking the admin user id)
+// ---------------------------------------------------------------------------
+
+// Search all 3WordIDs with their owner. $q matches the three words (spaces or
+// dots), the owner's name, or the owner's user id. An empty $q lists everything.
+// Returns up to $page_size + 1 rows so the caller can tell if there is a next page.
+function db_3wordid_admin_search($q, $page, $page_size) {
+	$q = trim((string) $q);
+	$page = max(0, (int) $page);
+	$page_size = max(1, (int) $page_size);
+	$offset = $page * $page_size;
+	$fetch = $page_size + 1;
+
+	$conn = get_db_conn();
+
+	$select = "SELECT w.id, w.threeword, w.linkthru, w.linkthruflag, w.enabled, w.views, w.creation_date, w.user_id,
+	                  u.full_name AS owner_name
+	           FROM 3wordid w
+	           LEFT JOIN google_users u ON u.id = w.user_id";
+
+	if ($q === '') {
+		$stmt = $conn->prepare($select . " ORDER BY w.id DESC LIMIT ?, ?");
+		$stmt->bind_param("ii", $offset, $fetch);
+	} else {
+		$words = preg_replace('/[\s.]+/', ' ', $q);
+		$like_words = '%' . addcslashes($words, '%_\\') . '%';
+		$like_name = '%' . addcslashes($q, '%_\\') . '%';
+		$user_id = ctype_digit(ltrim($q, '#')) ? (int) ltrim($q, '#') : -1;
+		$stmt = $conn->prepare($select . "
+			WHERE w.threeword LIKE ? OR u.full_name LIKE ? OR w.user_id = ?
+			ORDER BY w.id DESC LIMIT ?, ?");
+		$stmt->bind_param("ssiii", $like_words, $like_name, $user_id, $offset, $fetch);
+	}
+
+	$stmt->execute();
+	$rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+	$stmt->close();
+	return $rows;
+}
+

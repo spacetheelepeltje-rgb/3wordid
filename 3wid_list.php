@@ -286,6 +286,9 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
       .reseller { color: var(--slate); font-size: 14px; }
       .reseller code { background: #efece6; padding: 2px 6px; border-radius: 6px; font-family: inherit; font-weight: 700; }
       .admin-links a { margin-right: 10px; font-weight: 600; text-decoration: none; }
+      .admin-search { display: inline-flex; gap: 6px; align-items: center; }
+      .admin-search input { border: 1px solid var(--line, #e6e3dc); border-radius: 8px; padding: 6px 10px; font: inherit; font-size: 13px; }
+      .admin-search button { border: 1px solid var(--line, #e6e3dc); background: #fff; border-radius: 8px; padding: 6px 10px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
       .site-footer {
         border-top: 1px solid var(--line);
         padding: 18px 28px 28px;
@@ -452,7 +455,12 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
                     <a href="3wid_list_ips.php">I</a>
                     <a href="3wid_signup_list.php">S</a>
                     <a href="3wid_user_list.php">U</a>
+                    <a href="3wid_admin_3wids.php" title="All 3WordIDs">A</a>
                 </span>
+                <form class="admin-search" method="get" action="3wid_admin_3wids.php">
+                    <input type="search" name="q" placeholder="Find 3WordID or owner" aria-label="Search all 3WordIDs">
+                    <button type="submit">Search</button>
+                </form>
                 <?php } ?>
             </div>
         </div>

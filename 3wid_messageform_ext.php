@@ -11,7 +11,7 @@
   $client_ip = get_client_ip();
   error_log('external message page ip ' . $client_ip . ' on ' . check_mobile());
 
-  //$loginUrl = $client->createAuthUrl();
+  $loginUrl = '/login/options.php'; // same login page as index.php
 
   //$data = check_credentials($_SESSION,$_POST,$_GET);
 

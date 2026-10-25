@@ -38,6 +38,19 @@
 
   $threeword_url = implode('.', explode(' ', $row["threeword"]));
 
+  // CSRF token for the update form
+  $action_token = get_action_token();
+
+  // The admin came from the admin pages: go back to that user's 3WordIDs
+  $from_admin = ((int)$data["id"] === 4 && ($_GET['from'] ?? '') === 'admin');
+  if ($from_admin) {
+      $back_url = '3wid_user_3wids.php?user_id=' . (int)$row['user_id'];
+      $back_label = "Back to this user's 3WordIDs";
+  } else {
+      $back_url = '3wid_list.php';
+      $back_label = 'Back to list';
+  }
+
 ?>  
 <!DOCTYPE html>
 <html lang="en">
@@ -221,7 +234,7 @@
             3WordID
         </a>
         <div class="header-actions" id="userPortrait">
-            <a class="btn btn-ghost" href="3wid_list.php">Back to list</a>
+            <a class="btn btn-ghost" href="<?php echo htmlspecialchars($back_url); ?>"><?php echo htmlspecialchars($back_label); ?></a>
             <button type="submit" form="3widForm" id="submitBtn" class="btn btn-primary">Update</button>           
         </div>
     </header>
@@ -247,10 +260,10 @@
                 </div>
 
                 <label class="field" for="notification">Message</label>
-                <textarea name="notification" id="notification" class="search-bar" placeholder="Enter your message here" rows="4"><?= $row["notification"]; ?></textarea>
+                <textarea name="notification" id="notification" class="search-bar" placeholder="Enter your message here" rows="4"><?= htmlspecialchars((string)$row["notification"]); ?></textarea>
 
                 <label class="field" for="linkthru" style="margin-top:16px;">Forward URL</label>
-                <input type="text" name="linkthru" id="linkthru" class="search-bar" placeholder="Enter forward URL with HTTPS://" value="<?= $row["linkthru"]; ?>">
+                <input type="text" name="linkthru" id="linkthru" class="search-bar" placeholder="Enter forward URL with HTTPS://" value="<?= htmlspecialchars((string)$row["linkthru"]); ?>">
 
                 <div class="checks">
                     <label><input <?php echo $row["linkthruflag"]== 1 ?'checked':''; ?> type="checkbox" id="linkthruflag" name="linkthruflag"> Use forward URL</label>
@@ -260,11 +273,16 @@
 
                 <div class="form-actions buttons">
                     <button type="submit" class="btn btn-primary">Update</button>
+                    <a class="btn btn-ghost" href="<?php echo htmlspecialchars($back_url); ?>"><?php echo htmlspecialchars($back_label); ?></a>
                     <div id="helperText"></div>
                 </div>
 
                 <input type='hidden' name='csrf_token' value='<?php echo $_SESSION['csrf_token']; ?>'>
-                <input type='hidden' name='id' value='<?= $row["id"]; ?>'>
+                <input type='hidden' name='id' value='<?= (int)$row["id"]; ?>'>
+                <input type='hidden' name='action_token' value='<?php echo htmlspecialchars($action_token); ?>'>
+                <?php if ($from_admin) { ?>
+                <input type='hidden' name='from' value='admin'>
+                <?php } ?>
             </form>
         </div>
     </main>

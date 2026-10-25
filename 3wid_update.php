@@ -30,6 +30,12 @@ if ($data == NULL) {
 	 
   } 
 
+   // CSRF protection: the form must carry this session's action token
+   if (!check_action_token($_POST['action_token'] ?? '')) {
+       header('Location: 3wid_list.php?message=' . rawurlencode('Session expired, please try again.'));
+       exit;
+   }
+
    $id = isset($_POST["id"]) ? (int)$_POST["id"] : 0;
 
    // Only the owner of the 3WordID (or the admin, same rule as 3wid_3wid.php) may update it
@@ -86,6 +92,15 @@ if ($data == NULL) {
 try {
 	
     db_3wordid_update($id, $clean_notification, $linkthru, $linkthruflag, $emailform,$private);
+
+    // The admin edited this from the admin pages: return to the owner's 3WordIDs
+    if ((int)$data["id"] === 4 && ($_POST['from'] ?? '') === 'admin') {
+        $updated = db_3wordid_get($id);
+        if ($updated) {
+            header('Location: 3wid_user_3wids.php?user_id=' . (int)$updated['user_id'] . '&message=' . rawurlencode('3WordID saved.'));
+            exit;
+        }
+    }
     
     //error_log('update ' . $csrf_token . ' ' . $_SESSION['csrf_token']);
    // header('location:' . $client->createAuthUrl());
