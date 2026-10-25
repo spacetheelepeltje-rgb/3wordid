@@ -26,7 +26,20 @@
 
   //error_log('list messages 3wid ' . $threeword_id . ' ' . json_encode($data));
   
-  $threeword_id = (int) $threeword_id;
+  $threeword_id = isset($threeword_id) ? (int) $threeword_id : 0;
+
+  // Only the owner of this 3WordID may read its messages
+  $owned_3wid = db_3wordid_owned_by($threeword_id, $data['id']);
+  if (!$owned_3wid) {
+    error_log('list messages: user ' . $data['id'] . ' does not own 3wid ' . $threeword_id);
+    header('location:3wid_list.php');
+    exit;
+  }
+
+  // use the name from the database, not from the link
+  $threeword = $owned_3wid['threeword'];
+
+  $action_token = get_action_token();
 
   $messages = db_3wordid_list_messages($threeword_id);
 
@@ -237,7 +250,7 @@
                 <?php 
                 } 
                 ?>
-                <a href="3wid_message_delete.php?id=<?php echo $message['id']; ?>" title="Delete">
+                <a href="3wid_message_delete.php?id=<?php echo (int)$message['id']; ?>&action_token=<?php echo $action_token; ?>" title="Delete">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="Delete Icon">
                         <polyline points="3 6 5 6 21 6"></polyline>
                         <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>

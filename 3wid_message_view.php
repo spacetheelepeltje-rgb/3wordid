@@ -3,7 +3,12 @@
   require_once 'php/functions.php';
   require_once 'login/config.php';
   
-  $data = check_credentials($_SESSION,$_POST,$_GET);
+  // Must be logged in
+  $data = current_user_from_session($conn);
+  if ($data == NULL) {
+    header('Location: login/options.php?message=' . rawurlencode('Please log in.'));
+    exit;
+  }
   
   error_log('message view page');
 
@@ -11,9 +16,18 @@
 	$id = (int)$_GET["id"];	
   } else {
 	header("location:3wid_list.php");
+	exit;
   }
   
-  $message_row = db_3wordid_get_message($id);
+  // Only the owner of the receiving 3WordID (or the sender) may read the message
+  $message_row = db_3wordid_message_for_user($id, $data['id']);
+  if (!$message_row) {
+    error_log('message view: user ' . $data['id'] . ' may not read message ' . $id);
+    header("location:3wid_list.php");
+    exit;
+  }
+
+  $action_token = get_action_token();
 
 ?>  
 <!DOCTYPE html>
@@ -34,11 +48,11 @@
         <div class="logo">
             <center>
                 <a href='<?php echo $main_url;?>' title="To 3wordID.com homepage, create your own!"><img width=100 src="img/3wid_big.png"></a><br> 
-                <h2><?php echo $message_row["title"]  ; ?></h2>       
+                <h2><?php echo htmlspecialchars($message_row["title"], ENT_QUOTES, 'UTF-8'); ?></h2>       
             </center>  
         </div>
         <div class="search-container">
-                <div id="textbox"><?php echo $message_row["message"]  ; ?></div>
+                <div id="textbox"><?php echo nl2br(htmlspecialchars($message_row["message"], ENT_QUOTES, 'UTF-8')); ?></div>
         </div>
           <div class="buttons">
 						<a class="mail-icon" disabled  href="" title="Answer to this message">
@@ -48,7 +62,7 @@
 							</svg>
 						</a>
 						&nbsp;	
-                        <a href="3wid_message_delete.php?id=<?php echo $message['id']; ?>&csrf_token=<?php echo $_SESSION['csrf_token'];?>" class="trash-icon" title="Delete this message">
+                        <a href="3wid_message_delete.php?id=<?php echo (int)$message_row['id']; ?>&action_token=<?php echo $action_token; ?>" class="trash-icon" title="Delete this message">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="Delete Icon">
                                 <polyline points="3 6 5 6 21 6"></polyline>
                                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
