@@ -113,7 +113,7 @@ $count = count($users);
       .btn-primary:hover { background: var(--navy-2); }
       .btn-ghost { background: #fff; color: var(--navy); border: 1px solid var(--line); }
       .logout-icon { color: var(--navy); display: inline-flex; padding: 6px; }
-      .wrap { max-width: 1100px; margin: 0 auto; padding: 28px 24px 64px; }
+      .wrap { max-width: 1240px; margin: 0 auto; padding: 28px 24px 64px; }
       .page-head {
         display: flex;
         justify-content: space-between;
@@ -148,7 +148,7 @@ $count = count($users);
       }
       .id-row {
         display: grid;
-        grid-template-columns: 70px minmax(160px, 1.2fr) minmax(120px, .8fr) 90px 80px 90px 200px;
+        grid-template-columns: 60px minmax(160px, 1.2fr) minmax(90px, .7fr) 70px 70px 80px 130px 100px 190px;
         gap: 12px;
         align-items: center;
         padding: 16px 18px;
@@ -168,6 +168,10 @@ $count = count($users);
         color: var(--slate);
       }
       .pill.on { background: #e5f4ec; color: var(--ok); }
+      .count-link { font-weight: 700; text-decoration: none; }
+      .count-link:hover { text-decoration: underline; }
+      .id-row.head { padding-top: 12px; padding-bottom: 12px; background: #faf9f6; }
+      .id-row.head .meta { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
       .row-actions { display: flex; gap: 6px; flex-wrap: wrap; }
       .empty { padding: 28px 18px; color: var(--slate); }
       .site-footer {
@@ -178,6 +182,7 @@ $count = count($users);
       }
       @media (max-width: 800px) {
         .stats, .id-row { grid-template-columns: 1fr; }
+        .id-row.head { display: none; }
         .page-head { align-items: flex-start; }
       }
     </style>
@@ -240,7 +245,23 @@ $count = count($users);
         <?php if ($count === 0) { ?>
             <div class="empty">No users returned for this page.</div>
         <?php } else { ?>
-            <?php foreach ($users as $user) { ?>
+            <div class="id-row head">
+                <div class="meta">Id</div>
+                <div class="meta">Name</div>
+                <div class="meta">Login via</div>
+                <div class="meta">Type</div>
+                <div class="meta">Credit</div>
+                <div class="meta">3WordIDs</div>
+                <div class="meta">Last login</div>
+                <div class="meta">Consent</div>
+                <div class="meta"></div>
+            </div>
+            <?php foreach ($users as $user) {
+                $nr_3wids = (int)($user['nr_3wids'] ?? 0);
+                $last_login_at = (string)($user['last_login_at'] ?? '');
+                $last_login_ts = $last_login_at !== '' ? strtotime($last_login_at) : false;
+                $last_login_text = $last_login_ts ? date('Y-m-d H:i', $last_login_ts) : 'never';
+            ?>
                 <div class="id-row">
                     <div class="meta">#<?php echo (int)$user['id']; ?></div>
                     <div>
@@ -252,6 +273,10 @@ $count = count($users);
                     <div class="meta"><?php echo htmlspecialchars((string)($user['auth_provider'] ?? '')); ?></div>
                     <div class="meta">type <?php echo htmlspecialchars((string)($user['user_type'] ?? '')); ?></div>
                     <div class="meta"><?php echo htmlspecialchars((string)($user['credit'] ?? '0')); ?> €</div>
+                    <div>
+                        <a class="count-link" href="3wid_user_3wids.php?user_id=<?php echo (int)$user['id']; ?>" title="Show this user's 3WordIDs"><?php echo $nr_3wids; ?></a>
+                    </div>
+                    <div class="meta" title="Last login"><?php echo htmlspecialchars($last_login_text); ?></div>
                     <div>
                         <?php if ((int)($user['privacy_consent'] ?? 0) === 1) { ?>
                             <span class="pill on">Consent</span>
