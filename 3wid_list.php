@@ -368,8 +368,8 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
             $message_count = db_3wordid_count_messages($db_3wordid_item['id']);
             $msg_state = ($message_count['count'] == 0) ? 'disabled' : '';
             //$url = "https://3wordid.com/index.php?threewords=" . urlencode($db_3wordid_item['threeword']);
-            $url = "https://3wordid.com/" .  $threeword_url;
             $threeword_url = implode('.', explode(' ', $db_3wordid_item['threeword']));
+            $url = "https://3wordid.com/" .  $threeword_url;
             $enabled = ($db_3wordid_item['enabled'] == 1);
             $days = db_3wid_daysUntilNWeeksAfter($db_3wordid_item['creation_date'], 4);
             
