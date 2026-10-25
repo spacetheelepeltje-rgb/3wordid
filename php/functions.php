@@ -322,7 +322,7 @@ function db_3wordid_get_message($message_id) {
     }
     
     // Prepare the SQL statement
-    $sql = "SELECT m.id as id, m.from_id as from_id, m.title as title, m.message as message,u.picture as picture FROM 3wordid_messages as m, google_users as u WHERE m.id = ? and m.from_id=u.id";
+    $sql = "SELECT m.id as id, m.3wid_id as 3wid_id, m.from_id as from_id, m.title as title, m.message as message,u.picture as picture FROM 3wordid_messages as m, google_users as u WHERE m.id = ? and m.from_id=u.id";
     $stmt = $conn->prepare($sql);
     
     error_log('query ' .  $sql);
@@ -3226,3 +3226,59 @@ function db_3wordid_create($conn, $threeword, $user_id, $linkthru = null, $linkt
 
 
 
+
+// ---------------------------------------------------------------------------
+// Security helpers
+// ---------------------------------------------------------------------------
+
+// Per-session "action token" (CSRF protection). Put it in every link or form
+// that changes data (delete, enable/disable) and check it on the server side.
+// Kept separate from csrf_token, which is also stored in google_users.
+function get_action_token() {
+	if (empty($_SESSION['action_token']) || !is_string($_SESSION['action_token'])) {
+		$_SESSION['action_token'] = bin2hex(random_bytes(32));
+	}
+	return $_SESSION['action_token'];
+}
+
+function check_action_token($token) {
+	if (!is_string($token) || $token === '') {
+		return false;
+	}
+	if (empty($_SESSION['action_token']) || !is_string($_SESSION['action_token'])) {
+		return false;
+	}
+	return hash_equals($_SESSION['action_token'], $token);
+}
+
+// Returns the 3wordid row when 3wordid $id belongs to user $user_id, otherwise false.
+function db_3wordid_owned_by($id, $user_id) {
+	$id = (int) $id;
+	$user_id = (int) $user_id;
+	if ($id < 1 || $user_id < 1) {
+		return false;
+	}
+	$row = db_3wordid_get_user($id, $user_id);
+	return $row ? $row : false;
+}
+
+// Returns the message row when the logged in user may see it: the user owns the
+// 3WordID the message was sent to, or the user sent the message. Otherwise false.
+function db_3wordid_message_for_user($message_id, $user_id) {
+	$message_id = (int) $message_id;
+	$user_id = (int) $user_id;
+	if ($message_id < 1 || $user_id < 1) {
+		return false;
+	}
+	$message = db_3wordid_get_message($message_id);
+	if (!$message) {
+		return false;
+	}
+	if ((int)$message['from_id'] === $user_id) {
+		return $message;
+	}
+	if (db_3wordid_owned_by($message['3wid_id'], $user_id)) {
+		return $message;
+	}
+	return false;
+}

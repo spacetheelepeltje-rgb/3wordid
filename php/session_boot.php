@@ -52,6 +52,7 @@ function establish_user_session(mysqli $conn, int $userId): string
     $_SESSION['user_id']    = $userId;
     $_SESSION['user_token'] = $rawToken;
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    unset($_SESSION['action_token']); // new action token after login
 
     return $rawToken;
 }
