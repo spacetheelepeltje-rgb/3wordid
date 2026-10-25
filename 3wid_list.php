@@ -24,6 +24,9 @@ if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
+// token for the delete and enable/disable links (CSRF protection)
+$action_token = get_action_token();
+
 $id  = $data['id'];
 $max = $data['max_3wids'] + 1;
 
@@ -339,7 +342,7 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
         </div>
 
         <?php if ($message !== "") { ?>
-        <div class="flash" id="helpertext"><?php echo $message; ?></div>
+        <div class="flash" id="helpertext"><?php echo htmlspecialchars($message, ENT_QUOTES, 'UTF-8'); ?></div>
         <?php } ?>
 
         <section class="stats">
@@ -409,7 +412,7 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
                             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                         </svg>
                     </a>
-                    <a href="3wid_toggle.php?id=<?php echo (int)$db_3wordid_item['id']; ?>" class="icon-btn toggle-icon <?php echo $enabled ? 'enabled' : 'disabled-toggle'; ?>" title="<?php echo $enabled ? 'Disable, 3wid is currently enabled' : 'Enable, 3wid is currently disabled'; ?>">
+                    <a href="3wid_toggle.php?id=<?php echo (int)$db_3wordid_item['id']; ?>&action_token=<?php echo $action_token; ?>" class="icon-btn toggle-icon <?php echo $enabled ? 'enabled' : 'disabled-toggle'; ?>" title="<?php echo $enabled ? 'Disable, 3wid is currently enabled' : 'Enable, 3wid is currently disabled'; ?>">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="Toggle Icon">
                             <path d="M12 2v10"></path>
                             <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
@@ -421,7 +424,7 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
                             <path d="M1 6l11 7 11-7"></path>
                         </svg>
                     </a>
-                    <a href="3wid_delete.php?id=<?php echo $db_3wordid_item['id']; ?>&csrf_token=<?php echo $_SESSION['csrf_token']; ?>"
+                    <a href="3wid_delete.php?id=<?php echo (int)$db_3wordid_item['id']; ?>&action_token=<?php echo $action_token; ?>"
 					class="icon-btn trash-icon"
 					title="Delete Three Word ID"
 					onclick="return confirmDelete(this);"

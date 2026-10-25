@@ -11,6 +11,7 @@
 	$csrf_token =  $_POST['csrf_token']; 
  } else {
 	header('location:' . $main_url);
+	exit;
  }
 
 $data = current_user_from_session($conn);
@@ -29,7 +30,14 @@ if ($data == NULL) {
 	 
   } 
 
-   $id = $_POST["id"];
+   $id = isset($_POST["id"]) ? (int)$_POST["id"] : 0;
+
+   // Only the owner of the 3WordID (or the admin, same rule as 3wid_3wid.php) may update it
+   if ($data["id"] != 4 && !db_3wordid_owned_by($id, $data["id"])) {
+       error_log('update: user ' . $data['id'] . ' does not own 3wid ' . $id);
+       header('location:3wid_list.php');
+       exit;
+   }
    
    $notification = $_POST["notification"];
    
@@ -68,6 +76,7 @@ if ($data == NULL) {
 		//echo("$url is a valid URL");
 		} else {
 		header('location:3wid_list.php');
+		exit;
 	}
    
    //error_log( " id:". $id . " not:" . $notification . " linkthru:" . $linkthru . " linkthruflag:" . $linkthruflag. " email:" . $email . " emailform:" . $emailform);
@@ -82,6 +91,7 @@ try {
     
     //3wid_list.php?csrf_token=' .  $csrf_token);
     header('location:3wid_list.php');
+    exit;
     
 } catch (Exception $e) {
     echo "Error: " . $e->getMessage();
