@@ -139,6 +139,7 @@ $count = count($users);
       .stat { background: #fff; border: 1px solid #eceae4; border-radius: 14px; padding: 16px; }
       .stat span { display: block; color: var(--muted); font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
       .stat strong { font-size: 22px; }
+      .search { flex: 1 1 280px; border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; font: 15px/1.4 Inter, system-ui, sans-serif; color: var(--navy); background: #fff; }
       .toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
       .panel {
         background: #fff;
@@ -149,7 +150,7 @@ $count = count($users);
       }
       .id-row {
         display: grid;
-        grid-template-columns: 70px minmax(160px, 1.2fr) minmax(120px, .8fr) 90px 80px 90px 110px;
+        grid-template-columns: 70px minmax(160px, 1.2fr) minmax(120px, .8fr) 90px 80px 90px 200px;
         gap: 12px;
         align-items: center;
         padding: 16px 18px;
@@ -169,6 +170,7 @@ $count = count($users);
         color: var(--slate);
       }
       .pill.on { background: #e5f4ec; color: var(--ok); }
+      .row-actions { display: flex; gap: 6px; flex-wrap: wrap; }
       .empty { padding: 28px 18px; color: var(--slate); }
       .site-footer {
         border-top: 1px solid var(--line);
@@ -190,6 +192,7 @@ $count = count($users);
     </a>
     <div class="header-actions">
         <a class="btn btn-ghost" href="3wid_list.php">Dashboard</a>
+        <a class="btn btn-ghost" href="3wid_admin_3wids.php">All 3WordIDs</a>
         <a class="btn btn-primary" href="3wid_user_list.php?order=<?php echo $order === 'ASC' ? 'DESC' : 'ASC'; ?>">
             Sort <?php echo $order === 'ASC' ? 'newest' : 'oldest'; ?>
         </a>
@@ -220,6 +223,11 @@ $count = count($users);
         <div class="stat"><span>Page</span><strong><?php echo (int)$page; ?></strong></div>
         <div class="stat"><span>Order</span><strong><?php echo htmlspecialchars($order); ?></strong></div>
     </div>
+
+    <form class="toolbar" method="get" action="3wid_admin_3wids.php">
+        <input class="search" type="search" name="q" placeholder="Search 3WordIDs by words, owner name or user id">
+        <button class="btn btn-primary" type="submit">Search 3WordIDs</button>
+    </form>
 
     <div class="toolbar">
         <?php if ($page > 0) { ?>
@@ -253,7 +261,8 @@ $count = count($users);
                             <span class="pill">No consent</span>
                         <?php } ?>
                     </div>
-                    <div>
+                    <div class="row-actions">
+                        <a class="btn btn-ghost" href="3wid_user_3wids.php?user_id=<?php echo (int)$user['id']; ?>">3WordIDs</a>
                         <a class="btn btn-ghost" href="3wid_user_edit.php?id=<?php echo (int)$user['id']; ?>">Edit</a>
                     </div>
                 </div>
