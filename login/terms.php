@@ -70,7 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($ins->execute()) {
                 $userId = (int)$ins->insert_id;
                 $ins->close();
-                establish_user_session($conn, $userId);
+                establish_user_session($conn, $userId, $email_value);
                 header('Location: ../3wid_list.php');
                 exit;
             }

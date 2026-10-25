@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $error = 'Invalid email or password.';
             }
         } else {
-           establish_user_session($conn, (int)$user['id']);
+           establish_user_session($conn, (int)$user['id'], $email_value);
 
 
             

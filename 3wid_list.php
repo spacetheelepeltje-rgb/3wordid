@@ -32,6 +32,27 @@ $max = $data['max_3wids'] + 1;
 
 $db_3wordid_list = db_3wordid_list($id);
 
+// "Send to my email": POST with the action token, only the logged-in owner's
+// own list, at most once per 5 minutes per session.
+$can_email_list = has_session_email();
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_list_email'])) {
+    $last_sent = (int)($_SESSION['email_list_sent_at'] ?? 0);
+    if (!check_action_token($_POST['action_token'] ?? '')) {
+        $result = 'Session expired. Try again.';
+    } elseif (!$can_email_list) {
+        $result = 'Email is not available. Log out and log in again to use it.';
+    } elseif ($last_sent > 0 && time() - $last_sent < 300) {
+        $result = 'Already sent. You can send it again in a few minutes.';
+    } elseif (send_3wid_list_email(get_session_email(), $db_3wordid_list)) {
+        $_SESSION['email_list_sent_at'] = time();
+        $result = 'Your 3WordID list was sent to your email.';
+    } else {
+        $result = 'Sending the email failed. Try again later.';
+    }
+    header('Location: 3wid_list.php?message=' . rawurlencode($result));
+    exit;
+}
+
 // $id contains the user id
 
 $nr_of_3wordid = count($db_3wordid_list);
@@ -354,6 +375,12 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
 
         <div class="toolbar">
             <a class="btn btn-ghost <?php echo $state; ?>" <?php echo $style; ?> href="3wid_messageform.php" title="You need to create a 3WordID to send messages to 3WordIDs">Compose Message to other 3WID</a>
+            <?php if ($can_email_list && $count_rows > 0) { ?>
+            <form method="post" action="3wid_list.php" style="margin:0">
+                <input type="hidden" name="action_token" value="<?php echo htmlspecialchars($action_token, ENT_QUOTES, 'UTF-8'); ?>">
+                <button class="btn btn-ghost" type="submit" name="send_list_email" value="1" title="Email yourself a list of your 3WordIDs">Send to my email</button>
+            </form>
+            <?php } ?>
         </div>
 
         <section class="panel">

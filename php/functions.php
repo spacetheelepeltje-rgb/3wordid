@@ -12,7 +12,7 @@ $session_path = ini_get('session.save_path');
 
 $email_consent = 'We collect and store email addresses to provide our services and communicate with you. By checking below checkbox, you consent to the collection and use of your email address as outlined in our Privacy Policy. If you do not agree, please refrain from using this site or contact us to opt out.';
 
-$email_consent_encrypt = 'We use Google Authentication with your consent. Your email address is stored as a one-way hash, not as readable text. We use the hash to recognise you when you log in, and we cannot use it to send you emails. Messages, IP addresses and account data are logged and kept, also after an account is deactivated, so we can respond to lawful requests from law enforcement.';
+$email_consent_encrypt = 'We use Google Authentication with your consent. Your email address is stored as a one-way hash, not as readable text. We use the hash to recognise you when you log in. The email address you log in with is used only to send what you request; it is held encrypted only during your session and is not stored in readable form. Messages, IP addresses and account data are logged and kept, also after an account is deactivated, so we can respond to lawful requests from law enforcement.';
 
 // Google Analytics, only after the visitor clicks "Accept" in the cookie banner.
 // Every page that echoes $google_stats gets the banner. Nothing is sent to Google
@@ -2561,3 +2561,46 @@ function db_3wordid_admin_search($q, $page, $page_size) {
 	return $rows;
 }
 
+
+// Emails the logged-in user a plain-text list of their 3WordIDs (words plus target).
+// $email comes from get_session_email(); it is never stored or logged.
+// Returns true when PHP mail() accepted the message.
+function send_3wid_list_email($email, $rows) {
+	if (!is_string($email) || !filter_var($email, FILTER_VALIDATE_EMAIL) || preg_match('/[\r\n]/', $email)) {
+		return false;
+	}
+
+	$lines = array();
+	$lines[] = 'Your 3WordIDs on 3wordid.com:';
+	$lines[] = '';
+	if (count($rows) === 0) {
+		$lines[] = '(no 3WordIDs yet)';
+	}
+	foreach ($rows as $row) {
+		$words = trim((string) $row['threeword']);
+		$url = 'https://3wordid.com/' . implode('.', explode(' ', $words));
+		if ((int) $row['linkthruflag'] === 1 && trim((string) $row['linkthru']) !== '') {
+			$target = 'link: ' . trim((string) $row['linkthru']);
+		} elseif (trim((string) $row['notification']) !== '') {
+			$target = 'notification: ' . trim((string) $row['notification']);
+		} else {
+			$target = 'message box';
+		}
+		$state = ((int) $row['enabled'] === 1) ? '' : ' (off)';
+		$lines[] = $words . $state . ' - ' . $url;
+		$lines[] = '  ' . $target;
+		$lines[] = '';
+	}
+	$lines[] = 'You asked for this email on your 3WordID list page.';
+	$lines[] = 'We do not keep your email address in readable form.';
+
+	$body = str_replace("\n", "\r\n", implode("\n", $lines));
+	$subject = 'Your 3WordIDs';
+	$headers = "From: 3WordID <noreply@3wordid.com>\r\n"
+		. "Reply-To: noreply@3wordid.com\r\n"
+		. "MIME-Version: 1.0\r\n"
+		. "Content-Type: text/plain; charset=UTF-8\r\n"
+		. "Content-Transfer-Encoding: 8bit";
+
+	return @mail($email, $subject, $body, $headers, '-fnoreply@3wordid.com');
+}
