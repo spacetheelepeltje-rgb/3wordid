@@ -238,7 +238,7 @@ $count = count($users);
                 <div class="id-row">
                     <div class="meta">#<?php echo (int)$user['id']; ?></div>
                     <div>
-                        <a class="id-name" href="3wid_user_edit.php?id=<?php echo (int)$user['id']; ?>&amp;csrf_token=<?php echo urlencode($_SESSION['csrf_token']); ?>">
+                        <a class="id-name" href="3wid_user_edit.php?id=<?php echo (int)$user['id']; ?>">
                             <?php echo htmlspecialchars((string)($user['full_name'] !== '' ? $user['full_name'] : $user['email'])); ?>
                         </a>
                         <div class="meta"><?php echo htmlspecialchars((string)$user['email']); ?></div>
@@ -254,7 +254,7 @@ $count = count($users);
                         <?php } ?>
                     </div>
                     <div>
-                        <a class="btn btn-ghost" href="3wid_user_edit.php?id=<?php echo (int)$user['id']; ?>&amp;csrf_token=<?php echo urlencode($_SESSION['csrf_token']); ?>">Edit</a>
+                        <a class="btn btn-ghost" href="3wid_user_edit.php?id=<?php echo (int)$user['id']; ?>">Edit</a>
                     </div>
                 </div>
             <?php } ?>

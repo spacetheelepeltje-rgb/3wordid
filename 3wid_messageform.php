@@ -366,7 +366,7 @@
                     <button type="submit" id="submitBtn">Send</button>
                     <div id="helperText"></div>
                 </div>
-                <input type='hidden' name='csrf_token' value='<?php echo $data['csrf_token']; ?>'>
+                <input type='hidden' name='action_token' value='<?php echo htmlspecialchars(get_action_token(), ENT_QUOTES, 'UTF-8'); ?>'>
             </form>
         </div>
     </main>
