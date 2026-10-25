@@ -253,6 +253,7 @@ $loginUrl = '/login/options.php';
                 <p>
                     To run the lookup tool the Operator may store data supplied by Google sign-in and data you submit: name, avatar URL, your email address, 3WordIDs, notifications, and messages.
                     Your email address is stored as a one-way hash, not as readable text.
+                    The email address you log in with is used only to send what you request; it is held encrypted only during your session and is not stored in readable form.
                     Data is shared with third parties only if the Operator is legally required to do so, or as needed to host and process the service.
                     Separate consent screens may appear again from time to time.
                     Do not treat 3WordID as a confidential archive.

@@ -186,7 +186,7 @@
                     <ul>
                         <li>first name and last name;</li>
                         <li>a link to your avatar;</li>
-                        <li>your email address, stored as a one-way hash, not as readable text, so we cannot use it to email you;</li>
+                        <li>your email address, stored as a one-way hash, not as readable text; during your session it is held encrypted and used only to send what you request;</li>
                         <li>messages you send and receive;</li>
                         <li>text you put in the notification field of a 3WordID;</li>
                         <li>the 3WordIDs you create and related lookup data.</li>
