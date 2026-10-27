@@ -2,7 +2,7 @@
 
 Guiding rule: keep it simple so it stays versatile, and store as little personal data as possible.
 
-_Status as of 25 October 2026._
+_Status as of 27 October 2026._
 
 ## Done
 - [x] Security fixes: messages, delete, on/off and edit are owner-only, with CSRF protection, session-only login and a locked-down `.htaccess` (PR #1)
@@ -12,10 +12,16 @@ _Status as of 25 October 2026._
 - [x] `ROADMAP.md` added (PR #6)
 - [x] Admin tools: user-edit save crash fixed, each user's 3WordIDs page, admin 3WordID search, links between them; includes the admin links from PR #5 (PR #7)
 - [x] Privacy quick fixes: `errors.php` and logs blocked, honest email-hash wording, law-enforcement retention text, notice on message forms that messages and IPs are stored, cookie banner with equal Accept and Reject so Google Analytics loads only after consent, self-hosted Inter font (PR #8)
+- [x] Removed the last link to the old `index_2.php` (PR #9)
+- [x] Accounts deactivated instead of deleted; user list shows each user's 3WordID count and last login; one-time SQL adds `last_login` (PR #10)
+- [x] Session email: the login email is kept encrypted in the session only, with a "Send to my email" button on the list page (PR #12)
+- [x] The email button stays hidden until the SMTP settings are present in `login/config.php` (PR #13)
 
 ## In review
-- [ ] Remove the last link to the old `index_2.php`; then delete `index_2.php` from the server (PR #9)
-- [ ] Accounts deactivated instead of deleted; user list shows each user's 3WordID count and last login; one-time SQL adds `last_login` (PR #10)
+- [ ] Homepage text and SEO: typo fixes, meta description, canonical URL, Open Graph and Twitter card tags, social preview image (PR #14)
+- [ ] Homepage redesign: live example, 3-step how it works, concrete use cases, curated public list with "See more", trust strip and FAQ (PR #15, stacked on #14)
+- [ ] Header and footer links: shared header and footer with Plans, Terms and Get started, plus Docs on X, GitHub, Terms and Cookie settings (PR #16)
+- [ ] This roadmap update (PR #11)
 
 ## Next
 | Item | Area | Effort | Notes |
@@ -29,13 +35,14 @@ _Status as of 25 October 2026._
 | Proper privacy page | GDPR | Small | Separate from Terms: what's stored, why, how long, law-enforcement policy |
 | Self-service export and deactivation | GDPR | Medium | Users download their data and deactivate their account; data is never hard-deleted |
 | Decide a retention period | GDPR | Small | Owner's decision, then state it on the privacy page |
-| Homepage that explains itself | Look and feel | Small | One clear promise, 3-step how-it-works, real examples, fix typos and hidden helper text |
-| Trust pages and footer | Look and feel | Medium | About, Contact, Privacy, Pricing, linked on every page |
+| HTML markup in notifications, with an HTML editor | Notifications | Medium | Notifications are public, so unsanitised HTML would allow XSS and phishing. Sanitise on the server with HTML Purifier and an allowlist of tags (p, br, b, i, ul, ol, li, a with http/https only, h2, h3); never trust the editor's output. Candidate editors: Quill or TinyMCE, self-hosted, no third-party CDN, for privacy |
+| Trust pages | Look and feel | Medium | About, Contact, Privacy and Pricing pages; shared header and footer links are in review (PR #16) |
 | Remove old file-based pages | Clean-up | Small | `check.php`, `get_messages.php` etc. now break if still on the server |
 
 ## Longer term
 | Item | Area | Effort | Notes |
 |---|---|---|---|
+| SMTP sending via own mail server | Email | Small | Parked. The email button stays hidden until the five SMTP settings are in `login/config.php`; next step is PHPMailer with the owner's mail server, plus SPF and DKIM for 3wordid.com |
 | WhatsApp-style messages | Messaging | Large | Chat bubbles, one conversation per 3WordID, timestamps, read status, replies in thread |
 | Easy payment funnel | Payments | Large | Free vs paid side by side, short checkout with a payment provider, account page, admin for paid accounts |
 | Clear user admin | Admin | Medium | One admin area for users, plans, signups and blocks |
