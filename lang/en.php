@@ -119,7 +119,7 @@ return [
     'terms.s9_h' => '9. Payments',
     'terms.s9_p1' => 'Prices, credits, Patreon, PayPal, bank transfer, and reseller kickbacks may change. Payments are for access to a volunteer-scale tool, not for ownership of an identifier. Unless mandatory law requires it, payments are non-refundable if an ID is later terminated, localized, overwritten by a paid reservation, or if the service changes or stops.',
     'terms.s10_h' => '10. Data',
-    'terms.s10_p1' => 'To run the lookup tool the Operator may store data supplied by Google sign-in and data you submit: name, avatar URL, your email address, 3WordIDs, notifications, and messages. Your email address is stored as a one-way hash, not as readable text. The email address you log in with is used only to send what you request; it is held encrypted only during your session and is not stored in readable form. Data is shared with third parties only if the Operator is legally required to do so, or as needed to host and process the service. Separate consent screens may appear again from time to time. Do not treat 3WordID as a confidential archive.',
+    'terms.s10_p1' => 'To run the lookup tool the Operator may store data supplied by Google sign-in and data you submit: name, avatar URL, your email address, 3WordIDs, notifications, and messages. Your email address is stored as a one-way hash, not as readable text. The email address you log in with is used only to send what you request; it is held encrypted only during your session and is not stored in readable form. Data is shared with third parties only if the Operator is legally required to do so, or as needed to host and process the service. Separate consent screens may appear again from time to time. Do not treat 3WordID as a confidential archive. Your profile photo is shown in chats only if you turn it on for a 3WordID, and then only to logged-in members you chat with through that 3WordID; visitors who are not logged in never see it.',
     'terms.s10_p2' => 'Messages, IP addresses and account data are logged and kept, also after an account is deactivated, so we can respond to lawful requests from law enforcement. This also applies to messages sent through the public chat by people without an account: the message is shown to the owner of the 3WordID, and the message and the sender\'s IP address are stored and kept.',
     'terms.s10_p3' => 'Cookies: logging in uses one strictly necessary session cookie (3WIDSESS). Google Analytics, which sets _ga cookies and sends your IP address and browser details to Google, is only loaded if you click Accept in the cookie banner. <a href="#cookie-settings">Change your cookie choice</a>.',
     'terms.s11_h' => '11. Limitation of liability',
@@ -421,7 +421,7 @@ The URL, notification, and chat for these words will be removed. This cannot be 
     'pc.data_h' => 'Data policy',
     'pc.data_p1' => 'To run the lookup tool we store personal data supplied by Google and data you submit:',
     'pc.li1' => 'first name and last name;',
-    'pc.li2' => 'a link to your avatar;',
+    'pc.li2' => 'a link to your avatar (your profile photo is shown in chats only if you turn it on per 3WordID, and only to logged-in members you chat with);',
     'pc.li3' => 'your email address, stored as a one-way hash, not as readable text; during your session it is held encrypted and used only to send what you request;',
     'pc.li4' => 'messages you send and receive;',
     'pc.li5' => 'text you put in the notification field of a 3WordID;',
@@ -610,4 +610,12 @@ The URL, notification, and chat for these words will be removed. This cannot be 
     'chat.err_visitor' => 'You can\'t reply to visitors without a 3WordID. If they left contact details in their message, use those.',
     'chat.err_recipient' => 'This 3WordID could not be found. Check the three words and try again.',
     'ext.bad_recipient' => 'This 3WordID could not be found, so your message was not sent.',
+
+    // Profile photo in chats (opt-in)
+    'edit.show_photo' => 'Show my photo in chats',
+    'edit.show_photo_help' => 'Logged-in members you chat with via this 3WordID will see your profile photo, so they can recognise you. Visitors who are not logged in never see it. Off by default.',
+    'edit.show_photo_none' => 'Your account has no profile photo (only Google sign-in provides one), so a letter is shown instead.',
+    'chat.photo_open' => 'View the photo of {name}',
+    'chat.photo_close' => 'Close',
+    'chat.photo_login_hint' => 'Log in to see who you\'re chatting with',
 ];

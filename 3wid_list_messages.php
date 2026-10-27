@@ -57,6 +57,8 @@
 
   // Conversations, one per sender 3WordID, newest first (see php/chat.php)
   $conversations = chat_conversations($messages, $dates);
+  // Senders who turned "Show my photo in chats" on (the owner here is always logged in)
+  $photo_ids = db_3wordid_photo_ids(array_column($conversations, 'wid'));
 
   // Open conversation: the key must be one of the owner's own conversations
   $with = isset($_GET['with']) ? (string) $_GET['with'] : '';
@@ -99,7 +101,7 @@
         ?>
             <li>
                 <a class="chat-row" href="<?php echo chat_e($base_url . '&with=' . rawurlencode($c['key'])); ?>">
-                    <?php echo $c['visitor'] ? chat_visitor_avatar() : chat_avatar($c['name']); ?>
+                    <?php echo $c['visitor'] ? chat_visitor_avatar() : chat_avatar_for($c['name'], $c['wid'], $photo_ids); ?>
                     <span class="cr-main">
                         <span class="cr-top">
                             <span class="cr-name"><?php echo $label; ?></span>
@@ -124,7 +126,7 @@
 ?>
     <header class="chat-header">
         <a class="back" href="<?php echo chat_e($base_url); ?>" aria-label="<?php echo t('common.back'); ?>"><?php echo chat_icon('back'); ?></a>
-        <?php echo $is_visitor ? chat_visitor_avatar() : chat_avatar($open['name']); ?>
+        <?php echo $is_visitor ? chat_visitor_avatar() : chat_avatar_for($open['name'], $open['wid'], $photo_ids, '', true); ?>
         <div class="who">
             <div class="name"><?php echo $label; ?></div>
             <div class="sub"><?php echo t('chat.to_you', ['words' => $threeword]); ?></div>

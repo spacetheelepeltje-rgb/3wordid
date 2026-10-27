@@ -46,6 +46,13 @@
 
   require_once 'php/chat.php';
 
+  // Profile photo of this 3WordID (opt-in by its owner): only logged-in members see it.
+  // Visitors get a hint to log in instead; the photo is not in this page at all for them.
+  $wid_id = (is_array($row) && !chat_is_visitor_wid($row)) ? (int) $row['id'] : 0;
+  $has_photo = $wid_id ? !empty(db_3wordid_photo_ids(array($wid_id))[$wid_id]) : false;
+  $viewer = $has_photo ? current_user_from_session($conn) : null;
+  $photo_ids = ($has_photo && $viewer) ? array($wid_id => true) : array();
+
   // The message just sent (stored by 3wid_messageform_ext_process.php), shown once as a bubble
   $sent = null;
   if (!empty($_SESSION['chat_sent']) && is_array($_SESSION['chat_sent'])) {
@@ -71,7 +78,7 @@
 <div class="chat-app">
     <header class="chat-header">
         <a class="back" href="<?php echo chat_e($main_url); ?>" aria-label="<?php echo t('common.back'); ?>"><?php echo chat_icon('back'); ?></a>
-        <?php echo chat_avatar($reply_to); ?>
+        <?php echo chat_avatar_for($reply_to, $wid_id, $photo_ids, '', true); ?>
         <div class="who">
             <div class="name"><?php echo $reply_to_safe; ?></div>
             <div class="sub" id="helperText"><?php echo t('chat.message_box'); ?></div>
@@ -81,6 +88,9 @@
 
     <main class="chat-scroll" data-scroll="end">
         <div class="chat-tools"><?php echo lang_switcher(); ?></div>
+        <?php if ($has_photo && !$viewer): ?>
+        <div class="pill-wrap"><span class="pill info"><a href="<?php echo chat_e($loginUrl); ?>"><?php echo t('chat.photo_login_hint'); ?></a></span></div>
+        <?php endif; ?>
         <div class="pill-wrap"><span class="pill info"><?php echo t_raw('ext.hint1'); ?></span></div>
 
         <?php if ($has_note): ?>
