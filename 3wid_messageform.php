@@ -86,22 +86,28 @@
     <title><?php echo t('msg.title'); ?></title>
     <link rel="icon" type="image/png" href="3wid_1.png">
     <link href="/css/inter.css" rel="stylesheet">
-    <link rel="stylesheet" href="css/chat.css">
+    <link rel="stylesheet" href="<?php echo chat_asset('css/chat.css'); ?>">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body class="chat-body">
+<?php
+  // Sender shown in the bar: the selected 3WordID, else the first one
+  $from_words = $user_threeword_rows[0]['threeword'];
+  foreach ($user_threeword_rows as $select_row) {
+      if ((string) $select_row['id'] === (string) $wid_id) { $from_words = $select_row['threeword']; }
+  }
+  echo chat_topbar(array(
+      'back'      => chat_back_home(true),
+      'avatar'    => $reply_to !== '' ? chat_avatar_for($reply_to, $reply_wid, $photo_ids, '', true) : '<span class="avatar new" aria-hidden="true">' . chat_icon('compose') . '</span>',
+      'name'      => $reply_to !== '' ? $reply_to_safe : t('chat.new_message'),
+      'name_id'   => 'tbName',
+      'sub'       => t('tb.chatting_as', ['words' => $from_words]),
+      'sub_attrs' => 'id="tbSub" data-tpl="' . t('tb.chatting_as', ['words' => '{words}']) . '"',
+  ));
+?>
 <div class="chat-app">
-    <header class="chat-header">
-        <a class="back" href="3wid_list.php" aria-label="<?php echo t('nav.back_list'); ?>"><?php echo chat_icon('back'); ?></a>
-        <?php echo $reply_to !== '' ? chat_avatar_for($reply_to, $reply_wid, $photo_ids, '', true) : chat_visitor_avatar(); ?>
-        <div class="who">
-            <div class="name"><?php echo $reply_to !== '' ? $reply_to_safe : t('chat.new_message'); ?></div>
-            <div class="sub" id="helperText"></div>
-        </div>
-    </header>
 
     <main class="chat-scroll" data-scroll="end">
-        <div class="chat-tools"><?php echo lang_switcher(); ?></div>
         <div class="pill-wrap"><span class="pill info"><?php echo t('msg.hint1'); ?></span></div>
         <div class="pill-wrap"><span class="pill info"><?php echo t_raw('msg.hint2'); ?></span></div>
 
@@ -114,7 +120,7 @@
                 <label for="from_id"><?php echo t('msg.from'); ?></label>
                 <select name="from_id" id="from_id" form="3widForm">
                     <?php foreach ($user_threeword_rows as $select_row): ?>
-                    <option value="<?php echo (int) $select_row['id']; ?>"<?php echo ((string) $select_row['id'] === (string) $wid_id) ? ' selected' : ''; ?>><?php echo t('msg.send_from', ['words' => $select_row['threeword']]); ?></option>
+                    <option value="<?php echo (int) $select_row['id']; ?>" data-words="<?php echo chat_e($select_row['threeword']); ?>"<?php echo ((string) $select_row['id'] === (string) $wid_id) ? ' selected' : ''; ?>><?php echo t('msg.send_from', ['words' => $select_row['threeword']]); ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
@@ -122,6 +128,7 @@
                 <label for="threeword"><?php echo t('msg.recipient'); ?></label>
                 <input type="text" name="threeword" id="threeword" form="3widForm" autocomplete="off" autocapitalize="none" placeholder="<?php echo t('common.placeholder_words'); ?>" value="<?php echo $reply_to_safe; ?>">
             </div>
+            <div class="f-status" id="helperText" role="status" aria-live="polite"></div>
         </div>
 
         <?php if ($sent): ?>
@@ -157,11 +164,28 @@
     'need_message'  => 'msg.js_need_message',
     'need_3wid'     => 'msg.js_need_3wid',
 ]); ?>
-<script src="js/3wid_messageform.js"></script>
-<script src="js/chat.js"></script>
+<script src="<?php echo chat_asset('js/3wid_messageform.js'); ?>"></script>
+<script src="<?php echo chat_asset('js/chat.js'); ?>"></script>
 <script>
     // Check the recipient right away when it is prefilled (reply)
     if ($('#threeword').val().trim() !== '') { $('#threeword').trigger('keyup'); }
+
+    // Keep the top bar in step with the form: recipient name and "Chatting as"
+    (function () {
+        var name = document.getElementById('tbName'), sub = document.getElementById('tbSub');
+        var to = document.getElementById('threeword'), from = document.getElementById('from_id');
+        var empty = name ? name.textContent : '';
+        function words(v) { return v.replace(/\s+/g, ' ').trim(); }
+        function syncName() { if (name && to) { name.textContent = words(to.value) || empty; } }
+        function syncSub() {
+            if (!sub || !from || from.selectedIndex < 0) { return; }
+            var opt = from.options[from.selectedIndex];
+            var w = opt.getAttribute('data-words') || opt.text;
+            sub.textContent = (sub.getAttribute('data-tpl') || '{words}').replace('{words}', w);
+        }
+        if (to) { to.addEventListener('input', syncName); syncName(); }
+        if (from) { from.addEventListener('change', syncSub); syncSub(); }
+    })();
 </script>
 </body>
 </html>

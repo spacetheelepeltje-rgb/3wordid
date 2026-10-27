@@ -633,4 +633,14 @@ The URL, notification, and chat for these words will be removed. This cannot be 
     'list.mail_received_other' => '{n} messages for {words}: open the chats',
     'list.mail_unread_one' => '{n} new message for {words}: open the chats',
     'list.mail_unread_other' => '{n} new messages for {words}: open the chats',
+
+    // Top bar of the chat pages
+    'tb.my_ids' => 'My 3WordIDs',
+    'tb.back_my_ids' => 'Back to My 3WordIDs',
+    'tb.home' => 'Home',
+    'tb.back_home' => 'Back to the homepage',
+    'tb.chats' => 'Chats',
+    'tb.back_chats' => 'Back to the chats of {words}',
+    'tb.chatting_as' => 'Chatting as {words}',
+    'tb.anonymous' => 'Anonymous message',
 ];

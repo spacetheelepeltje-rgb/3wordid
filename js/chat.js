@@ -169,3 +169,19 @@
     setInterval(check, every);
     document.addEventListener('visibilitychange', check);
 })();
+
+// Top bar language menu (<details>): close it on a click outside or with Esc
+(function () {
+    var menu = document.querySelector('.chat-topbar .tb-lang');
+    if (!menu) { return; }
+    document.addEventListener('click', function (e) {
+        if (menu.open && !menu.contains(e.target)) { menu.open = false; }
+    });
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && menu.open) {
+            menu.open = false;
+            var s = menu.querySelector('summary');
+            if (s) { s.focus(); }
+        }
+    });
+})();

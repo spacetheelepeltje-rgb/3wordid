@@ -633,4 +633,14 @@ De URL, mededeling en chat van deze woorden worden verwijderd. Dit kan niet onge
     'list.mail_received_other' => '{n} berichten voor {words}: open de chats',
     'list.mail_unread_one' => '{n} nieuw bericht voor {words}: open de chats',
     'list.mail_unread_other' => '{n} nieuwe berichten voor {words}: open de chats',
+
+    // Top bar of the chat pages
+    'tb.my_ids' => 'Mijn 3WordID’s',
+    'tb.back_my_ids' => 'Terug naar Mijn 3WordID’s',
+    'tb.home' => 'Home',
+    'tb.back_home' => 'Terug naar de homepage',
+    'tb.chats' => 'Chats',
+    'tb.back_chats' => 'Terug naar de chats van {words}',
+    'tb.chatting_as' => 'Je chat als {words}',
+    'tb.anonymous' => 'Anoniem bericht',
 ];

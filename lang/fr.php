@@ -541,4 +541,14 @@ L’URL, la notification et le chat de ces mots seront supprimés. Cette action 
     'list.mail_received_other' => '{n} messages pour {words} : ouvrir les discussions',
     'list.mail_unread_one' => '{n} nouveau message pour {words} : ouvrir les discussions',
     'list.mail_unread_other' => '{n} nouveaux messages pour {words} : ouvrir les discussions',
+
+    // Top bar of the chat pages
+    'tb.my_ids' => 'Mes 3WordID',
+    'tb.back_my_ids' => 'Retour à Mes 3WordID',
+    'tb.home' => 'Accueil',
+    'tb.back_home' => 'Retour à la page d\'accueil',
+    'tb.chats' => 'Discussions',
+    'tb.back_chats' => 'Retour aux discussions de {words}',
+    'tb.chatting_as' => 'Vous discutez en tant que {words}',
+    'tb.anonymous' => 'Message anonyme',
 ];

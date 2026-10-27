@@ -62,18 +62,20 @@
     <title><?php echo t('msgview.title'); ?></title>
     <link rel="icon" type="image/x-icon" href="img/favicon.ico">
     <link href="/css/inter.css" rel="stylesheet">
-    <link rel="stylesheet" href="css/chat.css">
+    <link rel="stylesheet" href="<?php echo chat_asset('css/chat.css'); ?>">
 </head>
 <body class="chat-body">
+<?php
+  // Back to the conversation (owner) or to My 3WordIDs (sender); the list button is always there
+  echo chat_topbar(array(
+      'back'    => $back_url === '3wid_list.php' ? chat_back_home(true) : array($back_url, t('tb.chats'), t('tb.back_chats', ['words' => $to_name])),
+      'avatar'  => ($is_owner && $is_visitor) ? chat_visitor_avatar() : chat_avatar_for($head_name, $head_wid, $photo_ids, '', true),
+      'name'    => chat_e($head_name),
+      'sub'     => $is_owner ? t('chat.to_you', ['words' => $to_name]) : t('chat.sent_by_you'),
+      'actions' => $back_url === '3wid_list.php' ? '' : chat_tb_button('3wid_list.php', 'list', t_plain('tb.my_ids')),
+  ));
+?>
 <div class="chat-app">
-    <header class="chat-header">
-        <a class="back" href="<?php echo chat_e($back_url); ?>" aria-label="<?php echo t('common.back'); ?>"><?php echo chat_icon('back'); ?></a>
-        <?php echo ($is_owner && $is_visitor) ? chat_visitor_avatar() : chat_avatar_for($head_name, $head_wid, $photo_ids, '', true); ?>
-        <div class="who">
-            <div class="name"><?php echo chat_e($head_name); ?></div>
-            <div class="sub"><?php echo $is_owner ? t('chat.to_you', ['words' => $to_name]) : t('chat.sent_by_you'); ?></div>
-        </div>
-    </header>
 
     <main class="chat-scroll" data-scroll="end">
         <?php if (chat_day_key($sent_at) !== ''): ?>
@@ -106,6 +108,6 @@
     </a>
     <?php endif; ?>
 </div>
-<script src="js/chat.js"></script>
+<script src="<?php echo chat_asset('js/chat.js'); ?>"></script>
 </body>
 </html>

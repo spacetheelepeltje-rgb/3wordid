@@ -256,3 +256,80 @@ function chat_avatar_for($name, $wid_id, $photo_ids, $extra_class = '', $zoom = 
 	}
 	return '<span class="' . $cls . '" aria-hidden="true">' . $inner . '</span>';
 }
+
+// ---------------------------------------------------------------------------
+// Top bar of the chat pages (css/chat.css .chat-topbar)
+// ---------------------------------------------------------------------------
+
+// Version of css/chat.css and js/chat.js: raise it when they change, so browsers
+// load the new files without a hard refresh (Ctrl+F5).
+if (!defined('CHAT_ASSET_VERSION')) { define('CHAT_ASSET_VERSION', '2'); }
+
+function chat_asset($path) {
+	return chat_e($path . '?v=' . CHAT_ASSET_VERSION);
+}
+
+// Icons only used in the top bar
+function chat_tb_icon($name) {
+	switch ($name) {
+		case 'list':
+			// "My 3WordIDs": a list with bullets
+			return '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.2" fill="currentColor"/><circle cx="4.5" cy="12" r="1.2" fill="currentColor"/><circle cx="4.5" cy="18" r="1.2" fill="currentColor"/></svg>';
+		case 'globe':
+			return '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>';
+		case 'login':
+			return '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="M10 17l5-5-5-5M15 12H3"/></svg>';
+	}
+	return chat_icon($name);
+}
+
+// Round icon button for the right side of the bar. $label is plain text.
+function chat_tb_button($href, $icon, $label, $attrs = '') {
+	return '<a class="tb-btn" href="' . chat_e($href) . '" title="' . chat_e($label) . '" aria-label="' . chat_e($label) . '"' . ($attrs !== '' ? ' ' . $attrs : '') . '>' . chat_tb_icon($icon) . '</a>';
+}
+
+// Language menu: current language code, the others in a small drop-down (no page JS needed)
+function chat_lang_menu() {
+	$names = array('en' => 'English', 'nl' => 'Nederlands', 'fr' => 'Français', 'es' => 'Español');
+	$current = current_lang();
+	$label = t_plain('lang.switch_label');
+	$out = '<details class="tb-lang"><summary title="' . chat_e($label) . '" aria-label="' . chat_e($label . ': ' . ($names[$current] ?? $current)) . '">'
+		. chat_tb_icon('globe') . '<span>' . chat_e(i18n_language_label($current)) . '</span></summary><ul role="list">';
+	foreach (i18n_languages() as $code) {
+		$out .= '<li><a href="' . chat_e(lang_url($code)) . '" hreflang="' . chat_e($code) . '" lang="' . chat_e($code) . '"'
+			. ($code === $current ? ' aria-current="true"' : '') . '>' . chat_e($names[$code] ?? i18n_language_label($code)) . '</a></li>';
+	}
+	return $out . '</ul></details>';
+}
+
+// Where "back" goes when there is nothing in between: the list of your 3WordIDs
+// when logged in, the homepage when not. Returns [url, visible label, accessible label].
+function chat_back_home($logged_in, $main_url = 'index.php') {
+	if ($logged_in) {
+		return array('3wid_list.php', t('tb.my_ids'), t('tb.back_my_ids'));
+	}
+	return array($main_url !== '' ? $main_url : 'index.php', t('tb.home'), t('tb.back_home'));
+}
+
+// The bar itself. All values are HTML (already escaped):
+//   back      [url, visible label, accessible label]
+//   avatar    avatar markup (chat_avatar_for / chat_visitor_avatar)
+//   name      bold line: who you are chatting with
+//   name_id   optional id of the name element (updated by page JS)
+//   sub       small second line
+//   sub_attrs optional extra attributes of the sub line
+//   actions   buttons on the right (chat_tb_button), before the language menu
+function chat_topbar($o) {
+	$back = $o['back'];
+	$h = '<header class="chat-topbar"><div class="tb-inner">';
+	$h .= '<a class="tb-back" href="' . chat_e($back[0]) . '" aria-label="' . $back[2] . '" title="' . $back[2] . '">'
+		. chat_icon('back') . '<span class="tb-back-label">' . $back[1] . '</span></a>';
+	$h .= '<div class="tb-who">' . ($o['avatar'] ?? '');
+	$h .= '<div class="tb-text"><div class="tb-name"' . (!empty($o['name_id']) ? ' id="' . chat_e($o['name_id']) . '"' : '') . '>' . $o['name'] . '</div>';
+	if (isset($o['sub']) && $o['sub'] !== '') {
+		$h .= '<div class="tb-sub"' . (!empty($o['sub_attrs']) ? ' ' . $o['sub_attrs'] : '') . '>' . $o['sub'] . '</div>';
+	}
+	$h .= '</div></div>';
+	$h .= '<div class="tb-actions">' . ($o['actions'] ?? '') . chat_lang_menu() . '</div>';
+	return $h . '</div></header>';
+}
