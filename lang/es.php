@@ -133,7 +133,7 @@ return [
     'msg.title_ph' => 'Introduzca un título para el mensaje',
     'msg.message_label' => 'Mensaje',
     'msg.message_ph' => 'Introduzca aquí su mensaje',
-    'msg.hint1' => 'Solo puede enviar un mensaje hasta que reciba una respuesta. La imagen de su cuenta de Google se compartirá con el destinatario. Al marcar la casilla siguiente, consiente en compartir su imagen de usuario de Google y (re)confirma su consentimiento para que almacenemos los datos de identificación que Google nos facilita cuando inicia sesión en este sitio web.',
+    'msg.hint1' => 'Solo puede enviar un mensaje hasta que reciba una respuesta.',
     'msg.consent' => 'Consiento lo anterior',
     'msg.hint2' => 'Su mensaje se muestra al destinatario. Su mensaje y su dirección IP se almacenan y se conservan, también para atender solicitudes legales de las fuerzas del orden. <a href="/terms.php#data">Más información</a>',
     'msg.js_ok_recipient' => 'el destinatario existe',

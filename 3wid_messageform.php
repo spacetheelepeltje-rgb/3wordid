@@ -14,6 +14,13 @@
       header('location:3wid_list.php');  
       exit;
   }
+
+  // Logged-in users accept the privacy terms once (3wid_privacy_consent.php), so this
+  // form has no consent checkbox of its own. Make sure that consent is really there.
+  if ((int) ($data['privacy_consent'] ?? 0) !== 1) {
+      header('Location: 3wid_privacy_consent.php');
+      exit;
+  }
   
   //error_log('message form user ' . json_encode($data));
  
@@ -108,7 +115,6 @@
     </main>
 
     <form class="composer" id="3widForm"<?php echo $sent ? ' data-sent="1"' : ''; ?> action="3wid_messageform_process.php" method="post">
-        <label class="consent"><input type="checkbox" id="terms" name="terms"><span><?php echo t('msg.consent'); ?></span></label>
         <div class="c-row">
             <div class="c-box">
                 <input type="text" name="title" id="title" class="c-subject" maxlength="200" autocomplete="off" placeholder="<?php echo t('chat.subject_ph'); ?>" aria-label="<?php echo t('msg.title_label'); ?>">
@@ -127,7 +133,6 @@
     'need_title'    => 'msg.js_need_title',
     'need_message'  => 'msg.js_need_message',
     'need_3wid'     => 'msg.js_need_3wid',
-    'need_terms'    => 'msg.js_need_terms',
 ]); ?>
 <script src="js/3wid_messageform.js"></script>
 <script src="js/chat.js"></script>

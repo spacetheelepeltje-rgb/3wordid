@@ -147,7 +147,7 @@ return [
     'msg.title_ph' => 'Enter a message title',
     'msg.message_label' => 'Message',
     'msg.message_ph' => 'Enter your message here',
-    'msg.hint1' => 'You can only send one message until you get a reply. Your google login image will be shared with the recipient. By checking the below checkbox you consent in sharing your google user image and (re-)confirm you consent in us storing the identification data google shares with us when you log in to this website.',
+    'msg.hint1' => 'You can only send one message until you get a reply.',
     'msg.consent' => 'I consent with the above',
     'msg.hint2' => 'Your message is shown to the recipient. Your message and IP address are stored and kept, also for lawful requests from law enforcement. <a href="/terms.php#data">Read more</a>',
     'msg.js_ok_recipient' => 'recipient exists',

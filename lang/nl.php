@@ -147,7 +147,7 @@ return [
     'msg.title_ph' => 'Geef je bericht een onderwerp',
     'msg.message_label' => 'Bericht',
     'msg.message_ph' => 'Typ hier je bericht',
-    'msg.hint1' => 'Je kunt maar één bericht sturen totdat je antwoord krijgt. Je Google-inlogafbeelding wordt met de ontvanger gedeeld. Door het onderstaande vakje aan te vinken geef je toestemming om je Google-afbeelding te delen en bevestig je (opnieuw) dat wij de identificatiegegevens mogen opslaan die Google met ons deelt als je op deze website inlogt.',
+    'msg.hint1' => 'Je kunt maar één bericht sturen totdat je antwoord krijgt.',
     'msg.consent' => 'Ik ga akkoord met het bovenstaande',
     'msg.hint2' => 'Je bericht wordt aan de ontvanger getoond. Je bericht en IP-adres worden opgeslagen en bewaard, ook voor rechtmatige verzoeken van politie en justitie. <a href="/terms.php#data">Lees meer</a>',
     'msg.js_ok_recipient' => 'ontvanger bestaat',

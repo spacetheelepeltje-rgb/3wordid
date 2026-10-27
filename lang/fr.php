@@ -133,7 +133,7 @@ return [
     'msg.title_ph' => 'Saisissez un titre de message',
     'msg.message_label' => 'Message',
     'msg.message_ph' => 'Saisissez votre message ici',
-    'msg.hint1' => 'Vous ne pouvez envoyer qu’un seul message tant que vous n’avez pas reçu de réponse. L’image de votre compte Google sera partagée avec le destinataire. En cochant la case ci-dessous, vous consentez au partage de votre image d’utilisateur Google et (re)confirmez votre consentement à la conservation des données d’identification que Google nous transmet lorsque vous vous connectez à ce site.',
+    'msg.hint1' => 'Vous ne pouvez envoyer qu’un seul message tant que vous n’avez pas reçu de réponse.',
     'msg.consent' => 'Je consens à ce qui précède',
     'msg.hint2' => 'Votre message est montré au destinataire. Votre message et votre adresse IP sont enregistrés et conservés, y compris pour répondre aux demandes légales des forces de l’ordre. <a href="/terms.php#data">En savoir plus</a>',
     'msg.js_ok_recipient' => 'le destinataire existe',

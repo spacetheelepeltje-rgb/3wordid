@@ -29,6 +29,12 @@
 	   exit;
     } 
 
+	// Consent is given once at signup (3wid_privacy_consent.php); no message without it
+	if ((int) ($data['privacy_consent'] ?? 0) !== 1) {
+	   header('Location: 3wid_privacy_consent.php');
+	   exit;
+	}
+
 	// The form must come from our own message page (CSRF protection)
 	if (!check_action_token($_POST['action_token'] ?? '')) {
 	   error_log('messageform process: missing or wrong action token for user ' . $data['id']);
@@ -44,11 +50,8 @@
    
    $from_id = (int) $_POST["from_id"];
    
-    if(isset( $_POST["terms"])) {
-			$terms = 1;
-			} else {
-			$terms =0;  
-	}
+   // The form no longer has its own checkbox: the user's privacy consent (checked above) counts
+   $terms = 1;
    
    // message send to a three word id. The user of the ID is known. It has to show up in the ID's message row.
    
