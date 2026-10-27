@@ -58,6 +58,13 @@
 
    $threeword_data =  db_3wordid_get_threeword($threeword);
 
+   // The 3WordID to send from has to be one of the user's own
+   if(!db_3wordid_owned_by($from_id, $data['id'])) {
+	   error_log('messageform process: user ' . $data['id'] . ' tried to send from 3wid ' . $from_id);
+	   header('location:3wid_list.php?message=' . rawurlencode(t_plain('mp.session')));
+	   exit;
+   }
+
    if($threeword_data) { // valid recipient
 		
 	try {
@@ -77,7 +84,9 @@
 	   
 	   //error_log('messages form process csrf_token ' . $_SESSION["csrf_token"]);
 		
-	   header('location:3wid_list.php?message=' . rawurlencode(t_plain('mp.thanks_to', ['name' => $threeword_data['threeword']])));
+	   // Show the sent message as a chat bubble on the message page (read once there)
+	   $_SESSION['chat_sent'] = array('to' => $threeword_data['threeword'], 'title' => (string) $title, 'message' => (string) $message, 'time' => time());
+	   header('location:3wid_messageform.php?threeword_id=' . $from_id . '&threeword=' . rawurlencode($threeword_data['threeword']));
 	   
 	} catch (Exception $e) {
 		error_log("Error: " . $e->getMessage());

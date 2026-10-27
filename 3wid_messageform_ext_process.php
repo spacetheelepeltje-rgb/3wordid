@@ -56,7 +56,9 @@
 	   
 	   //error_log('messages form process csrf_token ' . $_SESSION["csrf_token"]);
 		
-	   header('location:index.php?message=' . rawurlencode(t_plain('mp.thanks_to', ['name' => $threeword_data['threeword']])));
+	   // Show the sent message as a chat bubble on the message page (read once there)
+	   $_SESSION['chat_sent'] = array('to' => $threeword_data['threeword'], 'title' => (string) $title, 'message' => (string) $message, 'time' => time());
+	   header('location:3wid_messageform_ext.php?threeword=' . rawurlencode($threeword_data['threeword']));
 	   
 	} catch (Exception $e) {
 		error_log("Error: " . $e->getMessage());

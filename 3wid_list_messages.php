@@ -50,266 +50,135 @@
     die(t_plain('lm.none')); 
   }
  
-?>   
+  require_once 'php/chat.php';
+
+  // Message times: only available when the messages table has a creation_date column
+  $dates = db_3wordid_message_dates(array_column($messages, 'id'));
+
+  // Group the messages into conversations, one per sender 3WordID.
+  // Anonymous visitors (user 25) all share one group, there is no sender to tell apart.
+  $conversations = array();
+  foreach (array_reverse($messages) as $m) { // oldest first
+    $is_visitor = ((int) $m['from_id'] === 25);
+    $key = $is_visitor ? 'visitors' : ((int) $m['from_id'] . ':' . $m['threeword']);
+    if (!isset($conversations[$key])) {
+      $conversations[$key] = array('key' => $key, 'name' => $is_visitor ? '' : $m['threeword'], 'visitor' => $is_visitor, 'items' => array());
+    }
+    $m['sent_at'] = $dates[(int) $m['id']] ?? '';
+    $conversations[$key]['items'][] = $m;
+  }
+  // newest conversation first
+  uasort($conversations, function ($a, $b) {
+    return $b['items'][count($b['items']) - 1]['id'] <=> $a['items'][count($a['items']) - 1]['id'];
+  });
+
+  // Open conversation: the key must be one of the owner's own conversations
+  $with = isset($_GET['with']) ? (string) $_GET['with'] : '';
+  $open = ($with !== '' && isset($conversations[$with])) ? $conversations[$with] : null;
+
+  $base_url = '3wid_list_messages.php?wid_id=' . (int) $threeword_id;
+  $threeword_safe = chat_e($threeword);
+  $total = count($conversations);
+?>
 <!DOCTYPE html>
 <html lang="<?php echo current_lang(); ?>">
 <head>
     <?php echo $google_stats; ?>
-    <meta charset="UTF-8"> 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title><?php echo t('lm.title'); ?></title>
     <link rel="icon" type="image/x-icon" href="img/favicon.ico">
     <link href="/css/inter.css" rel="stylesheet">
-    <link rel="stylesheet" href="css/newstyle.css">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <style>
-      .page {
-        max-width: 1100px;
-        margin: 0 auto;
-        padding: 28px 26px 64px;
-      }
-      .page .subhead { margin-left: 0; text-align: left; }
-      .btn-ghost {
-        background: #fff;
-        color: var(--navy);
-        border: 1px solid var(--line);
-        padding: 10px 16px;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        border-radius: 10px;
-        font-weight: 600;
-        font-family: inherit;
-      }
-      .btn-ghost:hover { background: #f3f1ec; }
-      .panel {
-        background: #fff;
-        border: 1px solid #eceae4;
-        border-radius: 16px;
-        box-shadow: var(--shadow);
-        overflow: hidden;
-      }
-      .message-list { width: 100%; }
-      .row {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 14px;
-        padding: 14px 16px;
-        border-top: 1px solid #f0eee8;
-        width: 100%;
-      }
-      .row.header {
-        border-top: 0;
-        border-bottom: 1px solid #eceae4;
-        color: var(--slate);
-        font-size: 12px;
-        font-weight: 700;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
-      }
-      .avatar-header { width: 50px; flex-shrink: 0; }
-      .text-header { flex: 1; }
-      .icons-header { width: 72px; text-align: right; flex-shrink: 0; }
-      .avatar, .thumbnail {
-        width: 50px;
-        height: 50px;
-        border-radius: 10px;
-        object-fit: cover;
-        flex-shrink: 0;
-        cursor: pointer;
-        background: #f3f1ec;
-      }
-      .text {
-        flex: 1 1 auto;
-        overflow: visible;
-        white-space: normal;
-        word-break: break-word;
-        display: block;
-        font-size: 15px;
-        color: var(--navy);
-        cursor: pointer;
-        line-height: 1.45;
-      }
-      .text a { color: var(--navy); text-decoration: none; }
-      .icons {
-        display: flex;
-        gap: 6px;
-        flex-shrink: 0;
-      }
-      .icons a {
-        width: 36px;
-        height: 36px;
-        border-radius: 10px;
-        border: 1px solid var(--line);
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        color: var(--navy);
-        background: #fff;
-      }
-      .icons a:hover { background: #f3f1ec; }
-      .icons a[title="Delete"]:hover { color: #9b1c1c; }
-      .icons svg {
-        width: 18px;
-        height: 18px;
-        stroke: currentColor;
-        stroke-width: 2;
-        fill: none;
-      }
-      .mail-icon[disabled] svg { stroke: var(--muted); }
-      .modal {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(15, 28, 63, 0.72);
-        justify-content: center;
-        align-items: center;
-        z-index: 1000;
-      }
-      .modal img {
-        width: 100vw;
-        height: auto;
-        max-height: 95vh;
-        object-fit: contain;
-      }
-      .close {
-        position: absolute;
-        top: 20px;
-        right: 30px;
-        color: white;
-        font-size: 30px;
-        cursor: pointer;
-      }
-      @media (max-width: 800px) {
-        .page { padding: 22px 16px 48px; }
-        .text { font-size: 14px; }
-        .row { gap: 8px; }
-      }
-    </style>
+    <link rel="stylesheet" href="css/chat.css">
 </head>
-<script>
-  function revealMessage(el, fullMessage) {
-    el.innerHTML = fullMessage;
-  }
-</script>
-<body>
-   <header class="site-header">
-        <a class="brand" href="<?php echo $main_url;?>">
-            <span class="brand-mark"><img width='35' src='https://3WordID.com/img/3wid_big.png'></span>
-            3WordID
-        </a>
-        <div class="header-actions" id="userContainer">
-            <?php echo lang_switcher(); ?>
-            <a class="btn-ghost" href="3wid_list.php"><?php echo t('nav.back_list'); ?></a>
-          
+<body class="chat-body">
+<div class="chat-app">
+<?php if ($open === null): ?>
+    <header class="chat-header">
+        <a class="back" href="3wid_list.php" aria-label="<?php echo t('nav.back_list'); ?>"><?php echo chat_icon('back'); ?></a>
+        <?php echo chat_avatar($threeword); ?>
+        <div class="who">
+            <div class="name"><?php echo $threeword_safe; ?></div>
+            <div class="sub"><?php echo t_n('chat.conversations', $total); ?></div>
         </div>
-   </header>
-   <main class="page">
-        <p class="eyebrow"><?php echo t('lm.eyebrow'); ?></p>
-        <h1><?php echo t('lm.h1', ['name' => $threeword]); ?></h1>
-        <p class="subhead"><?php echo t('lm.subhead'); ?></p>
+    </header>
 
-    <div class="panel message-list">
-        <div class="row header">
-            <span class="avatar-header"><?php echo t('lm.user'); ?></span>
-            <span class="text-header"><?php echo t('lm.title_message'); ?></span>
-            <span class="icons-header"><?php echo t('lm.actions'); ?></span>
+    <main class="chat-scroll plain">
+        <ul class="chat-list">
+        <?php foreach ($conversations as $c):
+            $last = $c['items'][count($c['items']) - 1];
+            $label = $c['visitor'] ? t('chat.visitors') : chat_e($c['name']);
+            $preview = chat_preview($last['message']);
+            $show_title = !chat_title_redundant($last['title'], $last['message']);
+        ?>
+            <li>
+                <a class="chat-row" href="<?php echo chat_e($base_url . '&with=' . rawurlencode($c['key'])); ?>">
+                    <?php echo $c['visitor'] ? chat_visitor_avatar() : chat_avatar($c['name']); ?>
+                    <span class="cr-main">
+                        <span class="cr-top">
+                            <span class="cr-name"><?php echo $label; ?></span>
+                            <span class="cr-time"><?php echo chat_e(chat_time_label($last['sent_at'])); ?></span>
+                        </span>
+                        <span class="cr-bottom">
+                            <span class="cr-preview"><?php if ($show_title): ?><b><?php echo chat_e(chat_preview($last['title'], 40)); ?></b> <?php endif; ?><?php echo chat_e($preview); ?></span>
+                            <?php if (count($c['items']) > 1): ?><span class="cr-count"><?php echo count($c['items']); ?></span><?php endif; ?>
+                        </span>
+                    </span>
+                </a>
+            </li>
+        <?php endforeach; ?>
+        </ul>
+    </main>
+
+<?php else:
+    $is_visitor = $open['visitor'];
+    $label = $is_visitor ? t('chat.visitors') : chat_e($open['name']);
+    $reply_url = '3wid_messageform.php?threeword_id=' . (int) $threeword_id . '&threeword=' . rawurlencode($open['name']);
+    $prev_day = null;
+?>
+    <header class="chat-header">
+        <a class="back" href="<?php echo chat_e($base_url); ?>" aria-label="<?php echo t('common.back'); ?>"><?php echo chat_icon('back'); ?></a>
+        <?php echo $is_visitor ? chat_visitor_avatar() : chat_avatar($open['name']); ?>
+        <div class="who">
+            <div class="name"><?php echo $label; ?></div>
+            <div class="sub"><?php echo t('chat.to_you', ['words' => $threeword]); ?></div>
         </div>
-        <?php foreach ($messages as $message): ?>
-        <?php if($message['picture'] == "") {
-			
-			     $message['picture'] ="https://3wordid.com/img/3wid_big.png";
-			}
-			
-		?>	
-        <div class="row">
-            <img onclick="openModal(this.src)" src="<?php echo htmlspecialchars($message['picture']); ?>" alt="<?php echo t('lm.user'); ?>" class="thumbnail avatar" title="<?php echo $message["threeword"];?>">
-            
-            <div class="text"
-                 data-title="<?php echo $message["threeword"] . " : " . htmlspecialchars($message['title'], ENT_QUOTES); ?>"
-                 data-message="<?php echo htmlspecialchars($message['message'], ENT_QUOTES); ?>"
-                 data-state="title">
-                <?php echo $message["threeword"] . " : " . htmlspecialchars($message['title']) ; ?>
-            </div>
-            <div class="icons">
-                <?php 
-                // block in case of external message
-                if($message["from_id"]!=25) {
-                ?>
-                <a class="mail-icon" disabled href="3wid_messageform.php?threeword_id=<?php echo $threeword_id; ?>&threeword=<?php echo $message["threeword"];?>" title="<?php echo t('lm.reply', ['name' => ucfirst($message["threeword"])]); ?>">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="<?php echo t('icon.message'); ?>">
-                        <path d="M21 4H3a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path>
-                        <path d="M1 6l11 7 11-7"></path>
-                    </svg>
-                </a>
-                <?php 
-                } 
-                ?>
-                <a href="3wid_message_delete.php?id=<?php echo (int)$message['id']; ?>&action_token=<?php echo $action_token; ?>" title="<?php echo t('common.delete'); ?>">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="<?php echo t('icon.delete'); ?>">
-                        <polyline points="3 6 5 6 21 6"></polyline>
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                    </svg>
-                </a>
+    </header>
+
+    <main class="chat-scroll" data-scroll="end">
+        <?php foreach ($open['items'] as $i => $m):
+            $day = chat_day_key($m['sent_at']);
+            $new_day = ($day !== '' && $day !== $prev_day);
+            if ($new_day):
+                $prev_day = $day; ?>
+        <div class="pill-wrap"><span class="pill"><?php echo chat_e(chat_day_label($m['sent_at'])); ?></span></div>
+        <?php endif; ?>
+        <div class="row in<?php echo ($i === 0 || $new_day) ? ' first' : ''; ?>">
+            <div class="bubble">
+                <?php if (!chat_title_redundant($m['title'], $m['message'])): ?><div class="b-title"><?php echo chat_e($m['title']); ?></div><?php endif; ?>
+                <div class="b-text"><?php echo chat_text($m['message']); ?></div>
+                <div class="b-meta">
+                    <?php if (chat_clock($m['sent_at']) !== ''): ?><time><?php echo chat_e(chat_clock($m['sent_at'])); ?></time><?php endif; ?>
+                    <a class="del" title="<?php echo t('common.delete'); ?>" aria-label="<?php echo t('common.delete'); ?>"
+                       href="3wid_message_delete.php?id=<?php echo (int) $m['id']; ?>&amp;action_token=<?php echo chat_e($action_token); ?>"
+                       onclick="return confirm(<?php echo chat_e(json_encode(t_plain('chat.confirm_delete'), JSON_UNESCAPED_UNICODE)); ?>);"><?php echo chat_icon('trash'); ?></a>
+                </div>
             </div>
         </div>
         <?php endforeach; ?>
-    </div>
-</main>
+        <footer class="chat-footer"><?php echo $footer; ?></footer>
+    </main>
 
-             <div id="imageModal" class="modal">
-                <span class="close" onclick="closeModal()">&times;</span>
-                <img id="fullImage" src="" alt="<?php echo t('lm.full_image'); ?>">
-            </div>
-            
-    <footer class="site-footer">
-        <div><?php echo $footer; ?></div>
-    </footer>
-
+    <?php if (!$is_visitor): ?>
+    <a class="reply-bar" href="<?php echo chat_e($reply_url); ?>" style="text-decoration:none">
+        <span class="fake"><?php echo t('lm.reply', ['name' => $open['name']]); ?></span>
+        <span class="go" aria-hidden="true"><?php echo chat_icon('reply'); ?></span>
+    </a>
+    <?php else: ?>
+    <div class="reply-bar"><span class="fake static"><?php echo t('chat.no_reply'); ?></span></div>
+    <?php endif; ?>
+<?php endif; ?>
+</div>
+<script src="js/chat.js"></script>
 </body>
-<script>
-     // Open modal and set image source
-        function openModal(src) {
-            const modal = document.getElementById('imageModal');
-            const fullImage = document.getElementById('fullImage');
-            fullImage.src = src;
-            modal.style.display = 'flex';
-        }
-
-        // Close modal
-        function closeModal() {
-            const modal = document.getElementById('imageModal');
-            modal.style.display = 'none';
-        }
-
-        // Close modal when clicking outside the image
-        window.onclick = function(event) {
-            const modal = document.getElementById('imageModal');
-            if (event.target === modal) {
-                closeModal();
-            }
-        };
-  
-  
-  $(document).ready(function () {
-    $('.text').on('click', function () {
-      var $el = $(this);
-      var isMessage = $el.data('state') === 'message';
-
-      if (isMessage) {
-        $el.text($el.data('title'));
-        $el.data('state', 'title');
-      } else {
-        $el.text($el.data('message'));
-        $el.data('state', 'message');
-      }
-    });
-  });
-
-</script>
- 
 </html>

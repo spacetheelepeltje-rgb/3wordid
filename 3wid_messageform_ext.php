@@ -43,346 +43,82 @@
   $reply_to_safe = htmlspecialchars($reply_to, ENT_QUOTES, 'UTF-8');
   $notification = trim((string)($row['notification'] ?? ''));
   $has_note = $notification !== '';
+
+  require_once 'php/chat.php';
+
+  // The message just sent (stored by 3wid_messageform_ext_process.php), shown once as a bubble
+  $sent = null;
+  if (!empty($_SESSION['chat_sent']) && is_array($_SESSION['chat_sent'])) {
+      if (chat_lower((string)($_SESSION['chat_sent']['to'] ?? '')) === chat_lower((string)$reply_to)) {
+          $sent = $_SESSION['chat_sent'];
+      }
+      unset($_SESSION['chat_sent']);
+  }
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo current_lang(); ?>">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title><?php echo t('ext.title'); ?></title>
     <?php echo lang_head_tags(); ?>
     <link rel="icon" type="image/x-icon" href="img/favicon.ico">
     <link href="/css/inter.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/chat.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <style>
-        :root {
-            --navy: #0F1C3F;
-            --navy-hover: #162756;
-            --slate: #5B6478;
-            --muted: #8A93A6;
-            --line: #E6E3DC;
-            --paper: #F7F6F3;
-            --white: #FFFFFF;
-            --gold: #B45309;
-            --ok: #16794A;
-            --danger: #9B1C1C;
-            --shadow: 0 10px 30px rgba(15,28,63,.08);
-            --chip: #EFECE6;
-            --well: #F3F1EC;
-            --divider: #F0EEE8;
-            --card-line: #ECEAE4;
-        }
-        * { box-sizing: border-box; }
-        html, body { margin: 0; padding: 0; }
-        body {
-            font-family: Inter, system-ui, -apple-system, Segoe UI, sans-serif;
-            background: var(--paper);
-            color: var(--navy);
-            font-size: 16px;
-            line-height: 1.5;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        a { color: var(--navy); text-decoration: none; }
-        a:hover { color: var(--navy-hover); }
-
-        .site-header {
-            position: sticky;
-            top: 0;
-            z-index: 40;
-            background: var(--paper);
-            border-bottom: 1px solid var(--line);
-        }
-        .header-inner,
-        .page,
-        .site-footer .footer-inner {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 16px 26px;
-        }
-        .header-inner {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-        }
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: var(--navy);
-            font-weight: 700;
-            letter-spacing: -0.03em;
-            font-size: 16px;
-            flex: 0 0 auto;
-        }
-        .mark {
-            width: 34px;
-            height: 34px;
-            border-radius: 10px;
-            background: var(--navy);
-            color: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            flex: 0 0 34px;
-        }
-        .mark img { width: 34px; height: 34px; object-fit: cover; display: block; }
-        .nav-links {
-            display: flex;
-            align-items: center;
-            gap: 18px;
-            margin-left: auto;
-            margin-right: 12px;
-        }
-        .nav-links a {
-            color: var(--slate);
-            font-size: 14px;
-            font-weight: 500;
-        }
-        .nav-links a:hover { color: var(--navy); }
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex: 0 0 auto;
-        }
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            height: 36px;
-            padding: 0 14px;
-            border-radius: 10px;
-            font-size: 14px;
-            font-weight: 600;
-            border: 1px solid transparent;
-            cursor: pointer;
-            font-family: inherit;
-            text-decoration: none;
-        }
-        .btn-primary,
-        #submitBtn {
-            background: var(--navy);
-            color: #fff;
-            border-color: var(--navy);
-        }
-        .btn-primary:hover,
-        #submitBtn:hover {
-            background: var(--navy-hover);
-            border-color: var(--navy-hover);
-            color: #fff;
-        }
-        .btn-ghost {
-            background: var(--white);
-            color: var(--navy);
-            border-color: var(--line);
-        }
-        .btn-ghost:hover { background: var(--well); }
-        .icon-btn,
-        .login-icon {
-            width: 36px;
-            height: 36px;
-            padding: 0;
-            border-radius: 10px;
-            border: 1px solid var(--line);
-            background: var(--white);
-            color: var(--navy);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .icon-btn svg,
-        .login-icon svg {
-            width: 18px;
-            height: 18px;
-            stroke: currentColor;
-            fill: none;
-            stroke-width: 2;
-        }
-
-        .page {
-            padding-top: 28px;
-            padding-bottom: 48px;
-            flex: 1;
-            width: 100%;
-        }
-        .eyebrow {
-            color: var(--gold);
-            font-size: 12px;
-            font-weight: 600;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-            margin: 0 0 8px;
-        }
-        h1 {
-            margin: 0 0 8px;
-            font-size: 40px;
-            font-weight: 800;
-            letter-spacing: -0.04em;
-            line-height: 1.1;
-            color: var(--navy);
-        }
-        .subhead {
-            margin: 0 0 24px;
-            color: var(--slate);
-            font-size: 16px;
-            max-width: 920px;
-        }
-        .flash {
-            background: var(--white);
-            border: 1px solid var(--card-line);
-            border-left: 4px solid var(--gold);
-            border-radius: 14px;
-            padding: 12px 14px;
-            color: var(--slate);
-            font-size: 14px;
-            line-height: 1.5;
-            margin: 0 0 16px;
-            max-width: 720px;
-        }
-        .panel {
-            background: var(--white);
-            border: 1px solid var(--card-line);
-            border-radius: 16px;
-            box-shadow: var(--shadow);
-            padding: 22px;
-            max-width: 720px;
-        }
-        .field { margin: 0 0 12px; }
-        .field label,
-        label.lbl {
-            display: block;
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--slate);
-            margin: 0 0 6px;
-        }
-        .search-bar,
-        input.search-bar,
-        textarea.search-bar {
-            width: 100%;
-            background: var(--white);
-            border: 1px solid var(--line);
-            border-radius: 10px;
-            padding: 11px 12px;
-            font: 500 15px/1.4 Inter, system-ui, sans-serif;
-            color: var(--navy);
-            outline: none;
-            box-shadow: var(--shadow);
-        }
-        textarea.search-bar { min-height: 140px; resize: vertical; }
-        .search-bar:focus { border-color: var(--navy); }
-        input:disabled,
-        .search-bar:disabled {
-            background: var(--well);
-            color: var(--slate);
-            box-shadow: none;
-        }
-        .hint {
-            margin: 14px 0 0;
-            color: var(--muted);
-            font-size: 13px;
-            line-height: 1.55;
-            max-width: 720px;
-        }
-        .hint a { color: var(--navy); font-weight: 600; }
-        .buttons {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-            margin-top: 4px;
-        }
-        #submitBtn {
-            height: 40px;
-            padding: 0 18px;
-            border-radius: 10px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        #helperText {
-            color: var(--muted);
-            font-size: 13px;
-        }
-        .site-footer {
-            color: var(--muted);
-            font-size: 13px;
-            border-top: 1px solid var(--line);
-        }
-        .site-footer a { color: var(--muted); margin: 0 8px; }
-        .site-footer a:hover { color: var(--navy); }
-        @media (max-width: 800px) {
-            .header-inner, .page, .site-footer .footer-inner { padding-left: 24px; padding-right: 24px; }
-            h1 { font-size: 32px; }
-            .nav-links { display: none; }
-            .header-actions .btn-primary { display: none; }
-            .panel { padding: 16px; }
-        }
-    </style>
 </head>
-<body>
-    <header class="site-header">
-        <div class="header-inner">
-            <a class="brand" href="<?php echo $main_url; ?>">
-                <span class="mark" aria-hidden="true"><img width="35" src="https://3WordID.com/img/3wid_big.png" alt=""></span>
-                <span>3WordID</span>
-            </a>
-            <nav class="nav-links">
-                <a href="https://x.com/climatebabes/status/1921113933592584660"><?php echo t('nav.docs'); ?></a>
-                <a href="https://github.com/spacetheelepeltje-rgb/3wordid"><?php echo t('nav.github'); ?></a>
-            </nav>
-            <div class="header-actions" id="userContainer">
-                <?php echo lang_switcher(); ?>
-                <a href="<?php echo $loginUrl; ?>" class="btn btn-primary"><?php echo t('nav.login'); ?></a>
-            </div>
+<body class="chat-body">
+<div class="chat-app">
+    <header class="chat-header">
+        <a class="back" href="<?php echo chat_e($main_url); ?>" aria-label="<?php echo t('common.back'); ?>"><?php echo chat_icon('back'); ?></a>
+        <?php echo chat_avatar($reply_to); ?>
+        <div class="who">
+            <div class="name"><?php echo $reply_to_safe; ?></div>
+            <div class="sub" id="helperText"><?php echo t('chat.message_box'); ?></div>
         </div>
+        <a class="hbtn" href="<?php echo chat_e($loginUrl); ?>"><?php echo t('nav.login'); ?></a>
     </header>
 
-    <main class="page">
-        <p class="eyebrow"><?php echo t('ext.eyebrow'); ?></p>
-        <h1><?php echo $has_note ? t('ext.h1_note') : t('ext.h1_nonote'); ?></h1>
-        <?php if (!$has_note): ?>
-        <p class="subhead"><?php echo t_raw('ext.subhead', ['words' => $reply_to]); ?></p>
-        <?php endif; ?>
+    <main class="chat-scroll" data-scroll="end">
+        <div class="chat-tools"><?php echo lang_switcher(); ?></div>
+        <div class="pill-wrap"><span class="pill info"><?php echo t_raw('ext.hint1'); ?></span></div>
+
         <?php if ($has_note): ?>
-        <div class="flash"><?php echo $notification; ?></div>
+        <div class="row in first">
+            <div class="bubble note"><div class="b-text html"><?php echo $notification; ?></div></div>
+        </div>
         <?php endif; ?>
 
-        <div class="panel search-container">
-            <form id="3widForm" action="3wid_messageform_ext_process.php" method="post">
-                <div class="field">
-                    <label class="lbl" for="threeword"><?php echo t('msg.recipient'); ?></label>
-                    <input disabled type="text" name="" id="threeword" class="search-bar" placeholder="<?php echo t('common.placeholder_words'); ?>" value="<?php echo t('ext.to', ['words' => $reply_to]); ?>">
-                </div>
-                <div class="field">
-                    <label class="lbl" for="title"><?php echo t('msg.title_label'); ?></label>
-                    <input type="text" name="title" id="title" class="search-bar" placeholder="<?php echo t('msg.title_ph'); ?>" value="">
-                </div>
-                <div class="field">
-                    <label class="lbl" for="message"><?php echo t('msg.message_label'); ?></label>
-                    <textarea name="message" id="message" class="search-bar" placeholder="<?php echo t('ext.message_ph'); ?>" rows="4"></textarea>
-                </div>
-                <div class="buttons">
-                    <button type="submit" id="submitBtn" class="btn btn-primary"><?php echo t('common.send'); ?></button>
-                    <div id="helperText"></div>
-                </div>
-                <input type="hidden" name="threeword" value="<?php echo $reply_to_safe; ?>">
-            </form>
+        <div class="pill-wrap"><span class="pill info"><?php echo t_raw('ext.hint2', ['login' => $loginUrl]); ?></span></div>
+
+        <?php if ($sent): ?>
+        <div class="pill-wrap"><span class="pill"><?php echo t('chat.today'); ?></span></div>
+        <div class="row out first">
+            <div class="bubble">
+                <?php if (!chat_title_redundant($sent['title'], $sent['message'])): ?><div class="b-title"><?php echo chat_e($sent['title']); ?></div><?php endif; ?>
+                <div class="b-text"><?php echo chat_text($sent['message']); ?></div>
+                <div class="b-meta"><time><?php echo chat_e(date('H:i', (int) $sent['time'])); ?></time> <?php echo chat_icon('tick'); ?></div>
+            </div>
         </div>
+        <div class="pill-wrap"><span class="pill ok"><?php echo t('mp.thanks_to', ['name' => $sent['to']]); ?></span></div>
+        <?php endif; ?>
 
-        <p class="hint"><?php echo t_raw('ext.hint1'); ?></p>
-
-        <p class="hint"><?php echo t_raw('ext.hint2', ['login' => $loginUrl]); ?></p>
+        <footer class="chat-footer"><?php echo $footer; ?></footer>
     </main>
 
-    <footer class="site-footer">
-        <div class="footer-inner"><?php echo $footer; ?></div>
-    </footer>
-</body>
+    <form class="composer" id="3widForm" action="3wid_messageform_ext_process.php" method="post">
+        <input type="hidden" id="threeword" value="<?php echo $reply_to_safe; ?>">
+        <input type="hidden" name="threeword" value="<?php echo $reply_to_safe; ?>">
+        <p class="c-note"><?php echo t('chat.ext_contact_hint'); ?></p>
+        <div class="c-row">
+            <div class="c-box">
+                <input type="text" name="title" id="title" class="c-subject" maxlength="200" autocomplete="off" placeholder="<?php echo t('chat.subject_ph'); ?>" aria-label="<?php echo t('msg.title_label'); ?>">
+                <textarea name="message" id="message" class="c-text" rows="1" placeholder="<?php echo t('chat.type_message'); ?>" aria-label="<?php echo t('msg.message_label'); ?>"></textarea>
+            </div>
+            <button type="submit" id="submitBtn" class="send" aria-label="<?php echo t('common.send'); ?>" title="<?php echo t('common.send'); ?>"><?php echo chat_icon('send'); ?></button>
+        </div>
+    </form>
+</div>
 <?php echo i18n_js([
     'clicked'      => 'msg.js_clicked',
     'need_title'   => 'msg.js_need_title',
@@ -390,7 +126,6 @@
     'need_3wid'    => 'msg.js_need_3wid',
 ]); ?>
 <script src="js/3wid_messageform_ext.js"></script>
-<script>
-    $('#threeword').trigger('keyup');
-</script>
+<script src="js/chat.js"></script>
+</body>
 </html>

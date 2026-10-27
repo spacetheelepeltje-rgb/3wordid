@@ -24,6 +24,7 @@ _Status as of 27 October 2026._
 - [x] IP list admin-only (user 4), Block and Delete log as POST with a token, IP and signup lists translated (PR #21)
 - [x] French and Spanish added: EN | NL | FR | ES, machine-quality legal texts still to be proofread (PR #22)
 - [x] Signup list removed together with the reseller idea (this clean-up)
+- [x] Chat-style messages: conversations per sender, bubbles, date separators, chat composer, sent bubble after sending (this PR; no database change)
 
 ## In review
 - [ ] Header and footer links: shared header and footer with Plans, Terms and Get started (PR #16, needs updating for the language switch)
@@ -49,7 +50,7 @@ _Status as of 27 October 2026._
 | Item | Area | Effort | Notes |
 |---|---|---|---|
 | SMTP sending via own mail server | Email | Small | Parked. The email button stays hidden until the five SMTP settings are in `login/config.php`; next step is PHPMailer with the owner's mail server, plus SPF and DKIM for 3wordid.com |
-| WhatsApp-style messages | Messaging | Large | Chat bubbles, one conversation per 3WordID, timestamps, read status, replies in thread |
+| Two-way messages | Messaging | Medium | The chat look is done. Still needs one database change: `created_at` and `read_at` on `3wordid_messages` (read status, reliable times) and owner replies as real messages in the thread; see PR description for the SQL |
 | Easy payment funnel | Payments | Large | Free vs paid side by side, short checkout with a payment provider, account page, admin for paid accounts |
 | Clear user admin | Admin | Medium | One admin area for users, plans, signups and blocks |
 | Watertight email and phone storage | Privacy | Medium | Encrypt with sodium using a key outside the web folder and database, keep a hash for lookups, decrypt only to send opted-in mail; normalise phone numbers (+316...) before hashing |

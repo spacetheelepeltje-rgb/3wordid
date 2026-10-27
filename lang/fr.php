@@ -482,4 +482,22 @@ L’URL, la notification et la boîte de messages de ces mots seront supprimées
     'ip.ok' => 'Ok',
     'ip.block' => 'Bloquer',
     'ip.expired' => 'Session expirée. Rechargez la page et réessayez.',
+
+    // Chat style message pages
+    'chat.today' => 'Aujourd’hui',
+    'chat.yesterday' => 'Hier',
+    'chat.visitors' => 'Visiteurs',
+    'chat.conversations_one' => '{n} conversation',
+    'chat.conversations_other' => '{n} conversations',
+    'chat.to_you' => 'à {words}',
+    'chat.no_reply' => 'Vous ne pouvez pas répondre aux visiteurs non connectés.',
+    'chat.confirm_delete' => 'Supprimer ce message ? Cette action est irréversible.',
+    'chat.received' => 'Message reçu',
+    'chat.sent_by_you' => 'Envoyé par vous',
+    'chat.sent' => 'Envoyé',
+    'chat.new_message' => 'Nouveau message',
+    'chat.message_box' => 'Boîte de messages',
+    'chat.subject_ph' => 'Objet (repris de votre message)',
+    'chat.type_message' => 'Écrivez un message',
+    'chat.ext_contact_hint' => 'Ajoutez vos coordonnées si vous souhaitez une réponse.',
 ];
