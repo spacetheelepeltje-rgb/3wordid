@@ -560,7 +560,7 @@ De URL, mededeling en berichtenbox van deze woorden worden verwijderd. Dit kan n
     'icon.logo' => 'Logo',
     'icon.logo_3wid' => '3WordID-logo',
 
-    // ---- ip (admin IP list) and sl (admin signup list)
+    // ---- ip (admin IP list)
     'ip.title' => '3WordID — IP-lijst',
     'ip.top20' => 'Top 20 IP-adressen',
     'ip.error_log' => 'Foutenlog',
@@ -574,11 +574,4 @@ De URL, mededeling en berichtenbox van deze woorden worden verwijderd. Dit kan n
     'ip.ok' => 'Ok',
     'ip.block' => 'Blokkeren',
     'ip.expired' => 'Sessie verlopen. Laad de pagina opnieuw en probeer het nog eens.',
-    'sl.title' => '3WordID — Aanmeldingen',
-    'sl.col_id' => 'ID',
-    'sl.col_email' => 'E-mail',
-    'sl.col_code' => 'Code',
-    'sl.col_status' => 'Status',
-    'sl.active' => 'actief',
-    'sl.not_active' => 'niet actief',
 ];

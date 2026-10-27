@@ -467,4 +467,19 @@ L’URL, la notification et la boîte de messages de ces mots seront supprimées
     'icon.portrait' => 'Portrait de l’utilisateur',
     'icon.logo' => 'Logo',
     'icon.logo_3wid' => 'Logo 3WordID',
+
+    // ---- ip (admin IP list)
+    'ip.title' => '3WordID — Liste des IP',
+    'ip.top20' => 'Top 20 des IP',
+    'ip.error_log' => 'Journal des erreurs',
+    'ip.delete_log' => 'Supprimer le journal des erreurs',
+    'ip.confirm_delete_log' => 'Supprimer le journal des erreurs ?',
+    'ip.col_id' => 'ID',
+    'ip.col_ip' => 'IP',
+    'ip.col_counter' => 'Compteur',
+    'ip.col_status' => 'Statut',
+    'ip.blocked' => 'Bloquée',
+    'ip.ok' => 'Ok',
+    'ip.block' => 'Bloquer',
+    'ip.expired' => 'Session expirée. Rechargez la page et réessayez.',
 ];
