@@ -168,6 +168,6 @@
             <a class="btn btn-ghost" href="<?php echo $main_url; ?>">To Homepage</a>
         </div> -->
     </main>
-    <footer class="site-footer"><?php echo $footer; ?></footer>
+    <footer class="site-footer"><?php echo $footer; ?><?php echo site_copyright(); ?></footer>
 </body>
 </html>

@@ -307,6 +307,7 @@ function admin_page_link($page, $q) {
 
 <footer class="site-footer">
     <div><?php echo $footer; ?></div>
+    <?php echo site_copyright(); ?>
 </footer>
 </body>
 </html>

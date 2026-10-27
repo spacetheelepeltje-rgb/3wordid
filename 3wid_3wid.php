@@ -293,6 +293,7 @@
     </main>
      <footer class="site-footer">
         <div><?php echo $footer; ?></div>
+        <?php echo site_copyright(); ?>
     </footer>
 </body>
 <?php echo i18n_js_all(); ?>

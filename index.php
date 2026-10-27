@@ -266,6 +266,7 @@ $more_list = array_values($by_words);
 
     </main>
     <footer class="site-footer">
+        <?php echo site_copyright(); ?>
     </footer>
 </body>
 <?php echo i18n_js([

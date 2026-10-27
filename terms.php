@@ -242,7 +242,7 @@ $loginUrl = '/login/options.php';
     <footer class="site-footer">
         <div><?php echo $footer; ?></div>
         <div><?php echo t('terms.footer'); ?></div>
-       
+        <?php echo site_copyright(); ?>
     </footer>
 </body>
 </html>

@@ -289,6 +289,7 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
     </main>
     <footer class="site-footer">
         <div><?php echo $footer; ?></div>
+        <?php echo site_copyright(); ?>
     </footer>
 </body>
 <script>

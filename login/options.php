@@ -249,7 +249,7 @@ if (isset($_GET['message'])) {
     </main>
 
     <footer>
-
+        <?php echo site_copyright(); ?>
     </footer>
 </body>
 </html>
