@@ -15,14 +15,21 @@
  *   <?php echo t_raw('home.step1_text'); ?>          text with intended markup (links, <b>, ...)
  *   <?php echo t('home.views_other', ['n' => 5]); ?> {n} in the text is replaced (and escaped)
  *   <?php echo t_n('home.views', 1); ?>              singular/plural: home.views_one / home.views_other
- *   <?php echo lang_switcher(); ?>                   small "EN | NL" switch
+ *   <?php echo lang_switcher(); ?>                   small "EN | NL | FR | ES" switch
  *   <?php echo lang_head_tags(); ?>                  canonical + hreflang links for <head>
  */
 
 /** Allowed language codes. To add a language, add its code here and create lang/<code>.php. */
 function i18n_languages(): array
 {
-    return ['en', 'nl'];
+    return ['en', 'nl', 'fr', 'es'];
+}
+
+/** Open Graph locale (og:locale) for a language code. */
+function i18n_og_locale(string $code): string
+{
+    $map = ['en' => 'en_US', 'nl' => 'nl_NL', 'fr' => 'fr_FR', 'es' => 'es_ES'];
+    return $map[$code] ?? 'en_US';
 }
 
 /** Label shown in the language switch. */
@@ -62,7 +69,7 @@ function i18n_from_accept_language(?string $header): ?string
     return $best;
 }
 
-/** The language for this request: 'en', 'nl', ... */
+/** The language for this request: 'en', 'nl', 'fr', 'es'. */
 function current_lang(): string
 {
     static $lang = null;
@@ -208,11 +215,11 @@ function lang_head_tags(): string
     return $out;
 }
 
-/** Small "EN | NL" switch. Includes its own tiny style so it works on every page. */
+/** Small "EN | NL | FR | ES" switch. Includes its own tiny style so it works on every page. */
 function lang_switcher(): string
 {
     $current = current_lang();
-    $out = '<style>.lang-switch{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;margin:0 8px;color:#8a93a6}'
+    $out = '<style>.lang-switch{display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px;white-space:nowrap;font-size:13px;font-weight:600;margin:0 8px;color:#8a93a6}'
         . '.lang-switch a{color:#5b6478;text-decoration:none;padding:2px 4px;border-radius:4px}'
         . '.lang-switch a:hover{color:#0f1c3f}.lang-switch a[aria-current="true"]{color:#0f1c3f;text-decoration:underline}</style>';
     $out .= '<span class="lang-switch" role="group" aria-label="' . t('lang.switch_label') . '">';
