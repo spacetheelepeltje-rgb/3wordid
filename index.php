@@ -99,7 +99,7 @@ $more_list = array_values($by_words);
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <meta name="description" content="<?php echo t('home.meta_desc'); ?>">
     <?php echo lang_head_tags(); ?>
-    <meta property="og:locale" content="<?php echo current_lang() === 'nl' ? 'nl_NL' : 'en_US'; ?>">
+    <meta property="og:locale" content="<?php echo i18n_og_locale(current_lang()); ?>">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="3WordID">
     <meta property="og:title" content="<?php echo t('home.og_title'); ?>">
