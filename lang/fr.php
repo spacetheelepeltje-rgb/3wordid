@@ -533,4 +533,12 @@ L’URL, la notification et le chat de ces mots seront supprimés. Cette action 
     'chat.photo_open' => 'Voir la photo de {name}',
     'chat.photo_close' => 'Fermer',
     'chat.photo_login_hint' => 'Connectez-vous pour voir avec qui vous discutez',
+
+    // Mail icon on the list page
+    'list.mail_send' => 'Envoyer un message depuis {words}',
+    'list.mail_chats' => 'Ouvrir les discussions de {words}',
+    'list.mail_received_one' => '{n} message pour {words} : ouvrir les discussions',
+    'list.mail_received_other' => '{n} messages pour {words} : ouvrir les discussions',
+    'list.mail_unread_one' => '{n} nouveau message pour {words} : ouvrir les discussions',
+    'list.mail_unread_other' => '{n} nouveaux messages pour {words} : ouvrir les discussions',
 ];

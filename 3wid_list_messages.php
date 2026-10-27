@@ -113,6 +113,7 @@
             <div class="name"><?php echo $threeword_safe; ?></div>
             <div class="sub"><?php echo t_n('chat.conversations', $total); ?></div>
         </div>
+        <a class="back" href="3wid_messageform.php?threeword_id=<?php echo (int) $threeword_id; ?>" title="<?php echo t('chat.new_message'); ?>" aria-label="<?php echo t('chat.new_message'); ?>"><?php echo chat_icon('compose'); ?></a>
     </header>
 
     <main class="chat-scroll plain">
