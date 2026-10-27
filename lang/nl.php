@@ -119,7 +119,7 @@ return [
     'terms.s9_h' => '9. Betalingen',
     'terms.s9_p1' => 'Prijzen, tegoeden, Patreon, PayPal, bankoverschrijving en reseller-vergoedingen kunnen veranderen. Betalingen zijn voor toegang tot een tool op vrijwilligersschaal, niet voor eigendom van een identifier. Tenzij dwingend recht anders vereist, worden betalingen niet terugbetaald als een ID later wordt beëindigd, gelokaliseerd, overschreven door een betaalde reservering, of als de dienst verandert of stopt.',
     'terms.s10_h' => '10. Gegevens',
-    'terms.s10_p1' => 'Om de opzoektool te laten werken mag de Beheerder gegevens opslaan die via Google-inloggen worden aangeleverd en gegevens die je zelf invoert: naam, avatar-URL, je e-mailadres, 3WordID’s, mededelingen en berichten. Je e-mailadres wordt opgeslagen als eenrichtings-hash, niet als leesbare tekst. Het e-mailadres waarmee je inlogt wordt alleen gebruikt om te versturen wat je aanvraagt; het wordt alleen tijdens je sessie versleuteld bewaard en niet in leesbare vorm opgeslagen. Gegevens worden alleen met derden gedeeld als de Beheerder daartoe wettelijk verplicht is, of voor zover nodig om de dienst te hosten en te verwerken. Er kunnen van tijd tot tijd opnieuw aparte toestemmingsschermen verschijnen. Beschouw 3WordID niet als een vertrouwelijk archief.',
+    'terms.s10_p1' => 'Om de opzoektool te laten werken mag de Beheerder gegevens opslaan die via Google-inloggen worden aangeleverd en gegevens die je zelf invoert: naam, avatar-URL, je e-mailadres, 3WordID’s, mededelingen en berichten. Je e-mailadres wordt opgeslagen als eenrichtings-hash, niet als leesbare tekst. Het e-mailadres waarmee je inlogt wordt alleen gebruikt om te versturen wat je aanvraagt; het wordt alleen tijdens je sessie versleuteld bewaard en niet in leesbare vorm opgeslagen. Gegevens worden alleen met derden gedeeld als de Beheerder daartoe wettelijk verplicht is, of voor zover nodig om de dienst te hosten en te verwerken. Er kunnen van tijd tot tijd opnieuw aparte toestemmingsschermen verschijnen. Beschouw 3WordID niet als een vertrouwelijk archief. Je profielfoto wordt alleen in chats getoond als je dat per 3WordID aanzet, en dan alleen aan ingelogde leden met wie je via die 3WordID chat; bezoekers die niet zijn ingelogd zien hem nooit.',
     'terms.s10_p2' => 'Berichten, IP-adressen en accountgegevens worden vastgelegd en bewaard, ook nadat een account is gedeactiveerd, zodat we kunnen reageren op rechtmatige verzoeken van politie en justitie. Dit geldt ook voor berichten die door mensen zonder account via de openbare chat worden verstuurd: het bericht wordt getoond aan de eigenaar van de 3WordID, en het bericht en het IP-adres van de afzender worden opgeslagen en bewaard.',
     'terms.s10_p3' => 'Cookies: voor inloggen gebruiken we één strikt noodzakelijke sessiecookie (3WIDSESS). Google Analytics, dat _ga-cookies plaatst en je IP-adres en browsergegevens naar Google stuurt, wordt alleen geladen als je in de cookiebanner op Accepteren klikt. <a href="#cookie-settings">Wijzig je cookiekeuze</a>.',
     'terms.s11_h' => '11. Beperking van aansprakelijkheid',
@@ -421,7 +421,7 @@ De URL, mededeling en chat van deze woorden worden verwijderd. Dit kan niet onge
     'pc.data_h' => 'Gegevensbeleid',
     'pc.data_p1' => 'Om de opzoektool te laten werken slaan we persoonsgegevens op die Google aanlevert en gegevens die je zelf invoert:',
     'pc.li1' => 'voornaam en achternaam;',
-    'pc.li2' => 'een link naar je avatar;',
+    'pc.li2' => 'een link naar je avatar (je profielfoto wordt alleen in chats getoond als je dat per 3WordID aanzet, en alleen aan ingelogde leden met wie je chat);',
     'pc.li3' => 'je e-mailadres, opgeslagen als eenrichtings-hash, niet als leesbare tekst; tijdens je sessie wordt het versleuteld bewaard en alleen gebruikt om te versturen wat je aanvraagt;',
     'pc.li4' => 'berichten die je verstuurt en ontvangt;',
     'pc.li5' => 'tekst die je in het mededelingenveld van een 3WordID zet;',
@@ -610,4 +610,12 @@ De URL, mededeling en chat van deze woorden worden verwijderd. Dit kan niet onge
     'chat.err_visitor' => 'Je kunt bezoekers zonder 3WordID niet antwoorden. Hebben ze contactgegevens in hun bericht gezet? Gebruik die dan.',
     'chat.err_recipient' => 'Deze 3WordID is niet gevonden. Controleer de drie woorden en probeer het opnieuw.',
     'ext.bad_recipient' => 'Deze 3WordID is niet gevonden, je bericht is dus niet verstuurd.',
+
+    // Profile photo in chats (opt-in)
+    'edit.show_photo' => 'Mijn foto tonen in chats',
+    'edit.show_photo_help' => 'Ingelogde leden met wie je via deze 3WordID chat zien je profielfoto, zodat ze je herkennen. Bezoekers die niet zijn ingelogd zien hem nooit. Staat standaard uit.',
+    'edit.show_photo_none' => 'Je account heeft geen profielfoto (alleen inloggen met Google levert er een), dus er wordt een letter getoond.',
+    'chat.photo_open' => 'Foto van {name} bekijken',
+    'chat.photo_close' => 'Sluiten',
+    'chat.photo_login_hint' => 'Log in om te zien met wie je chat',
 ];

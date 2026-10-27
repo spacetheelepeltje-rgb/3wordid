@@ -180,7 +180,7 @@ function chat_conversations($messages, $dates) {
 		$is_visitor = ((int) $m['from_id'] === CHAT_VISITOR_USER_ID);
 		$key = $is_visitor ? 'visitors' : ((int) $m['from_id'] . ':' . $m['threeword']);
 		if (!isset($conversations[$key])) {
-			$conversations[$key] = array('key' => $key, 'name' => $is_visitor ? '' : $m['threeword'], 'visitor' => $is_visitor, 'items' => array());
+			$conversations[$key] = array('key' => $key, 'name' => $is_visitor ? '' : $m['threeword'], 'visitor' => $is_visitor, 'wid' => $is_visitor ? 0 : (int) ($m['3wid_from_id'] ?? 0), 'items' => array());
 		}
 		$m['sent_at'] = $dates[(int) $m['id']] ?? '';
 		$conversations[$key]['items'][] = $m;
@@ -189,4 +189,36 @@ function chat_conversations($messages, $dates) {
 		return $b['items'][count($b['items']) - 1]['id'] <=> $a['items'][count($a['items']) - 1]['id'];
 	});
 	return $conversations;
+}
+
+// ---------------------------------------------------------------------------
+// Profile photos (opt-in per 3WordID, logged-in members only)
+// ---------------------------------------------------------------------------
+
+// Signature that ties a photo URL to this session, so 3wid_photo.php only serves
+// photos the page actually showed (no guessing ids). Uses the session's action token.
+function chat_photo_sig($wid_id) {
+	return substr(hash_hmac('sha256', 'photo:' . (int) $wid_id, get_action_token()), 0, 32);
+}
+
+function chat_photo_url($wid_id) {
+	return '3wid_photo.php?wid=' . (int) $wid_id . '&s=' . chat_photo_sig($wid_id);
+}
+
+// Avatar for a 3WordID: its photo when $photo_ids[$wid_id] is set (see db_3wordid_photo_ids,
+// call only for logged-in viewers), otherwise the letter avatar. With $zoom the photo
+// is a button that opens it larger (do not use $zoom inside a link).
+function chat_avatar_for($name, $wid_id, $photo_ids, $extra_class = '', $zoom = false) {
+	$wid_id = (int) $wid_id;
+	if ($wid_id < 1 || empty($photo_ids[$wid_id])) {
+		return chat_avatar($name, $extra_class);
+	}
+	$url = chat_e(chat_photo_url($wid_id));
+	$cls = 'avatar photo ' . chat_color($name) . ($extra_class ? ' ' . chat_e($extra_class) : '');
+	// The letter stays underneath: it shows when the image cannot be loaded
+	$inner = '<span class="ini">' . chat_e(chat_initial($name)) . '</span><img src="' . $url . '" alt="" loading="lazy" onerror="this.remove()">';
+	if ($zoom) {
+		return '<button type="button" class="' . $cls . '" data-photo="' . $url . '" aria-label="' . t('chat.photo_open', ['name' => $name]) . '" title="' . t('chat.photo_open', ['name' => $name]) . '" data-close="' . t('chat.photo_close') . '">' . $inner . '</button>';
+	}
+	return '<span class="' . $cls . '" aria-hidden="true">' . $inner . '</span>';
 }

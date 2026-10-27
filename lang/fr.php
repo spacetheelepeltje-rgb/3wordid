@@ -107,7 +107,7 @@ return [
     'terms.s9_h' => '9. Paiements',
     'terms.s9_p1' => 'Les prix, les crédits, Patreon, PayPal, le virement bancaire et les commissions des revendeurs peuvent changer. Les paiements donnent accès à un outil à l’échelle d’un projet bénévole, et non la propriété d’un identifiant. Sauf obligation légale impérative, les paiements ne sont pas remboursables si un ID est ensuite résilié, localisé, écrasé par une réservation payante, ou si le service change ou s’arrête.',
     'terms.s10_h' => '10. Données',
-    'terms.s10_p1' => 'Pour faire fonctionner l’outil de recherche, l’Exploitant peut conserver les données fournies par la connexion Google et les données que vous soumettez : nom, URL de l’avatar, adresse e-mail, 3WordID, notifications et messages. Votre adresse e-mail est conservée sous forme de hachage irréversible, et non sous forme de texte lisible. L’adresse e-mail avec laquelle vous vous connectez n’est utilisée que pour envoyer ce que vous demandez ; elle n’est conservée chiffrée que pendant votre session et n’est pas stockée sous forme lisible. Les données ne sont partagées avec des tiers que si l’Exploitant y est légalement tenu, ou si cela est nécessaire pour héberger et exploiter le service. Des écrans de consentement distincts peuvent s’afficher de nouveau de temps à autre. Ne considérez pas 3WordID comme une archive confidentielle.',
+    'terms.s10_p1' => 'Pour faire fonctionner l’outil de recherche, l’Exploitant peut conserver les données fournies par la connexion Google et les données que vous soumettez : nom, URL de l’avatar, adresse e-mail, 3WordID, notifications et messages. Votre adresse e-mail est conservée sous forme de hachage irréversible, et non sous forme de texte lisible. L’adresse e-mail avec laquelle vous vous connectez n’est utilisée que pour envoyer ce que vous demandez ; elle n’est conservée chiffrée que pendant votre session et n’est pas stockée sous forme lisible. Les données ne sont partagées avec des tiers que si l’Exploitant y est légalement tenu, ou si cela est nécessaire pour héberger et exploiter le service. Des écrans de consentement distincts peuvent s’afficher de nouveau de temps à autre. Ne considérez pas 3WordID comme une archive confidentielle. Votre photo de profil n’est affichée dans les chats que si vous l’activez pour un 3WordID, et uniquement pour les membres connectés avec qui vous discutez via ce 3WordID ; les visiteurs non connectés ne la voient jamais.',
     'terms.s10_p2' => 'Les messages, les adresses IP et les données de compte sont enregistrés et conservés, y compris après la désactivation d’un compte, afin que nous puissions répondre aux demandes légales des forces de l’ordre. Cela s’applique aussi aux messages envoyés via le chat public par des personnes sans compte : le message est montré au propriétaire du 3WordID, et le message ainsi que l’adresse IP de l’expéditeur sont enregistrés et conservés.',
     'terms.s10_p3' => 'Cookies : la connexion utilise un seul cookie de session strictement nécessaire (3WIDSESS). Google Analytics, qui dépose des cookies _ga et envoie votre adresse IP et des informations sur votre navigateur à Google, n’est chargé que si vous cliquez sur Accepter dans la bannière de cookies. <a href="#cookie-settings">Modifier votre choix de cookies</a>.',
     'terms.s11_h' => '11. Limitation de responsabilité',
@@ -351,7 +351,7 @@ L’URL, la notification et le chat de ces mots seront supprimés. Cette action 
     'pc.data_h' => 'Politique de données',
     'pc.data_p1' => 'Pour faire fonctionner l’outil de recherche, nous conservons les données personnelles fournies par Google et les données que vous soumettez :',
     'pc.li1' => 'prénom et nom ;',
-    'pc.li2' => 'un lien vers votre avatar ;',
+    'pc.li2' => 'un lien vers votre avatar (votre photo de profil n’est affichée dans les chats que si vous l’activez par 3WordID, et uniquement pour les membres connectés avec qui vous discutez) ;',
     'pc.li3' => 'votre adresse e-mail, conservée sous forme de hachage irréversible et non sous forme de texte lisible ; pendant votre session, elle est conservée chiffrée et utilisée uniquement pour envoyer ce que vous demandez ;',
     'pc.li4' => 'les messages que vous envoyez et recevez ;',
     'pc.li5' => 'le texte que vous saisissez dans le champ de notification d’un 3WordID ;',
@@ -518,4 +518,12 @@ L’URL, la notification et le chat de ces mots seront supprimés. Cette action 
     'chat.err_visitor' => 'Vous ne pouvez pas répondre aux visiteurs sans 3WordID. S’ils ont laissé leurs coordonnées dans leur message, utilisez-les.',
     'chat.err_recipient' => 'Ce 3WordID est introuvable. Vérifiez les trois mots et réessayez.',
     'ext.bad_recipient' => 'Ce 3WordID est introuvable, votre message n’a donc pas été envoyé.',
+
+    // Profile photo in chats (opt-in)
+    'edit.show_photo' => 'Afficher ma photo dans les chats',
+    'edit.show_photo_help' => 'Les membres connectés avec qui vous discutez via ce 3WordID verront votre photo de profil, pour vous reconnaître. Les visiteurs non connectés ne la voient jamais. Désactivé par défaut.',
+    'edit.show_photo_none' => 'Votre compte n’a pas de photo de profil (seule la connexion Google en fournit une), une lettre est donc affichée.',
+    'chat.photo_open' => 'Voir la photo de {name}',
+    'chat.photo_close' => 'Fermer',
+    'chat.photo_login_hint' => 'Connectez-vous pour voir avec qui vous discutez',
 ];

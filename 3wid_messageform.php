@@ -58,10 +58,16 @@
   unset($_SESSION['chat_error']);
 
   // Never prefill the visitor placeholder as a recipient: visitors cannot get replies
-  if ($reply_to !== '' && chat_is_visitor_wid(db_3wordid_get_threeword($reply_to))) {
+  $reply_row = $reply_to !== '' ? db_3wordid_get_threeword($reply_to) : null;
+  if ($reply_to !== '' && chat_is_visitor_wid($reply_row)) {
       $reply_to = '';
+      $reply_row = null;
       $error_key = 'chat.err_visitor';
   }
+
+  // Profile photo of the addressed 3WordID (only when its owner turned it on)
+  $reply_wid = $reply_row ? (int) $reply_row['id'] : 0;
+  $photo_ids = $reply_wid ? db_3wordid_photo_ids(array($reply_wid)) : array();
 
   $reply_to_safe = chat_e($reply_to);
 
@@ -87,7 +93,7 @@
 <div class="chat-app">
     <header class="chat-header">
         <a class="back" href="3wid_list.php" aria-label="<?php echo t('nav.back_list'); ?>"><?php echo chat_icon('back'); ?></a>
-        <?php echo $reply_to !== '' ? chat_avatar($reply_to) : chat_visitor_avatar(); ?>
+        <?php echo $reply_to !== '' ? chat_avatar_for($reply_to, $reply_wid, $photo_ids, '', true) : chat_visitor_avatar(); ?>
         <div class="who">
             <div class="name"><?php echo $reply_to !== '' ? $reply_to_safe : t('chat.new_message'); ?></div>
             <div class="sub" id="helperText"></div>

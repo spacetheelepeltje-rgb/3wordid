@@ -320,7 +320,7 @@ function db_3wordid_list_messages($wid_id) {
     }
     
     // Prepare the SQL statement
-    $sql = "SELECT m.id as id,w.threeword as threeword, m.from_id as from_id, m.title as title, m.message as message,u.picture as picture FROM 3wordid_messages as m, google_users as u,3wordid as w WHERE m.3wid_id = ? and w.id=m.3wid_from_id and m.from_id=u.id ORDER BY m.id DESC";
+    $sql = "SELECT m.id as id,w.threeword as threeword, m.3wid_from_id as 3wid_from_id, m.from_id as from_id, m.title as title, m.message as message,u.picture as picture FROM 3wordid_messages as m, google_users as u,3wordid as w WHERE m.3wid_id = ? and w.id=m.3wid_from_id and m.from_id=u.id ORDER BY m.id DESC";
     $stmt = $conn->prepare($sql);
     
     error_log('query ' .  $sql);
@@ -2731,4 +2731,106 @@ function db_3wordid_messages_from_to($user_id, $from_wid, $to_wid) {
 	$stmt->close();
 	$conn->close();
 	return $rows ? $rows : array();
+}
+
+// ---------------------------------------------------------------------------
+// Profile photo in chats (opt-in per 3WordID, column 3wordid.show_photo).
+// The code works before the column exists: everything then counts as "off".
+//   ALTER TABLE 3wordid ADD COLUMN show_photo TINYINT(1) NOT NULL DEFAULT 0;
+// ---------------------------------------------------------------------------
+
+function db_3wordid_has_show_photo() {
+	static $has = null;
+	if ($has !== null) {
+		return $has;
+	}
+	$has = false;
+	$conn = get_db_conn();
+	if ($conn && !$conn->connect_error) {
+		$result = $conn->query("SHOW COLUMNS FROM 3wordid LIKE 'show_photo'");
+		if ($result) {
+			$has = ($result->num_rows > 0);
+			$result->free();
+		}
+		$conn->close();
+	}
+	return $has;
+}
+
+// Turn the photo on/off for one 3WordID. Call only after the owner check.
+function db_3wordid_set_show_photo($wid_id, $on) {
+	$wid_id = (int) $wid_id;
+	$on = $on ? 1 : 0;
+	if ($wid_id < 1 || !db_3wordid_has_show_photo()) {
+		return false;
+	}
+	$conn = get_db_conn();
+	if (!$conn || $conn->connect_error) {
+		return false;
+	}
+	$stmt = $conn->prepare("UPDATE 3wordid SET show_photo = ? WHERE id = ?");
+	if ($stmt === false) {
+		$conn->close();
+		return false;
+	}
+	$stmt->bind_param("ii", $on, $wid_id);
+	$ok = $stmt->execute();
+	$stmt->close();
+	$conn->close();
+	return $ok;
+}
+
+// Of the given 3WordID ids, the ones whose photo may be shown: photo turned on,
+// 3WordID enabled, and the owner has a profile picture. Returns [id => true].
+// Never returns the picture URL itself (that stays on the server, see 3wid_photo.php).
+function db_3wordid_photo_ids($wid_ids) {
+	$ids = array_values(array_unique(array_filter(array_map('intval', (array) $wid_ids), function ($i) { return $i > 0; })));
+	if (!$ids || !db_3wordid_has_show_photo()) {
+		return array();
+	}
+	$conn = get_db_conn();
+	if (!$conn || $conn->connect_error) {
+		return array();
+	}
+	$marks = implode(',', array_fill(0, count($ids), '?'));
+	$stmt = $conn->prepare("SELECT w.id FROM 3wordid AS w JOIN google_users AS u ON u.id = w.user_id
+	                        WHERE w.id IN ($marks) AND w.show_photo = 1 AND w.enabled = 1 AND u.picture IS NOT NULL AND u.picture <> ''");
+	if ($stmt === false) {
+		$conn->close();
+		return array();
+	}
+	$types = str_repeat('i', count($ids));
+	$stmt->bind_param($types, ...$ids);
+	$stmt->execute();
+	$out = array();
+	foreach ($stmt->get_result()->fetch_all(MYSQLI_ASSOC) as $r) {
+		$out[(int) $r['id']] = true;
+	}
+	$stmt->close();
+	$conn->close();
+	return $out;
+}
+
+// The owner's picture URL for one 3WordID, only when its photo may be shown. Server-side only.
+function db_3wordid_photo_source($wid_id) {
+	$wid_id = (int) $wid_id;
+	if ($wid_id < 1 || !db_3wordid_has_show_photo()) {
+		return '';
+	}
+	$conn = get_db_conn();
+	if (!$conn || $conn->connect_error) {
+		return '';
+	}
+	$stmt = $conn->prepare("SELECT u.picture FROM 3wordid AS w JOIN google_users AS u ON u.id = w.user_id
+	                        WHERE w.id = ? AND w.show_photo = 1 AND w.enabled = 1 LIMIT 1");
+	if ($stmt === false) {
+		$conn->close();
+		return '';
+	}
+	$stmt->bind_param("i", $wid_id);
+	$stmt->execute();
+	$row = $stmt->get_result()->fetch_assoc();
+	$stmt->close();
+	$conn->close();
+	return $row ? (string) $row['picture'] : '';
 }
