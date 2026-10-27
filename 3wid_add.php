@@ -6,7 +6,7 @@ require_once 'php/functions.php';
 $data = current_user_from_session($conn);
 
 if ($data == NULL) {
-    header('Location: login/options.php?message=' . rawurlencode('Please log in.'));
+    header('Location: login/options.php?message=' . rawurlencode(t_plain('common.login_required')));
     exit;
 }
 
@@ -24,11 +24,11 @@ if (empty($_SESSION['csrf_token'])) {
 
 ?>  
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo current_lang(); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create ID — 3WordID</title>
+    <title><?php echo t('add.title'); ?></title>
     <link rel="icon" type="image/x-icon" href="img/favicon.ico">
     <link href="/css/inter.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -261,49 +261,50 @@ if (empty($_SESSION['csrf_token'])) {
             3WordID
         </a>
         <div class="header-actions">
-          <a class="btn btn-ghost" href="3wid_list.php">Back to list</a>  
+          <?php echo lang_switcher(); ?>
+          <a class="btn btn-ghost" href="3wid_list.php"><?php echo t('nav.back_list'); ?></a>  
           </a>
         </div>
       </div>
     </header>
 
     <main class="page">
-      <p class="eyebrow">New Three Word ID</p>
-      <h1>Create 3WordID</h1>
-      <p class="subhead">Choose three words, an optional message, and how this ID should behave.</p>
+      <p class="eyebrow"><?php echo t('add.eyebrow'); ?></p>
+      <h1><?php echo t('add.h1'); ?></h1>
+      <p class="subhead"><?php echo t('add.subhead'); ?></p>
 
       <div class="panel">
         <form id="3widForm" action="3wid_insert.php" method="post">
           <div class="field">
-            <label class="lbl" for="threeword">Three Word ID</label>
-            <input type="text" id="threeword" name="threeword" class="search-bar" placeholder="first  ·  second  ·  third" value="">
+            <label class="lbl" for="threeword"><?php echo t('add.threeword'); ?></label>
+            <input type="text" id="threeword" name="threeword" class="search-bar" placeholder="<?php echo t('common.placeholder_words'); ?>" value="">
           </div>
 
           <div class="field">
-            <label class="lbl" for="notification">Notification</label>
-            <textarea name="notification" id="notification" class="search-bar" placeholder="Enter your message here" rows="4"></textarea>
+            <label class="lbl" for="notification"><?php echo t('add.notification'); ?></label>
+            <textarea name="notification" id="notification" class="search-bar" placeholder="<?php echo t('add.notification_ph'); ?>" rows="4"></textarea>
           </div>
 
           <div class="field">
-            <label class="lbl" for="linkthru">Forward URL</label>
-            <input type="text" name="linkthru" id="linkthru" class="search-bar" placeholder="Enter forward URL" value="">
+            <label class="lbl" for="linkthru"><?php echo t('add.linkthru'); ?></label>
+            <input type="text" name="linkthru" id="linkthru" class="search-bar" placeholder="<?php echo t('add.linkthru_ph'); ?>" value="">
           </div>
 
           <div class="checks">
-            <label><input type="checkbox" id="linkthruflag" name="linkthruflag"> Use forward URL</label>
-            <label><input type="checkbox" id="emailform" name="emailform"> Link 3WordID to message form (don't forget to activate it)</label>
-            <label><input type="checkbox" id="private" name="private" checked> Keep 3WordID private (won't be published anywhere)</label>
+            <label><input type="checkbox" id="linkthruflag" name="linkthruflag"> <?php echo t('add.use_forward'); ?></label>
+            <label><input type="checkbox" id="emailform" name="emailform"> <?php echo t('add.link_form'); ?></label>
+            <label><input type="checkbox" id="private" name="private" checked> <?php echo t('add.private'); ?></label>
           </div>
 
           <div class="hint">
             <?php if($data['max_3wids']==0) {
-              echo "You can subscribe to make sure your 3WordID is not taken by another user or deleted. It expires after two weeks. Subscription can be done via <a href='https://3wordid.com/3wid_signup.php'>the signup form</a>.";
+              echo t_raw('add.subscribe_hint');
             }
             ?>
           </div>
 
           <div class="form-actions buttons">
-            <button type="submit" id="submitBtn" class="btn btn-primary">Create</button>
+            <button type="submit" id="submitBtn" class="btn btn-primary"><?php echo t('add.create'); ?></button>
             <div id="helperText"></div>
           </div>
 
@@ -318,6 +319,7 @@ if (empty($_SESSION['csrf_token'])) {
       
     </div>
 
+<?php echo i18n_js_all(); ?>
 <script src="js/3wid_add.js"></script>
 <script>
     function handleGoogleLogin() {
@@ -337,7 +339,7 @@ if (empty($_SESSION['csrf_token'])) {
             e.preventDefault();
             handleGoogleLogin();
             setTimeout(() => {
-                window.location.href = '/login/index.php';
+                window.location.href = '/login/options.php';
             }, 1000);
         });
     }

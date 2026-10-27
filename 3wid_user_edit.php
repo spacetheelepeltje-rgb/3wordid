@@ -5,14 +5,14 @@ require_once 'login/config.php';
 $data = current_user_from_session($conn);
 
 if ($data == NULL) {
-    header('Location: login/options.php?message=' . rawurlencode('Please log in.'));
+    header('Location: login/options.php?message=' . rawurlencode(t_plain('common.login_required')));
     exit;
 }
 
 $admin_id = 4;
 
 if ((int)$data['id'] !== $admin_id) {
-    header('Location: 3wid_list.php?message=' . rawurlencode('Not allowed.'));
+    header('Location: 3wid_list.php?message=' . rawurlencode(t_plain('admin.not_allowed')));
     exit;
 }
 
@@ -24,10 +24,10 @@ $action_token = get_action_token();
 // posted back as '' which the gender ENUM column does not accept.
 // type: 'i' = whole number, 'd' = decimal number, 's' = text
 $editable = [
-    'max_3wids' => ['type' => 'i', 'label' => 'Extra 3WordIDs allowed (max_3wids)', 'hint' => 'The user can create this number + 1 3WordIDs.'],
-    'user_type' => ['type' => 'i', 'label' => 'User type (user_type)', 'hint' => '0 = free, 9 = blocked. Other numbers as you use them.'],
-    'credit'    => ['type' => 'd', 'label' => 'Credit in € (credit)', 'hint' => ''],
-    'full_name' => ['type' => 's', 'label' => 'Name (full_name)', 'hint' => ''],
+    'max_3wids' => ['type' => 'i', 'label' => t_plain('ue.max_label'), 'hint' => t_plain('ue.max_hint')],
+    'user_type' => ['type' => 'i', 'label' => t_plain('ue.type_label'), 'hint' => t_plain('ue.type_hint')],
+    'credit'    => ['type' => 'd', 'label' => t_plain('ue.credit_label'), 'hint' => ''],
+    'full_name' => ['type' => 's', 'label' => t_plain('ue.name_label'), 'hint' => ''],
 ];
 
 // Never shown at all.
@@ -83,14 +83,14 @@ function db_3wordid_admin_update_user($id, $changes, $editable) {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!check_action_token($_POST['action_token'] ?? '')) {
-        header('Location: 3wid_user_list.php?message=' . rawurlencode('Session expired, please try again.'));
+        header('Location: 3wid_user_list.php?message=' . rawurlencode(t_plain('ue.session')));
         exit;
     }
 
     $edit_id = (int)($_POST['id'] ?? 0);
     $existing = db_3wordid_get_google_user($edit_id);
     if (!$existing) {
-        header('Location: 3wid_user_list.php?message=' . rawurlencode('User not found.'));
+        header('Location: 3wid_user_list.php?message=' . rawurlencode(t_plain('u3.not_found')));
         exit;
     }
 
@@ -108,12 +108,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($info['type'] === 'i') {
             if (!preg_match('/^-?[0-9]+$/', $raw)) {
-                $errors[] = $column . ' must be a whole number';
+                $errors[] = t_plain('ue.err_whole', ['col' => $column]);
                 continue;
             }
             $value = (int)$raw;
             if ($column === 'max_3wids' && $value < 0) {
-                $errors[] = 'max_3wids cannot be negative';
+                $errors[] = t_plain('ue.err_neg');
                 continue;
             }
             if ($old !== null && (string)(int)$old === (string)$value) {
@@ -122,7 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif ($info['type'] === 'd') {
             $raw = str_replace(',', '.', $raw);
             if (!is_numeric($raw)) {
-                $errors[] = $column . ' must be a number';
+                $errors[] = t_plain('ue.err_num', ['col' => $column]);
                 continue;
             }
             $value = (float)$raw;
@@ -144,12 +144,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($errors) {
-        $note = 'Not saved: ' . implode('; ', $errors) . '.';
+        $note = t_plain('ue.not_saved', ['errors' => implode('; ', $errors)]);
     } elseif (!$changes) {
-        $note = 'Nothing changed.';
+        $note = t_plain('ue.nothing');
     } else {
         $ok = db_3wordid_admin_update_user($edit_id, $changes, $editable);
-        $note = $ok ? 'User saved.' : 'Update failed, see the error log.';
+        $note = $ok ? t_plain('ue.saved') : t_plain('ue.failed');
     }
 
     header(
@@ -169,12 +169,12 @@ if (!$user) {
 }
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo current_lang(); ?>">
 <head>
     <?php echo $google_stats; ?>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3WordID — Edit user <?php echo (int)$user['id']; ?></title>
+    <title><?php echo t('ue.title', ['id' => (int)$user['id']]); ?></title>
     <link rel="icon" type="image/x-icon" href="img/favicon.ico">
     <link href="/css/inter.css" rel="stylesheet">
     <style>
@@ -332,16 +332,17 @@ if (!$user) {
 </head>
 <body>
 <header class="site-header">
-    <a class="brand" href="<?php echo htmlspecialchars($main_url); ?>" title="to 3wordID.com">
+    <a class="brand" href="<?php echo htmlspecialchars($main_url); ?>" title="<?php echo t('admin.to_home'); ?>">
         <span class="brand-mark"><img width="35" src="https://3WordID.com/img/3wid_big.png" alt=""></span>
         3WordID
     </a>
     <div class="header-actions">
-        <a class="btn btn-ghost" href="3wid_user_list.php">All users</a>
-        <a class="btn btn-ghost" href="3wid_user_3wids.php?user_id=<?php echo (int)$user['id']; ?>">3WordIDs of this user</a>
-        <a class="btn btn-ghost" href="3wid_list.php">Dashboard</a>
-        <a href="login/logout.php" class="logout-icon" title="log out">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="Logout Icon">
+        <?php echo lang_switcher(); ?>
+        <a class="btn btn-ghost" href="3wid_user_list.php"><?php echo t('ue.all_users'); ?></a>
+        <a class="btn btn-ghost" href="3wid_user_3wids.php?user_id=<?php echo (int)$user['id']; ?>"><?php echo t('ue.user_3wids'); ?></a>
+        <a class="btn btn-ghost" href="3wid_list.php"><?php echo t('admin.dashboard'); ?></a>
+        <a href="login/logout.php" class="logout-icon" title="<?php echo t('nav.logout'); ?>">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="<?php echo t('icon.logout'); ?>">
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
                 <polyline points="16 17 21 12 16 7"></polyline>
                 <line x1="21" y1="12" x2="9" y2="12"></line>
@@ -351,9 +352,9 @@ if (!$user) {
 </header>
 
 <main class="page">
-    <p class="eyebrow">Admin</p>
-    <h1>Edit user <?php echo (int)$user['id']; ?></h1>
-    <p class="subhead">Only the fields below can be changed. The other details are shown for reference and are never written back.</p>
+    <p class="eyebrow"><?php echo t('ue.admin'); ?></p>
+    <h1><?php echo t('ue.h1', ['id' => (int)$user['id']]); ?></h1>
+    <p class="subhead"><?php echo t('ue.subhead'); ?></p>
 
     <?php if ($message !== '') { ?>
         <div class="flash"><?php echo htmlspecialchars($message); ?></div>
@@ -386,22 +387,22 @@ if (!$user) {
 
             <?php if (array_key_exists('password_hash', $user)) { ?>
             <div class="field wide">
-                <label class="lbl" for="new_password">New password</label>
+                <label class="lbl" for="new_password"><?php echo t('ue.new_password'); ?></label>
                 <input type="password" id="new_password" name="new_password" autocomplete="new-password">
-                <p class="hint">Leave blank to keep the current password.</p>
+                <p class="hint"><?php echo t('ue.keep_password'); ?></p>
             </div>
             <?php } ?>
         </div>
 
         <div class="form-actions">
-            <button class="btn btn-primary" type="submit">Save user</button>
-            <a class="btn btn-ghost" href="3wid_user_3wids.php?user_id=<?php echo (int)$user['id']; ?>">3WordIDs of this user</a>
-            <a class="btn btn-ghost" href="3wid_user_list.php">Back to user list</a>
+            <button class="btn btn-primary" type="submit"><?php echo t('ue.save'); ?></button>
+            <a class="btn btn-ghost" href="3wid_user_3wids.php?user_id=<?php echo (int)$user['id']; ?>"><?php echo t('ue.user_3wids'); ?></a>
+            <a class="btn btn-ghost" href="3wid_user_list.php"><?php echo t('u3.back'); ?></a>
         </div>
     </form>
 
     <div class="panel" style="margin-top:18px;">
-        <p class="eyebrow">Other details (read-only)</p>
+        <p class="eyebrow"><?php echo t('ue.other'); ?></p>
         <div class="grid">
             <?php foreach ($user as $column => $value) {
                 if (in_array($column, $hidden_columns, true) || isset($editable[$column])) {
@@ -411,7 +412,7 @@ if (!$user) {
             ?>
                 <div class="field<?php echo $is_long ? ' wide' : ''; ?>">
                     <label class="lbl"><?php echo htmlspecialchars($column); ?></label>
-                    <input type="text" readonly value="<?php echo htmlspecialchars($value === null ? '(empty)' : (string)$value); ?>">
+                    <input type="text" readonly value="<?php echo htmlspecialchars($value === null ? t_plain('ue.empty') : (string)$value); ?>">
                 </div>
             <?php } ?>
         </div>

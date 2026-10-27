@@ -2,6 +2,7 @@
 require_once 'config.php';
 require_once __DIR__ . '/../php/session_boot.php';
 start_app_session();
+require_once __DIR__ . '/../php/i18n.php'; // t(), current_lang(), lang_switcher()
 
 function check_spam_emails(string $email): bool
 {
@@ -16,14 +17,14 @@ if (!isset($_GET['code'])) {
 
 $state = $_GET['state'] ?? '';
 if ($state === '' || !hash_equals($_SESSION['oauth_state'] ?? '', $state)) {
-    header('Location: options.php?message=' . rawurlencode('Login expired. Try Google again.'));
+    header('Location: options.php?message=' . rawurlencode(t_plain('welcome.expired')));
     exit;
 }
 unset($_SESSION['oauth_state']);
 
 $tokenResponse = $client->fetchAccessTokenWithAuthCode($_GET['code']);
 if (!empty($tokenResponse['error']) || empty($tokenResponse['access_token'])) {
-    header('Location: options.php?message=' . rawurlencode('Google login failed.'));
+    header('Location: options.php?message=' . rawurlencode(t_plain('welcome.failed')));
     exit;
 }
 
@@ -33,7 +34,7 @@ $info = $google_oauth->userinfo->get();
 
 $emailRaw = strtolower(trim((string)$info['email']));
 if ($emailRaw === '' || check_spam_emails($emailRaw)) {
-    header('Location: ../index.php?message=' . rawurlencode('Sowwy your email is on the spam abuse list!'));
+    header('Location: ../index.php?message=' . rawurlencode(t_plain('welcome.spam')));
     exit;
 }
 

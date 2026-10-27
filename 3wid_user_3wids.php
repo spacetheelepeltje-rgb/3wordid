@@ -5,21 +5,21 @@ require_once 'login/config.php';
 $data = current_user_from_session($conn);
 
 if ($data == NULL) {
-    header('Location: login/options.php?message=' . rawurlencode('Please log in.'));
+    header('Location: login/options.php?message=' . rawurlencode(t_plain('common.login_required')));
     exit;
 }
 
 $admin_id = 4;
 
 if ((int)$data['id'] !== $admin_id) {
-    header('Location: 3wid_list.php?message=' . rawurlencode('Not allowed.'));
+    header('Location: 3wid_list.php?message=' . rawurlencode(t_plain('admin.not_allowed')));
     exit;
 }
 
 $user_id = (int)($_GET['user_id'] ?? 0);
 $owner = $user_id > 0 ? db_3wordid_get_google_user($user_id) : null;
 if (!$owner) {
-    header('Location: 3wid_user_list.php?message=' . rawurlencode('User not found.'));
+    header('Location: 3wid_user_list.php?message=' . rawurlencode(t_plain('u3.not_found')));
     exit;
 }
 
@@ -30,7 +30,7 @@ if (!is_array($wids)) {
 
 $owner_name = trim((string)($owner['full_name'] ?? ''));
 if ($owner_name === '') {
-    $owner_name = 'User #' . $user_id;
+    $owner_name = t_plain('u3.user_n', ['id' => $user_id]);
 }
 
 $message = isset($_GET['message']) ? (string)$_GET['message'] : '';
@@ -49,12 +49,12 @@ function admin_safe_url($url) {
 }
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo current_lang(); ?>">
 <head>
     <?php echo $google_stats; ?>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3WordID — 3WordIDs of <?php echo htmlspecialchars($owner_name); ?></title>
+    <title><?php echo t('u3.title', ['name' => $owner_name]); ?></title>
     <link rel="icon" type="image/x-icon" href="img/favicon.ico">
     <link href="/css/inter.css" rel="stylesheet">
     <style>
@@ -203,16 +203,17 @@ function admin_safe_url($url) {
 </head>
 <body>
 <header class="site-header">
-    <a class="brand" href="<?php echo htmlspecialchars($main_url); ?>" title="to 3wordID.com">
+    <a class="brand" href="<?php echo htmlspecialchars($main_url); ?>" title="<?php echo t('admin.to_home'); ?>">
         <span class="brand-mark"><img width="35" src="https://3WordID.com/img/3wid_big.png" alt=""></span>
         3WordID
     </a>
     <div class="header-actions">
-        <a class="btn btn-ghost" href="3wid_user_list.php">Back to user list</a>
-        <a class="btn btn-ghost" href="3wid_admin_3wids.php">All 3WordIDs</a>
-        <a class="btn btn-ghost" href="3wid_list.php">Dashboard</a>
-        <a href="login/logout.php" class="logout-icon" title="log out">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="Logout Icon">
+        <?php echo lang_switcher(); ?>
+        <a class="btn btn-ghost" href="3wid_user_list.php"><?php echo t('u3.back'); ?></a>
+        <a class="btn btn-ghost" href="3wid_admin_3wids.php"><?php echo t('admin.all_3wids'); ?></a>
+        <a class="btn btn-ghost" href="3wid_list.php"><?php echo t('admin.dashboard'); ?></a>
+        <a href="login/logout.php" class="logout-icon" title="<?php echo t('nav.logout'); ?>">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="<?php echo t('icon.logout'); ?>">
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
                 <polyline points="16 17 21 12 16 7"></polyline>
                 <line x1="21" y1="12" x2="9" y2="12"></line>
@@ -224,12 +225,12 @@ function admin_safe_url($url) {
 <main class="wrap">
     <div class="page-head">
         <div>
-            <h1>3WordIDs of <?php echo htmlspecialchars($owner_name); ?></h1>
-            <p class="lede">User #<?php echo (int)$user_id; ?> · type <?php echo htmlspecialchars((string)($owner['user_type'] ?? '')); ?></p>
+            <h1><?php echo t('u3.h1', ['name' => $owner_name]); ?></h1>
+            <p class="lede"><?php echo t('u3.user_n', ['id' => (int)$user_id]); ?> · <?php echo t('ul.type'); ?> <?php echo htmlspecialchars((string)($owner['user_type'] ?? '')); ?></p>
         </div>
         <div class="toolbar">
-            <a class="btn btn-ghost" href="3wid_user_list.php">Back to user list</a>
-            <a class="btn btn-primary" href="3wid_user_edit.php?id=<?php echo (int)$user_id; ?>">Edit user</a>
+            <a class="btn btn-ghost" href="3wid_user_list.php"><?php echo t('u3.back'); ?></a>
+            <a class="btn btn-primary" href="3wid_user_edit.php?id=<?php echo (int)$user_id; ?>"><?php echo t('u3.edit_user'); ?></a>
         </div>
     </div>
 
@@ -238,14 +239,14 @@ function admin_safe_url($url) {
     <?php } ?>
 
     <div class="stats">
-        <div class="stat"><span>3WordIDs</span><strong><?php echo (int)$count; ?></strong></div>
-        <div class="stat"><span>Switched on</span><strong><?php echo (int)$enabled_count; ?></strong></div>
-        <div class="stat"><span>Allowed</span><strong><?php echo (int)($owner['max_3wids'] ?? 0) + 1; ?></strong></div>
+        <div class="stat"><span><?php echo t('admin.3wids'); ?></span><strong><?php echo (int)$count; ?></strong></div>
+        <div class="stat"><span><?php echo t('u3.on'); ?></span><strong><?php echo (int)$enabled_count; ?></strong></div>
+        <div class="stat"><span><?php echo t('u3.allowed'); ?></span><strong><?php echo (int)($owner['max_3wids'] ?? 0) + 1; ?></strong></div>
     </div>
 
     <div class="panel">
         <?php if ($count === 0) { ?>
-            <div class="empty">This user has no 3WordIDs.</div>
+            <div class="empty"><?php echo t('u3.empty'); ?></div>
         <?php } else { ?>
             <?php foreach ($wids as $w) {
                 $words_url = implode('.', explode(' ', (string)$w['threeword']));
@@ -263,18 +264,18 @@ function admin_safe_url($url) {
                     <div class="meta forward">
                         <?php if ($forward !== '') { ?>
                             <a href="<?php echo htmlspecialchars($forward); ?>" target="_blank" rel="noopener noreferrer"><?php echo htmlspecialchars($forward); ?></a>
-                            <?php if ((int)$w['linkthruflag'] !== 1) { ?><br>(forward not used)<?php } ?>
+                            <?php if ((int)$w['linkthruflag'] !== 1) { ?><br><?php echo t('u3.fwd_unused'); ?><?php } ?>
                         <?php } else { ?>
-                            No forward link
+                            <?php echo t('u3.no_forward'); ?>
                         <?php } ?>
                     </div>
                     <div>
-                        <span class="pill<?php echo $is_on ? ' on' : ''; ?>"><?php echo $is_on ? 'On' : 'Off'; ?></span>
+                        <span class="pill<?php echo $is_on ? ' on' : ''; ?>"><?php echo $is_on ? t('common.on') : t('common.off'); ?></span>
                     </div>
-                    <div class="meta"><?php echo (int)$w['views']; ?> views</div>
+                    <div class="meta"><?php echo t_n('home.views', (int)$w['views']); ?></div>
                     <div class="meta"><?php echo htmlspecialchars((string)$w['creation_date']); ?></div>
                     <div>
-                        <a class="btn btn-ghost" href="3wid_3wid.php?id=<?php echo (int)$w['id']; ?>&amp;from=admin">Edit</a>
+                        <a class="btn btn-ghost" href="3wid_3wid.php?id=<?php echo (int)$w['id']; ?>&amp;from=admin"><?php echo t('common.edit'); ?></a>
                     </div>
                 </div>
             <?php } ?>

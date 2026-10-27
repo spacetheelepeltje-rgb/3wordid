@@ -6,7 +6,7 @@
   // Must be logged in
   $data = current_user_from_session($conn);
   if ($data == NULL) {
-    header('Location: login/options.php?message=' . rawurlencode('Please log in.'));
+    header('Location: login/options.php?message=' . rawurlencode(t_plain('common.login_required')));
     exit;
   }
   
@@ -31,23 +31,23 @@
 
 ?>  
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo current_lang(); ?>">
 <head>
     <meta charset="UTF-8"> 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Form Page - 3WordID.com</title>
+    <title><?php echo t('msgview.title'); ?></title>
     <link rel="icon" type="image/png" href="3wid_1.png">
     <link rel="stylesheet" href="css/styles_3.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
     <header>
-        
+        <div style="text-align:right;padding:8px 16px;"><?php echo lang_switcher(); ?></div>
     </header>
     <main>
         <div class="logo">
             <center>
-                <a href='<?php echo $main_url;?>' title="To 3wordID.com homepage, create your own!"><img width=100 src="img/3wid_big.png"></a><br> 
+                <a href='<?php echo $main_url;?>' title="<?php echo t('msgview.home_title'); ?>"><img width=100 src="img/3wid_big.png"></a><br> 
                 <h2><?php echo htmlspecialchars($message_row["title"], ENT_QUOTES, 'UTF-8'); ?></h2>       
             </center>  
         </div>
@@ -55,15 +55,15 @@
                 <div id="textbox"><?php echo nl2br(htmlspecialchars($message_row["message"], ENT_QUOTES, 'UTF-8')); ?></div>
         </div>
           <div class="buttons">
-						<a class="mail-icon" disabled  href="" title="Answer to this message">
-							<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="Message Icon">
+						<a class="mail-icon" disabled  href="" title="<?php echo t('msgview.answer'); ?>">
+							<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="<?php echo t('icon.message'); ?>">
 								<path d="M21 4H3a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path>
 								<path d="M1 6l11 7 11-7"></path>
 							</svg>
 						</a>
 						&nbsp;	
-                        <a href="3wid_message_delete.php?id=<?php echo (int)$message_row['id']; ?>&action_token=<?php echo $action_token; ?>" class="trash-icon" title="Delete this message">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="Delete Icon">
+                        <a href="3wid_message_delete.php?id=<?php echo (int)$message_row['id']; ?>&action_token=<?php echo $action_token; ?>" class="trash-icon" title="<?php echo t('msgview.delete'); ?>">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="<?php echo t('icon.delete'); ?>">
                                 <polyline points="3 6 5 6 21 6"></polyline>
                                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                             </svg>
@@ -86,7 +86,7 @@
         e.preventDefault();
         handleGoogleLogin();
         setTimeout(() => {
-            window.location.href = '/login/index.php';
+            window.location.href = '/login/options.php';
         }, 1000);
     });
 </script>

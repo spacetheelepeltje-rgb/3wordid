@@ -32,7 +32,7 @@
 	// The form must come from our own message page (CSRF protection)
 	if (!check_action_token($_POST['action_token'] ?? '')) {
 	   error_log('messageform process: missing or wrong action token for user ' . $data['id']);
-	   header('location:3wid_list.php?message=' . rawurlencode('Your session expired, please send your message again.'));
+	   header('location:3wid_list.php?message=' . rawurlencode(t_plain('mp.session')));
 	   exit;
 	}
 	  
@@ -77,7 +77,7 @@
 	   
 	   //error_log('messages form process csrf_token ' . $_SESSION["csrf_token"]);
 		
-	   header('location:3wid_list.php?message=Thank, you your message to ' . $threeword_data['threeword'] . ' is being processed');
+	   header('location:3wid_list.php?message=' . rawurlencode(t_plain('mp.thanks_to', ['name' => $threeword_data['threeword']])));
 	   
 	} catch (Exception $e) {
 		error_log("Error: " . $e->getMessage());

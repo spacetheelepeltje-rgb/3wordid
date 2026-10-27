@@ -2,6 +2,7 @@
 require_once 'config.php';
 require_once __DIR__ . '/../php/session_boot.php';
 start_app_session();
+require_once __DIR__ . '/../php/i18n.php'; // t(), current_lang(), lang_switcher()
 
 if (current_user_from_session($conn)) {
     header('Location: ../3wid_list.php');
@@ -21,9 +22,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $_POST['password'] ?? '';
 
     if (!hash_equals($_SESSION['csrf_token'], $posted_csrf)) {
-        $error = 'Session expired. Try again.';
+        $error = t_plain('common.session_expired');
     } elseif (!filter_var($email_value, FILTER_VALIDATE_EMAIL) || $password === '') {
-        $error = 'Invalid email or password.';
+        $error = t_plain('elogin.invalid');
     } else {
         $email_hash = md5($email_value);
 
@@ -34,9 +35,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (!$user || empty($user['password_hash']) || !password_verify($password, $user['password_hash'])) {
             if ($user && empty($user['password_hash'])) {
-                $error = 'This account uses Google. Go back and continue with Google.';
+                $error = t_plain('elogin.google_account');
             } else {
-                $error = 'Invalid email or password.';
+                $error = t_plain('elogin.invalid');
             }
         } else {
            establish_user_session($conn, (int)$user['id'], $email_value);
@@ -50,11 +51,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo current_lang(); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign in — 3WordID</title>
+    <title><?php echo t('elogin.title'); ?></title>
     <link rel="icon" type="image/x-icon" href="../img/favicon.ico">
     <link href="/css/inter.css" rel="stylesheet">
     <style>
@@ -91,32 +92,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <header class="site-header">
         <a class="brand" href="../index.php"><span class="brand-mark"><img width='35' src='https://3WordID.com/img/3wid_big.png'></span>3WordID</a>
   
-        <a class="btn-header" href="../index.php">Home page</a>
+        <span><?php echo lang_switcher(); ?><a class="btn-header" href="../index.php"><?php echo t('login.home'); ?></a></span>
     </header>
 
     <main class="wrap">
-        <div class="eyebrow">Account</div>
-        <h1>Sign in</h1>
-        <p class="sub">Use the email and password you registered with.</p>
+        <div class="eyebrow"><?php echo t('login.account'); ?></div>
+        <h1><?php echo t('elogin.h1'); ?></h1>
+        <p class="sub"><?php echo t('elogin.sub'); ?></p>
 
         <?php if ($error !== ''): ?>
             <div class="flash"><?php echo htmlspecialchars($error, ENT_QUOTES, 'UTF-8'); ?></div>
         <?php endif; ?>
 
         <form class="card" method="post" action="email_login.php" autocomplete="on">
-            <label for="email">Email</label>
+            <label for="email"><?php echo t('login.email'); ?></label>
             <input id="email" name="email" type="email" required maxlength="255" placeholder="you@example.com" value="<?php echo htmlspecialchars($email_value, ENT_QUOTES, 'UTF-8'); ?>">
 
-            <label for="password">Password</label>
-            <input id="password" name="password" type="password" required placeholder="Your password">
+            <label for="password"><?php echo t('login.password'); ?></label>
+            <input id="password" name="password" type="password" required placeholder="<?php echo t('elogin.password_ph'); ?>">
 
             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8'); ?>">
-            <button class="btn" type="submit">Sign in</button>
+            <button class="btn" type="submit"><?php echo t('elogin.submit'); ?></button>
         </form>
 
         <p class="hint">
-            No account yet? <a href="email_register.php">Create email account</a><br>
-            <a href="options.php">Use Google instead</a>
+            <?php echo t_raw('elogin.hint1'); ?><br>
+            <?php echo t_raw('login.use_google'); ?>
         </p>
     </main>
 

@@ -2598,31 +2598,34 @@ function send_3wid_list_email($email, $rows) {
 	}
 
 	$lines = array();
-	$lines[] = 'Your 3WordIDs on 3wordid.com:';
+	$lines[] = t_plain('mail.intro');
 	$lines[] = '';
 	if (count($rows) === 0) {
-		$lines[] = '(no 3WordIDs yet)';
+		$lines[] = t_plain('mail.none');
 	}
 	foreach ($rows as $row) {
 		$words = trim((string) $row['threeword']);
 		$url = 'https://3wordid.com/' . implode('.', explode(' ', $words));
 		if ((int) $row['linkthruflag'] === 1 && trim((string) $row['linkthru']) !== '') {
-			$target = 'link: ' . trim((string) $row['linkthru']);
+			$target = t_plain('mail.link') . ' ' . trim((string) $row['linkthru']);
 		} elseif (trim((string) $row['notification']) !== '') {
-			$target = 'notification: ' . trim((string) $row['notification']);
+			$target = t_plain('mail.notification') . ' ' . trim((string) $row['notification']);
 		} else {
-			$target = 'message box';
+			$target = t_plain('mail.message_box');
 		}
-		$state = ((int) $row['enabled'] === 1) ? '' : ' (off)';
+		$state = ((int) $row['enabled'] === 1) ? '' : ' ' . t_plain('mail.off');
 		$lines[] = $words . $state . ' - ' . $url;
 		$lines[] = '  ' . $target;
 		$lines[] = '';
 	}
-	$lines[] = 'You asked for this email on your 3WordID list page.';
-	$lines[] = 'We do not keep your email address in readable form.';
+	$lines[] = t_plain('mail.footer1');
+	$lines[] = t_plain('mail.footer2');
 
 	$body = str_replace("\n", "\r\n", implode("\n", $lines));
-	$subject = 'Your 3WordIDs';
+	$subject = t_plain('mail.subject');
+	if (preg_match('/[^\x20-\x7E]/', $subject)) {
+		$subject = '=?UTF-8?B?' . base64_encode($subject) . '?='; // non-ASCII subject (e.g. Dutch)
+	}
 	$headers = "From: 3WordID <noreply@3wordid.com>\r\n"
 		. "Reply-To: noreply@3wordid.com\r\n"
 		. "MIME-Version: 1.0\r\n"

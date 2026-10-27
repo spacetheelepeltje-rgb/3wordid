@@ -71,7 +71,6 @@ return [
     'home.card3_text' => 'Laat mensen contact met je opnemen zonder dat je je e-mailadres of telefoonnummer deelt. Deel drie woorden en ze kunnen een bericht voor je achterlaten. Berichten blijven in je account, en om er een te sturen zijn geen persoonsgegevens nodig.',
     'home.example' => 'Voorbeeld:',
     'home.public_title' => 'Momenteel openbare 3WordID’s',
-    'home.views' => '{n} weergaven',
     'home.see_more' => 'Meer tonen',
     'home.show_less' => 'Minder tonen',
     'home.faq_title' => 'Vragen',
@@ -170,4 +169,394 @@ return [
     'ext.message_ph' => 'Typ hier je bericht. Wil je antwoord, laat dan contactgegevens achter of log in en maak je eigen 3WordID',
     'ext.hint1' => 'Je bericht wordt getoond aan de eigenaar van deze 3WordID. Je bericht en IP-adres worden opgeslagen en bewaard, ook voor rechtmatige verzoeken van politie en justitie. <a href="/terms.php#data">Lees meer</a>',
     'ext.hint2' => 'Wil je direct antwoord? <a href="{login}">Log in en maak je eigen 3WordID</a>',
+
+    // ---- nav
+    'nav.logout' => 'Uitloggen',
+    'nav.whatsapp_admin' => 'WhatsApp beheerder',
+    'nav.to_home' => 'naar 3wordID.com',
+
+    // ---- common
+    'common.on' => 'Aan',
+    'common.off' => 'Uit',
+    'common.cancel' => 'Annuleren',
+    'common.save' => 'Opslaan',
+    'common.back' => 'Terug',
+    'common.delete' => 'Verwijderen',
+    'common.search' => 'Zoeken',
+    'common.session_expired' => 'Sessie verlopen. Probeer het opnieuw.',
+    'common.login_required' => 'Log eerst in.',
+
+    // ---- list
+    'list.title' => '3WordID — Dashboard',
+    'list.h1' => 'Je 3WordID’s',
+    'list.stat_active' => 'Actieve ID’s',
+    'list.stat_remaining' => 'Resterend',
+    'list.stat_searches' => 'Totaal aantal zoekopdrachten',
+    'list.compose' => 'Bericht schrijven aan een andere 3WID',
+    'list.compose_title' => 'Je moet eerst een 3WordID maken om berichten naar 3WordID’s te kunnen sturen',
+    'list.send_email' => 'Stuur naar mijn e-mail',
+    'list.send_email_title' => 'Mail jezelf een lijst met je 3WordID’s',
+    'list.none' => 'Nog geen 3WordID’s. Rechtsboven.',
+    'list.one_only' => 'Gebruikers zonder abonnement kunnen maar één 3WID maken',
+    'list.create_title' => 'Maak een 3WordID ({n} resterend)',
+    'list.create' => '3WordID maken',
+    'list.row_title' => 'id: {id} weergaven: {views} aangemaakt: {created} dagen tot verlopen: {days}',
+    'list.visit_title' => 'Ga naar de doorverwijssite: {url}',
+    'list.copy_aria' => 'Kopieer URL naar klembord',
+    'list.copy_for' => 'Kopieer URL voor {words}',
+    'list.edit_title' => '3WordID bewerken',
+    'list.disable_title' => 'Uitschakelen, de 3wid staat nu aan',
+    'list.enable_title' => 'Inschakelen, de 3wid staat nu uit',
+    'list.messages_title' => '{n} berichten voor deze 3WordID',
+    'list.delete_title' => '3WordID verwijderen',
+    'list.pro' => 'Wil je deze app professioneel gebruiken, neem dan contact op met onze beheerder via <a href=\'mailto:frits@rincker.nl\'>frits@rincker.nl</a>. We werken aan ons abonnementsproces.',
+    'list.admin_all' => 'Alle 3WordID’s',
+    'list.admin_find' => 'Zoek een 3WordID of eigenaar',
+    'list.admin_find_aria' => 'Zoek in alle 3WordID’s',
+    'list.confirm_delete_this' => 'deze 3WordID',
+    'list.confirm_delete' => '“{name}” verwijderen?
+
+De URL, mededeling en berichtenbox van deze woorden worden verwijderd. Dit kan niet ongedaan worden gemaakt.',
+    'list.email_expired' => 'Sessie verlopen. Probeer het opnieuw.',
+    'list.email_unavailable' => 'E-mail versturen is nog niet beschikbaar. Probeer het later opnieuw.',
+    'list.email_no_session' => 'E-mail is niet beschikbaar. Log uit en log opnieuw in om het te gebruiken.',
+    'list.email_already' => 'Al verstuurd. Over een paar minuten kun je het opnieuw versturen.',
+    'list.email_sent' => 'Je 3WordID-lijst is naar je e-mail gestuurd.',
+    'list.email_failed' => 'Het versturen van de e-mail is mislukt. Probeer het later opnieuw.',
+
+    // ---- home
+    'home.views_one' => '{n} weergave',
+    'home.views_other' => '{n} weergaven',
+
+    // ---- js
+    'js.clicked' => 'Bezig met versturen…',
+    'js.add_exists' => 'Deze 3WordID bestaat al',
+    'js.add_new' => 'Deze 3WordID is nieuw',
+    'js.add_need_3wid' => 'Vul een 3WordID in',
+    'js.add_no_forward' => 'Je kunt geen doorverwijzing naar een 3WordID gebruiken',
+    'js.bad_url' => 'URL ontbreekt of is ongeldig',
+    'js.max_three' => 'Het maximum is drie woorden',
+    'js.bad_email' => 'Vul een geldig e-mailadres in',
+    'js.need_notification' => 'Typ minstens iets in het mededelingenveld',
+    'js.processing' => 'Bezig…',
+    'js.su_need_email' => 'Vul je e-mailadres in (Google-login)',
+    'js.su_bad_email' => 'Vul een geldig e-mailadres in (Google-login)',
+    'js.su_need_terms' => 'Ga akkoord met de voorwaarden (vakje)',
+    'js.su_failed' => 'Versturen mislukt',
+    'js.pc_need_consent' => 'Geef toestemming door het vakje aan te vinken',
+
+    // ---- add
+    'add.title' => 'ID maken — 3WordID',
+    'add.eyebrow' => 'Nieuwe 3WordID',
+    'add.h1' => '3WordID maken',
+    'add.subhead' => 'Kies drie woorden, eventueel een bericht, en hoe deze ID zich moet gedragen.',
+    'add.threeword' => '3WordID',
+    'add.notification' => 'Mededeling',
+    'add.notification_ph' => 'Typ hier je bericht',
+    'add.linkthru' => 'Doorverwijs-URL',
+    'add.linkthru_ph' => 'Vul de doorverwijs-URL in',
+    'add.use_forward' => 'Doorverwijs-URL gebruiken',
+    'add.link_form' => 'Koppel 3WordID aan het berichtenformulier (vergeet niet het te activeren)',
+    'add.private' => 'Houd 3WordID privé (wordt nergens gepubliceerd)',
+    'add.subscribe_hint' => 'Je kunt een abonnement nemen om te zorgen dat je 3WordID niet door een andere gebruiker wordt overgenomen of verwijderd. Hij verloopt na twee weken. Een abonnement kun je afsluiten via <a href=\'https://3wordid.com/3wid_signup.php\'>het aanmeldformulier</a>.',
+    'add.create' => 'Maken',
+
+    // ---- edit
+    'edit.wrong_user' => 'Dit is niet de juiste 3wid-id voor deze gebruiker',
+    'edit.back_user' => 'Terug naar de 3WordID’s van deze gebruiker',
+    'edit.title' => '3WordID bewerken',
+    'edit.update' => 'Bijwerken',
+    'edit.h1' => 'Bewerk deze 3WordID',
+    'edit.lede' => 'Wijzig het bericht, de bestemmings-URL en de zichtbaarheid. De naam van drie woorden blijft hetzelfde.',
+    'edit.url_is' => 'URL is {url}',
+    'edit.threeword_ph' => 'Je 3WordID',
+    'edit.qr_hash' => 'Gehashte QR maken',
+    'edit.qr_readable' => 'Leesbare QR maken',
+    'edit.message' => 'Bericht',
+    'edit.linkthru_ph' => 'Vul de doorverwijs-URL in met HTTPS://',
+    'edit.link_form' => 'Koppel 3WordID aan berichtenformulier',
+    'edit.private' => 'Houd 3WordID privé',
+
+    // ---- credit
+    'credit.title' => 'Formulierpagina - 3WordID.com',
+    'credit.account_title' => 'Naar accountpagina',
+    'credit.current' => 'Je huidige tegoed is {amount} €',
+    'credit.p1' => 'Als je niet hebt betaald, kan je 3WordID worden verwijderd of door een andere gebruiker worden overgenomen. Hij verloopt na twee weken.',
+    'credit.p2' => 'Je kunt kiezen voor een <a href="https://www.patreon.com/roboeconomics">abonnement via Patreon</a>. Je tegoed hier blijft dan nul. Het verwerken duurt ongeveer een dag.',
+    'credit.p3' => 'Om tegoed toe te voegen kun je nu een bankoverschrijving doen, maar er komen meer opties. Voor grotere accounts is uiteraard ook een factuur mogelijk.',
+    'credit.p4' => 'Stuur een e-mail naar <a href="mailto:3wordid@climatebabes.com">ons e-mailadres</a> voor de prijzen. Eén 3WordID kost $10 per jaar, maar voor grotere aantallen zijn kortingen mogelijk.',
+    'credit.paypal' => 'Je kunt met PayPal een jaarabonnement nemen van 12 euro (inclusief administratiekosten). Zorg dat je naam hetzelfde is als bij je Google-account. Wil je ons helpen, stuur dan een e-mail naar <a href=\'mailto:3wordid@climatebabes.com\'>3wordid@climatebabes.com</a> met je naam en e-mailadres, zodat we de betaling goed kunnen verwerken (PayPal geeft ons geen goede identificatie tenzij we meer betalen). We werken aan een koppeling met PayPal, dus voorlopig helpt het als je je transactiegegevens opstuurt, zodat we alles goed verwerken.',
+    'credit.qr' => 'In Europa kun je ook met deze QR-code een betaallink vinden. Je kunt hem ook vinden met de 3WordID \'one year payment\'. Stuur ons ook een <a href="mailto:3wordid@climatebabes.com">e-mail</a>. We maken hier binnenkort een formulier om dit makkelijker te maken.',
+    'credit.thanks' => 'Bedankt voor je abonnement. Je ziet binnenkort de bevestiging in je 3WordID-profiel ;-)',
+
+    // ---- msgview
+    'msgview.title' => 'Formulierpagina - 3WordID.com',
+    'msgview.home_title' => 'Naar de homepage van 3wordID.com, maak je eigen!',
+    'msgview.answer' => 'Antwoord op dit bericht',
+    'msgview.delete' => 'Dit bericht verwijderen',
+
+    // ---- notif
+    'notif.home' => 'Naar de homepage',
+    'notif.lede' => 'Mededeling bij deze 3WordID:',
+
+    // ---- lm
+    'lm.title' => 'Berichten — 3WordID',
+    'lm.eyebrow' => 'Inbox',
+    'lm.h1' => 'Berichten voor \'{name}\'',
+    'lm.subhead' => 'Klik op een titel om het bericht te lezen.',
+    'lm.user' => 'Gebruiker',
+    'lm.title_message' => 'Titel/Bericht',
+    'lm.actions' => 'Acties',
+    'lm.reply' => 'Antwoord aan {name}',
+    'lm.full_image' => 'Volledige afbeelding',
+    'lm.none' => 'geen berichten',
+
+    // ---- signup
+    'signup.need_login' => 'Je moet inloggen om je te abonneren',
+    'signup.title' => 'Formulierpagina - 3WordID.com',
+    'signup.h' => '3WordID.com-abonnement',
+    'signup.p1' => 'Hier kun je je abonneren op 3WordID.com, zodat je gekozen ID’s niet verlopen. De kosten zijn ~18 euro per jaar of ~$1,50 per maand per 3WordID (Patreon is momenteel de voorkeursmethode). We koppelen binnenkort meer gangbare systemen en je kunt altijd direct overmaken.',
+    'signup.p2' => 'Ben je <a class="reseller-link" href="3wid_reseller.php">reseller</a>, vul dan hieronder je code in (je vindt de code op de overzichtspagina als je inlogt). Om te kunnen doorverkopen moet je zelf geabonneerd zijn.',
+    'signup.p3' => 'De voorwaarden op de <a href="https://3wordid.com/terms.php">voorwaardenpagina</a> zijn van toepassing.',
+    'signup.email_ph' => 'Je e-mailadres van je Google-login',
+    'signup.reseller_ph' => 'Vul de resellercode in, indien van toepassing',
+    'signup.remarks_ph' => 'Opmerkingen',
+    'signup.agree' => 'Ik heb de <a href="https://3wordid.com/terms.php">voorwaardenpagina</a> gelezen en ga ermee akkoord',
+    'signup.select_payment' => 'Kies een betaalmethode',
+    'signup.pay_bank' => 'Bankoverschrijving',
+    'signup.pay_other' => 'Anders',
+    'signup.submit' => 'Abonneren',
+    'signup.invalid_email' => 'Ongeldig e-mailadres: vul een geldig e-mailadres in',
+
+    // ---- common
+    'common.error' => 'Fout: {msg}',
+
+    // ---- signup
+    'signup.processed' => 'Je aanmelding is verwerkt',
+
+    // ---- pay
+    'pay.bank' => 'In Europa kun je deze QR-code gebruiken voor de betaallink (gaat momenteel naar mijn persoonlijke rekening, F. Rincker). Je kunt de link ook vinden met de 3WordID \'one year payment\' op 3WordID. Voor een echte bankoverschrijving bij grotere aantallen stuur je een e-mail naar <a href="mailto:3wordid@climatebabes.com">ons</a>.',
+    'pay.other' => 'Andere methoden.',
+    'pay.paypal' => 'Je kunt met PayPal een jaarabonnement nemen van ({price}) euro. Voeg de code toe aan de betaling ({code}).',
+    'pay.patreon' => 'Volg deze link om je aan te melden op Patreon: <a href="https://www.patreon.com/c/roboeconomics/membership">Naar Roboeconomics Patreon</a>',
+
+    // ---- reseller
+    'reseller.h' => 'Word reseller van 3WordID.com',
+    'reseller.l1' => 'Log in en maak een 3WordID',
+    'reseller.l2' => 'Zoek anderen die een 3WordID willen',
+    'reseller.l3' => 'Laat ze zich <a href="https://3wordid.com/3wid_signup.php">aanmelden</a> en <a href="https://www.patreon.com/roboeconomics">patreon</a> worden met jouw code',
+    'reseller.l4' => 'Als je 20 mensen aanmeldt die ook inloggen (zodat het e-mailadres beschikbaar is om te koppelen), krijg je uitbetaald.',
+    'reseller.p1' => 'Elke gebruiker die inlogt krijgt een resellercode. Je kunt anderen helpen zich aan te melden voor 3WordID.com en ze jouw resellercode laten gebruiken. Gebruiken ze die en betalen ze hun abonnement, dan ontvang je een vergoeding (20%, uitbetaald na 20 aanmeldingen, ~$48,-). Meld je er meer dan 20 tegelijk aan, dan kun je meer krijgen. Voor grote klanten kun je ons mailen op <a href="mailto:3wordid@climatebabes.com">3wordid@climatebabes.com</a>.',
+    'reseller.p2' => 'Meer over het promoten van 3WordID vind je <a href="https://x.com/climatebabes/status/1915321707327349114">hier (X.com)</a>.',
+
+    // ---- common
+    'common.log_in' => 'Inloggen',
+
+    // ---- login
+    'login.title' => 'Inloggen — 3WordID',
+    'login.eyebrow' => 'Beheer je 3WordID’s',
+    'login.h1' => 'Inloggen',
+    'login.sub' => 'Kies Google of een e-mailaccount. Je e-mailadres wordt opgeslagen als eenrichtings-hash, niet als leesbare tekst, dus we kunnen je geen e-mails sturen.',
+    'login.google_p' => 'Gebruik je bestaande Google-account.',
+    'login.google_btn' => 'Inloggen met Google',
+    'login.or' => 'of',
+    'login.email_h' => 'Inloggen met e-mail',
+    'login.email_p' => 'Registreer één keer en log daarna in met je wachtwoord.',
+    'login.email_signin' => 'Inloggen met e-mail',
+    'login.email_register' => 'Registreren met e-mail',
+
+    // ---- elogin
+    'elogin.invalid' => 'Ongeldig e-mailadres of wachtwoord.',
+    'elogin.google_account' => 'Dit account gebruikt Google. Ga terug en ga verder met Google.',
+    'elogin.title' => 'Inloggen — 3WordID',
+
+    // ---- login
+    'login.home' => 'Startpagina',
+    'login.account' => 'Account',
+
+    // ---- elogin
+    'elogin.h1' => 'Inloggen',
+    'elogin.sub' => 'Gebruik het e-mailadres en wachtwoord waarmee je je hebt geregistreerd.',
+
+    // ---- login
+    'login.email' => 'E-mail',
+    'login.password' => 'Wachtwoord',
+
+    // ---- elogin
+    'elogin.password_ph' => 'Je wachtwoord',
+    'elogin.submit' => 'Inloggen',
+    'elogin.hint1' => 'Nog geen account? <a href="email_register.php">Maak een e-mailaccount</a>',
+
+    // ---- login
+    'login.use_google' => '<a href="options.php">Gebruik liever Google</a>',
+
+    // ---- reg
+    'reg.bad_email' => 'Vul een geldig e-mailadres in.',
+    'reg.short' => 'Het wachtwoord moet minstens 10 tekens hebben.',
+    'reg.mismatch' => 'De wachtwoorden komen niet overeen.',
+    'reg.exists' => 'Dat account bestaat al. Log in.',
+    'reg.google' => 'Dit e-mailadres gebruikt al Google. Ga verder met Google.',
+    'reg.failed' => 'Het account kon niet worden aangemaakt. Controleer of de kolom password_hash bestaat.',
+    'reg.title' => 'Account maken — 3WordID',
+    'reg.h1' => 'Account maken',
+    'reg.sub' => 'E-mail en wachtwoord. Het adres wordt gehasht voordat het wordt opgeslagen. Ongebruikte accounts worden na 3 maanden gedeactiveerd.',
+    'reg.password_ph' => 'Minstens 10 tekens',
+    'reg.min10' => 'Minimaal 10 tekens.',
+    'reg.confirm' => 'Bevestig wachtwoord',
+    'reg.repeat_ph' => 'Herhaal wachtwoord',
+    'reg.submit' => 'Account maken',
+    'reg.hint1' => 'Al geregistreerd? <a href="email_login.php">Inloggen</a>',
+
+    // ---- welcome
+    'welcome.expired' => 'Inloggen verlopen. Probeer Google opnieuw.',
+    'welcome.failed' => 'Inloggen met Google is mislukt.',
+    'welcome.spam' => 'Sorry, je e-mailadres staat op de spam-misbruiklijst!',
+
+    // ---- pc
+    'pc.title' => 'Privacytoestemming — 3WordID',
+    'pc.eyebrow' => 'VERPLICHT',
+    'pc.h1' => 'Toestemming voor privacy en dienst',
+    'pc.lead' => 'Lees dit voordat je verdergaat. Door het vakje aan te vinken accepteer je de dienst zoals die is en sta je opslag toe van de gegevens hieronder.',
+    'pc.flash' => '3WordID koppelt alleen drie woorden aan een URL, een mededeling of een berichtenformulier. Je accepteert de site zoals die is. Aan geen enkele interactie met deze site kunnen rechten worden ontleend.',
+    'pc.data_h' => 'Gegevensbeleid',
+    'pc.data_p1' => 'Om de opzoektool te laten werken slaan we persoonsgegevens op die Google aanlevert en gegevens die je zelf invoert:',
+    'pc.li1' => 'voornaam en achternaam;',
+    'pc.li2' => 'een link naar je avatar;',
+    'pc.li3' => 'je e-mailadres, opgeslagen als eenrichtings-hash, niet als leesbare tekst; tijdens je sessie wordt het versleuteld bewaard en alleen gebruikt om te versturen wat je aanvraagt;',
+    'pc.li4' => 'berichten die je verstuurt en ontvangt;',
+    'pc.li5' => 'tekst die je in het mededelingenveld van een 3WordID zet;',
+    'pc.li6' => 'de 3WordID’s die je maakt en bijbehorende opzoekgegevens.',
+    'pc.data_p2' => 'We delen deze gegevens alleen met derden als we daartoe wettelijk verplicht zijn, of voor zover nodig om de dienst te hosten en te verwerken — niet om ze te verkopen. We kunnen deze pagina opnieuw tonen zodat je opnieuw kunt bevestigen.',
+    'pc.data_p3' => 'Berichten, IP-adressen en accountgegevens worden gelogd en bewaard, ook nadat een account is gedeactiveerd, zodat we kunnen reageren op rechtmatige verzoeken van opsporingsdiensten.',
+    'pc.func_h' => 'Functionaliteitsbeleid',
+    'pc.func_p1' => 'Als je het vakje aanvinkt accepteer je de dienst zoals die wordt aangeboden. Functies kunnen op elk moment veranderen of stoppen in het belang van de site. We doen redelijkerwijs ons best om aan te bieden wat we beschrijven. Dat is geen garantie.',
+    'pc.func_p2' => 'Betaalde accounts gaan voor op gratis accounts bij het reserveren van een 3WordID. 3WordID’s kunnen per land, stad of andere regio worden gelokaliseerd. De site-eigenaar kan een 3WordID op elk moment beëindigen als die dat nodig acht. Onbetaalde ID’s kunnen verlopen of door een andere gebruiker worden overgenomen. Berichten zijn momenteel niet versleuteld — gebruik ze daarnaar.',
+    'pc.func_p3' => 'De volledige voorwaarden staan op de <a href="terms.php">voorwaardenpagina</a>. Die voorwaarden zijn van toepassing op deze toestemming.',
+    'pc.consent' => 'Ik geef toestemming voor opslag van mijn gegevens zoals beschreven in het gegevensbeleid hierboven, en ik ga akkoord met het functionaliteitsbeleid hierboven, inclusief gebruik van de site zoals die is.',
+    'pc.submit' => 'Versturen',
+    'pc.meta' => 'Je kunt deze pagina verlaten zonder het vakje aan te vinken. Het account wordt pas voor de dienst ingeschakeld als je toestemming geeft.',
+    'pc.footer' => 'Aan het gebruik van deze site kunnen geen rechten worden ontleend. Dienst wordt geleverd zoals die is.',
+
+    // ---- admin
+    'admin.not_allowed' => 'Niet toegestaan.',
+    'admin.dashboard' => 'Dashboard',
+    'admin.all_3wids' => 'Alle 3WordID’s',
+    'admin.to_home' => 'naar 3wordID.com',
+    'admin.search_ph' => 'Zoek 3WordID’s op woorden, naam van de eigenaar of gebruikers-id',
+    'admin.search_btn' => 'Zoek 3WordID’s',
+    'admin.3wids' => '3WordID’s',
+
+    // ---- common
+    'common.edit' => 'Bewerken',
+
+    // ---- ul
+    'ul.title' => '3WordID — Gebruikers',
+    'ul.sort_newest' => 'Nieuwste eerst',
+    'ul.sort_oldest' => 'Oudste eerst',
+    'ul.h1' => 'Gebruikers',
+    'ul.lede' => 'google_users-records. Alleen voor admin-id {id}.',
+    'ul.this_page' => 'Deze pagina',
+    'ul.page' => 'Pagina',
+    'ul.order' => 'Volgorde',
+    'ul.prev' => 'Vorige',
+    'ul.next' => 'Volgende',
+    'ul.empty' => 'Geen gebruikers voor deze pagina.',
+    'ul.col_id' => 'Id',
+    'ul.col_name' => 'Naam',
+    'ul.col_login' => 'Inlog via',
+    'ul.col_type' => 'Type',
+    'ul.col_credit' => 'Tegoed',
+    'ul.col_last' => 'Laatste login',
+    'ul.col_consent' => 'Toestemming',
+    'ul.never' => 'nooit',
+    'ul.type' => 'type',
+    'ul.show_3wids' => 'Toon de 3WordID’s van deze gebruiker',
+    'ul.no_consent' => 'Geen toestemming',
+
+    // ---- u3
+    'u3.not_found' => 'Gebruiker niet gevonden.',
+    'u3.user_n' => 'Gebruiker #{id}',
+    'u3.title' => '3WordID — 3WordID’s van {name}',
+    'u3.back' => 'Terug naar gebruikerslijst',
+    'u3.h1' => '3WordID’s van {name}',
+    'u3.edit_user' => 'Gebruiker bewerken',
+    'u3.on' => 'Ingeschakeld',
+    'u3.allowed' => 'Toegestaan',
+    'u3.empty' => 'Deze gebruiker heeft geen 3WordID’s.',
+    'u3.fwd_unused' => '(doorverwijzing niet in gebruik)',
+    'u3.no_forward' => 'Geen doorverwijslink',
+
+    // ---- ue
+    'ue.max_label' => 'Extra toegestane 3WordID’s (max_3wids)',
+    'ue.max_hint' => 'De gebruiker kan dit aantal + 1 3WordID’s maken.',
+    'ue.type_label' => 'Gebruikerstype (user_type)',
+    'ue.type_hint' => '0 = gratis, 9 = geblokkeerd. Andere getallen naar eigen gebruik.',
+    'ue.credit_label' => 'Tegoed in € (credit)',
+    'ue.name_label' => 'Naam (full_name)',
+    'ue.session' => 'Sessie verlopen, probeer het opnieuw.',
+    'ue.err_whole' => '{col} moet een geheel getal zijn',
+    'ue.err_neg' => 'max_3wids mag niet negatief zijn',
+    'ue.err_num' => '{col} moet een getal zijn',
+    'ue.not_saved' => 'Niet opgeslagen: {errors}.',
+    'ue.nothing' => 'Niets gewijzigd.',
+    'ue.saved' => 'Gebruiker opgeslagen.',
+    'ue.failed' => 'Bijwerken mislukt, zie het foutenlogboek.',
+    'ue.title' => '3WordID — Gebruiker {id} bewerken',
+    'ue.all_users' => 'Alle gebruikers',
+    'ue.user_3wids' => '3WordID’s van deze gebruiker',
+    'ue.admin' => 'Beheer',
+    'ue.h1' => 'Gebruiker {id} bewerken',
+    'ue.subhead' => 'Alleen de velden hieronder kunnen worden gewijzigd. De overige gegevens staan ter informatie en worden nooit teruggeschreven.',
+    'ue.new_password' => 'Nieuw wachtwoord',
+    'ue.keep_password' => 'Laat leeg om het huidige wachtwoord te behouden.',
+    'ue.save' => 'Gebruiker opslaan',
+    'ue.other' => 'Overige gegevens (alleen lezen)',
+    'ue.empty' => '(leeg)',
+
+    // ---- aa
+    'aa.title' => '3WordID — Alle 3WordID’s',
+    'aa.lede' => 'Zoek op de drie woorden, de naam van de eigenaar of het gebruikers-id van de eigenaar. Alleen voor admin-id {id}.',
+    'aa.ph' => 'bijv. apple tree house, Frits of 75',
+    'aa.clear' => 'Wissen',
+    'aa.all' => 'Alles',
+    'aa.empty' => 'Geen 3WordID’s gevonden.',
+    'aa.owner_title' => 'Alle 3WordID’s van deze gebruiker',
+    'aa.user_n' => 'gebruiker #{id}',
+
+    // ---- common
+    'common.session_expired_retry' => 'Sessie verlopen, probeer het opnieuw.',
+    'common.login_expired' => 'Inloggen verlopen. Log opnieuw in.',
+
+    // ---- edit
+    'edit.saved' => '3WordID opgeslagen.',
+
+    // ---- mp
+    'mp.session' => 'Je sessie is verlopen, verstuur je bericht opnieuw.',
+    'mp.thanks_to' => 'Bedankt, je bericht aan {name} wordt verwerkt',
+    'mp.thanks' => 'Bedankt, je bericht wordt verwerkt',
+    'mp.wait_read' => 'Je kunt pas een nieuw bericht sturen als het vorige is gelezen',
+    'mp.create_first' => 'Maak eerst een 3WordID om een bericht vanaf te sturen',
+
+    // ---- mail
+    'mail.intro' => 'Je 3WordID’s op 3wordid.com:',
+    'mail.none' => '(nog geen 3WordID’s)',
+    'mail.link' => 'link:',
+    'mail.notification' => 'mededeling:',
+    'mail.message_box' => 'berichtenformulier',
+    'mail.off' => '(uit)',
+    'mail.footer1' => 'Je hebt deze e-mail aangevraagd op je 3WordID-lijstpagina.',
+    'mail.footer2' => 'We bewaren je e-mailadres niet in leesbare vorm.',
+    'mail.subject' => 'Je 3WordID’s',
+
+    // ---- icon
+    'icon.logout' => 'Uitlogicoon',
+    'icon.login' => 'Inlogicoon',
+    'icon.link' => 'Linkicoon',
+    'icon.edit' => 'Bewerkicoon',
+    'icon.toggle' => 'Schakelicoon',
+    'icon.message' => 'Berichticoon',
+    'icon.delete' => 'Verwijdericoon',
+    'icon.portrait' => 'Gebruikersfoto',
+    'icon.logo' => 'Logo',
+    'icon.logo_3wid' => '3WordID-logo',
 ];

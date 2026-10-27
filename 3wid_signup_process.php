@@ -45,7 +45,7 @@ try {
         $email = '';
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
 		header('location:' .   $main_url);
-        die("Invalid email: must be a valid email address");
+        die(t('signup.invalid_email'));
     }
     
     $code = substr(md5($email),-4);
@@ -56,9 +56,9 @@ try {
    //header('location:' . $main_url);
    //3wid_list.php?csrf_token=' . $_POST['csrf_token']);
 } catch (Exception $e) {
-    echo "Error: " . $e->getMessage();
+    echo t('common.error', ['msg' => $e->getMessage()]);
 }
 
-header('location:3wid_signup_payment.php?payment_method=' . $payment_method . '&message=Your signup has been processed&code='. $code);
+header('location:3wid_signup_payment.php?payment_method=' . $payment_method . '&message=' . rawurlencode(t_plain('signup.processed')) . '&code='. $code);
 
 ?>

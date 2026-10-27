@@ -21,7 +21,7 @@
 
 ?>  
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo current_lang(); ?>">
 <head>
     <meta charset="UTF-8"> 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -145,19 +145,20 @@
 </head>
 <body>
     <header class="site-header">
-        <a class="brand" href="<?php echo $main_url;?>" title="To 3wordID.com homepage, create your own!">
+        <a class="brand" href="<?php echo $main_url;?>" title="<?php echo t('msgview.home_title'); ?>">
             <span class="brand-mark"><img width="35" src="https://3WordID.com/img/3wid_big.png" alt=""></span>
             3WordID
         </a>
         <div class="header-actions">
-            <a class="btn btn-primary" href="<?php echo $main_url; ?>">To Homepage</a>
+            <?php echo lang_switcher(); ?>
+            <a class="btn btn-primary" href="<?php echo $main_url; ?>"><?php echo t('notif.home'); ?></a>
         </div>
     </header>
 
     <main class="wrap">
         
         <h1><?php echo htmlspecialchars($word_row["threeword"]); ?></h1>
-        <p class="lede">Notification attached to this 3WordID:</p>
+        <p class="lede"><?php echo t('notif.lede'); ?></p>
 
         <div class="panel search-container">
             <div id="textbox"><?php echo $word_row["notification"]; ?></div>
