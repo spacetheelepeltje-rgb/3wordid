@@ -483,7 +483,6 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
                 <?php if ((int)$data['id'] === 4) { ?>
                 <span class="admin-links">
                     <a href="3wid_list_ips.php">I</a>
-                    <a href="3wid_signup_list.php">S</a>
                     <a href="3wid_user_list.php">U</a>
                     <a href="3wid_admin_3wids.php" title="<?php echo t('list.admin_all'); ?>">A</a>
                 </span>

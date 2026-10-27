@@ -467,4 +467,19 @@ Se eliminarán la URL, la notificación y el buzón de mensajes de estas palabra
     'icon.portrait' => 'Retrato del usuario',
     'icon.logo' => 'Logotipo',
     'icon.logo_3wid' => 'Logotipo de 3WordID',
+
+    // ---- ip (admin IP list)
+    'ip.title' => '3WordID — Lista de IP',
+    'ip.top20' => 'Las 20 IP principales',
+    'ip.error_log' => 'Registro de errores',
+    'ip.delete_log' => 'Eliminar el registro de errores',
+    'ip.confirm_delete_log' => '¿Eliminar el registro de errores?',
+    'ip.col_id' => 'ID',
+    'ip.col_ip' => 'IP',
+    'ip.col_counter' => 'Contador',
+    'ip.col_status' => 'Estado',
+    'ip.blocked' => 'Bloqueada',
+    'ip.ok' => 'Ok',
+    'ip.block' => 'Bloquear',
+    'ip.expired' => 'La sesión ha caducado. Recargue la página e inténtelo de nuevo.',
 ];

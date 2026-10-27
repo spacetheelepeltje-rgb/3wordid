@@ -20,6 +20,10 @@ _Status as of 27 October 2026._
 - [x] Homepage redesign: live example, 3-step how it works, concrete use cases, curated public list, trust strip and FAQ (PR #17, re-opened from #15)
 - [x] Multi-language, English and Dutch, on the public pages: language from the browser, EN | NL switch, hreflang, one text file per language (PR #18)
 - [x] Multi-language on all remaining pages: login, list, add and edit, signup, credit, consent and admin; logged-out users go to `login/options.php` (PR #19)
+- [x] Server-only files added to GitHub: `plans.php` and the IP list; `errors.php` ignored (PR #20)
+- [x] IP list admin-only (user 4), Block and Delete log as POST with a token, IP and signup lists translated (PR #21)
+- [x] French and Spanish added: EN | NL | FR | ES, machine-quality legal texts still to be proofread (PR #22)
+- [x] Signup list removed together with the reseller idea (this clean-up)
 
 ## In review
 - [ ] Header and footer links: shared header and footer with Plans, Terms and Get started (PR #16, needs updating for the language switch)
@@ -28,9 +32,8 @@ _Status as of 27 October 2026._
 ## Next
 | Item | Area | Effort | Notes |
 |---|---|---|---|
-| Add server-only files to GitHub | Clean-up | Small | `plans.php`, `3wid_show_qr.php`, `3wid_list_ips.php`, `3wid_signup_list.php` (branch `add-server-files`); `3wid_list_ips.php` needs an admin-only check and must not stay public |
+| Add server-only files to GitHub | Clean-up | Small | Done (PR #20): `plans.php`, `3wid_list_ips.php`; `3wid_signup_list.php` was removed with the reseller idea. `3wid_show_qr.php` stays server-only for now, because `index.php?hash=` redirects to it for hashed QR links |
 | Fix `plans.php` | Privacy | Small | Still says emails are encrypted (they're hashed) and loads Google Fonts |
-| Repoint QR no-hash redirect | Clean-up | Small | `3wid_show_qr.php` without a hash still forwards to `index_2.php`; point it to `index.php` |
 | Make `errors.php` admin-only | Security | Small | Blocked through `.htaccess` for now (PR #8) |
 | Provable consent | GDPR | Small | Store a timestamp and terms version when a user accepts |
 | Contract as the legal basis | GDPR | Small | Account data is processed to deliver the service |

@@ -560,7 +560,7 @@ The URL, notification, and message box for these words will be removed. This can
     'icon.logo' => 'Logo',
     'icon.logo_3wid' => '3WordID Logo',
 
-    // ---- ip (admin IP list) and sl (admin signup list)
+    // ---- ip (admin IP list)
     'ip.title' => '3WordID — IP list',
     'ip.top20' => 'Top 20 IPs',
     'ip.error_log' => 'Error log',
@@ -574,11 +574,4 @@ The URL, notification, and message box for these words will be removed. This can
     'ip.ok' => 'Ok',
     'ip.block' => 'Block',
     'ip.expired' => 'Session expired. Reload the page and try again.',
-    'sl.title' => '3WordID — Signups',
-    'sl.col_id' => 'ID',
-    'sl.col_email' => 'Email',
-    'sl.col_code' => 'Code',
-    'sl.col_status' => 'Status',
-    'sl.active' => 'active',
-    'sl.not_active' => 'not active',
 ];
