@@ -166,7 +166,6 @@ $more_list = array_values($by_words);
                     <input id="threewords" name="threewords" type="text" class="search-bar" placeholder="first  ·  second  ·  third" value="<?= htmlspecialchars($threewords); ?>" autocomplete="off">
                     <button type="submit" id="submitBtn">Lookup</button>
                 </div>
-                <div class="search-hints">Try one of the three-word IDs listed below</div>
                 <div class="example-row">Try an example: <button type="button" id="tryExample" class="example-btn" data-words="davinci mona lisa">Try &ldquo;davinci mona lisa&rdquo;</button></div>
                 <button type="button" id="createBtn" class="create-link" data-share-url="<?php echo $loginUrl; ?>">Create your own 3WordID →</button>
                 <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
