@@ -1,7 +1,7 @@
 # 3WordID
 
 3WordID.com links three words to a URL, a notification or a message box. PHP and MySQL.
-See `ROADMAP.md` for what is planned.
+See `ROADMAP.md` for what is planned. See `DEPLOY.md` to check that an upload is complete.
 
 ## Languages
 
