@@ -24,7 +24,7 @@
  } 
  */
  
-if($data['id'] != 4) {
+if(empty($data) || $data['id'] != 4) {
 
 	header('location:index.php?message=Could not log you in');
 	//error_log('list var data is null');
@@ -48,11 +48,12 @@ if($data['id'] != 4) {
  //error_log(json_encode($list));
 ?>   
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo current_lang(); ?>">
 <head>
     <meta charset="UTF-8"> 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3wordid.com</title>
+    <meta name="robots" content="noindex">
+    <title><?php echo t('sl.title'); ?></title>
     <link rel="icon" type="image/x-icon" href="img/favicon.ico">
     <link rel="stylesheet" href="css/styles_2.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -197,8 +198,9 @@ if($data['id'] != 4) {
 <body>
     <header>
         <div class="top-right">
-            <a href="login/logout.php" class="logout-icon" title="log out <?php echo $data['email']; ?>">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="Logout Icon">
+            <?php echo lang_switcher(); ?>
+            <a href="login/logout.php" class="logout-icon" title="<?php echo t('nav.logout'); ?>">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="<?php echo t('icon.logout'); ?>">
                     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
                     <polyline points="16 17 21 12 16 7"></polyline>
                     <line x1="21" y1="12" x2="9" y2="12"></line>
@@ -208,17 +210,17 @@ if($data['id'] != 4) {
     </header>
     <main>    
 		  <div class="logo">
-			<center><a href='<?php echo $main_url;?>' title="to 3wordID.com"><img width=100 src="img/3wid_big.png"></a><br>   
+			<center><a href='<?php echo $main_url;?>' title="<?php echo t('admin.to_home'); ?>"><img width=100 src="img/3wid_big.png" alt="<?php echo t('icon.logo_3wid'); ?>"></a><br>   
             </center>  
         </div>
        
         <table>
            <thead>
                 <tr>
-                    <th>ID</th>
-                    <th>Email</th>
-                    <th>Code</th>
-                    <th>Status</th>
+                    <th><?php echo t('sl.col_id'); ?></th>
+                    <th><?php echo t('sl.col_email'); ?></th>
+                    <th><?php echo t('sl.col_code'); ?></th>
+                    <th><?php echo t('sl.col_status'); ?></th>
                 </tr>
             </thead>
             <tbody>
@@ -231,21 +233,21 @@ if($data['id'] != 4) {
 					$google_user = db_3wordid_get_google_email($item['email']);
 					
 					if ($google_user ==NULL) {
-						$user_status ='not active';			
+						$user_status = t('sl.not_active');			
 						} else {
-						$user_status ='active';		
+						$user_status = t('sl.active');		
 						}
 				?>
                 <tr>
-                    <td><?php echo $item['id'] ;?></td>
+                    <td><?php echo (int)$item['id'] ;?></td>
                     <td><a href='3wid_edit_user.php?id=<?php 
                     if(isset($google_user['id'])) { 
 						echo $google_user['id'];
 						} else { 
 						echo "";
 						} 
-						echo  "&csrf_token=" . $_SESSION['csrf_token'] . "' title='" . $item['message']  . "'>" .  $item['email'] ;?></a></td>
-                    <td><?php echo $item['reseller_code'] ;?></td>
+						echo  "&csrf_token=" . $_SESSION['csrf_token'] . "' title='" . htmlspecialchars((string)$item['message'], ENT_QUOTES, 'UTF-8')  . "'>" .  htmlspecialchars((string)$item['email'], ENT_QUOTES, 'UTF-8') ;?></a></td>
+                    <td><?php echo htmlspecialchars((string)$item['reseller_code'], ENT_QUOTES, 'UTF-8') ;?></td>
                     <td><a href="3wid_user_list.php?id=<?php 
                     if(isset($google_user['id'])) { 
 						echo $google_user['id'];
