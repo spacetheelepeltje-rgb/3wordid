@@ -358,7 +358,7 @@ button.avatar.photo { cursor: zoom-in; }
     height: 46px;
     border-radius: 50%;
     border: 0;
-    background: var(--navy);
+    background: #00a884; /* WhatsApp's send green */
     color: #fff;
     display: inline-flex;
     align-items: center;
@@ -366,7 +366,8 @@ button.avatar.photo { cursor: zoom-in; }
     cursor: pointer;
     padding: 0 0 0 2px;
 }
-.composer .send:hover, .composer .send:focus-visible { background: var(--navy-hover); outline: none; }
+.composer .send:hover { background: #008f6f; }
+.composer .send:focus-visible { background: #008f6f; outline: 2px solid var(--navy); outline-offset: 2px; }
 .composer .send:disabled { opacity: .6; cursor: default; }
 .composer .c-note { margin: 0 4px 6px; font-size: 12px; color: var(--slate); line-height: 1.4; }
 .composer .consent { display: flex; align-items: flex-start; gap: 7px; margin: 0 4px 6px; font-size: 12px; color: var(--navy); }
