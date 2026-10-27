@@ -153,7 +153,7 @@ return [
     'msg.js_ok_recipient' => 'recipient exists',
     'msg.js_bad_recipient' => 'invalid recipient',
     'msg.js_invalid' => '3wid invalid',
-    'msg.js_clicked' => 'Clicked submit',
+    'msg.js_clicked' => 'Sending…',
     'msg.js_need_title' => 'Please provide a message title',
     'msg.js_need_message' => 'Please provide a message',
     'msg.js_need_3wid' => 'Please provide an 3WordID',
