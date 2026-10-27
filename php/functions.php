@@ -3,6 +3,7 @@
 include_once( __DIR__ . '/../login/config.php');
 require_once __DIR__ . '/session_boot.php';
 start_app_session();
+require_once __DIR__ . '/i18n.php'; // t(), current_lang() ... for every page
 
 //error_log('path is ' . __DIR__);
 
@@ -20,7 +21,10 @@ $email_consent_encrypt = 'We use Google Authentication with your consent. Your e
 // (localStorage key "3wid_cookie_consent") and can be changed with the
 // "Cookie settings" link that is added to the page footer, or with any link to
 // "#cookie-settings" (for example on terms.php).
-$google_stats = <<<'HTML'
+$google_stats = str_replace('__CC_TEXTS__', i18n_js_object([
+  'aria' => 'cookie.aria', 'text' => 'cookie.text', 'more' => 'cookie.more',
+  'reject' => 'cookie.reject', 'accept' => 'cookie.accept', 'settings' => 'cookie.settings',
+]), <<<'HTML'
 <style>
   #cc-banner{position:fixed;left:16px;right:16px;bottom:16px;z-index:9999;max-width:560px;margin:0 auto;
     background:#fff;color:#0f1c3f;border:1px solid #e6e3dc;border-radius:14px;box-shadow:0 10px 30px rgba(15,28,63,.15);
@@ -36,6 +40,7 @@ $google_stats = <<<'HTML'
 </style>
 <script>
 (function () {
+  var CC = __CC_TEXTS__;
   var KEY = "3wid_cookie_consent";
   var GA_ID = "G-TJWBJT8GJC";
   var loaded = false;
@@ -79,14 +84,13 @@ $google_stats = <<<'HTML'
     var b = document.createElement("div");
     b.id = "cc-banner";
     b.setAttribute("role", "dialog");
-    b.setAttribute("aria-label", "Cookie choice");
+    b.setAttribute("aria-label", CC.aria);
     b.innerHTML =
-      "<p>May we use Google Analytics to count visits? It sets cookies (_ga) and sends your IP address and browser details to Google. " +
-      "We only do this if you click Accept. Logging in only uses one necessary session cookie. " +
-      "<a href=\"/terms.php#data\">More about your data</a></p>" +
+      "<p>" + CC.text + " " +
+      "<a href=\"/terms.php#data\">" + CC.more + "</a></p>" +
       "<div class=\"cc-buttons\">" +
-      "<button type=\"button\" id=\"cc-reject\">Reject</button>" +
-      "<button type=\"button\" id=\"cc-accept\">Accept</button>" +
+      "<button type=\"button\" id=\"cc-reject\">" + CC.reject + "</button>" +
+      "<button type=\"button\" id=\"cc-accept\">" + CC.accept + "</button>" +
       "</div>";
     document.body.appendChild(b);
     document.getElementById("cc-accept").onclick = function () {
@@ -105,7 +109,7 @@ $google_stats = <<<'HTML'
     var a = document.createElement("a");
     a.href = "#cookie-settings";
     a.className = "cc-settings-link";
-    a.textContent = "Cookie settings";
+    a.textContent = CC.settings;
     var footer = document.querySelector("footer");
     if (footer) {
       footer.appendChild(a);
@@ -140,7 +144,8 @@ $google_stats = <<<'HTML'
   }
 })();
 </script>
-HTML;
+HTML
+);
 
 
 function get_db_conn() {

@@ -24,6 +24,11 @@ function validate_threeword(threeword) {
         return true;
 }
 
+// Texts for the current language come from window.T3 (set by the page, see php/i18n.php).
+function tr(key, fallback) {
+    return (window.T3 && window.T3[key]) || fallback;
+}
+
 function setSearchLock(state) {
     var lock = document.getElementById('searchLock');
     var shackle = document.getElementById('lockShackle');
@@ -79,14 +84,14 @@ function setSearchLock(state) {
                         },
                         success: function(response) {
                             if(response =='exists') {
-                                $("#helperText").html("3wid exists");
+                                $("#helperText").text(tr('exists', "3wid exists"));
                                 setSearchLock('found');
                             } else {
                                 if(response =='disabled') {
-                                    $("#helperText").html("3wid disabled");
+                                    $("#helperText").text(tr('disabled', "3wid disabled"));
                                     setSearchLock('disabled');
                                 } else {
-                                    $('#helperText').html("3wid does not exist log in to create");
+                                    $('#helperText').text(tr('missing', "3wid does not exist log in to create"));
                                     setSearchLock('closed');
                                 }
                             }

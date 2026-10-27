@@ -27,11 +27,11 @@ $loginUrl = '/login/options.php';
 if (isset($_GET['message'])) {
     $helpertext = htmlspecialchars($_GET['message'], ENT_QUOTES, 'UTF-8');
 } else {
-    $helpertext = '<a href="https://x.com/climatebabes/status/1921113933592584660">What is this site? Explanation on X.com</a>';
+    $helpertext = t_raw('home.helper_x');
 }
 
 if (check_mobile() === 'mobile') {
-    $helpertext = 'Log in top right to create your own 3WordID';
+    $helpertext = t('home.helper_mobile');
 }
 
 if (isset($_GET['threewords'])) {
@@ -88,30 +88,31 @@ $more_list = array_values($by_words);
  $helpertext ='';
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo current_lang(); ?>">
 <head>
     <?php echo $google_stats; ?>
     <meta charset="UTF-8"> 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3WordID — Three words. Every destination.</title>
+    <title><?php echo t('home.title'); ?></title>
     <link rel="icon" type="image/x-icon" href="img/favicon.ico">
     <link href="/css/inter.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <meta name="description" content="Link any three words to a URL, a notification or a private message box. Easy to remember, easy to share. Three words. Every destination.">
-    <link rel="canonical" href="https://3wordid.com/">
+    <meta name="description" content="<?php echo t('home.meta_desc'); ?>">
+    <?php echo lang_head_tags(); ?>
+    <meta property="og:locale" content="<?php echo current_lang() === 'nl' ? 'nl_NL' : 'en_US'; ?>">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="3WordID">
-    <meta property="og:title" content="3WordID: Three words. Every destination.">
-    <meta property="og:description" content="Link any three words to a URL, a notification or a private message box. Easy to remember, easy to share.">
-    <meta property="og:url" content="https://3wordid.com/">
+    <meta property="og:title" content="<?php echo t('home.og_title'); ?>">
+    <meta property="og:description" content="<?php echo t('home.og_desc'); ?>">
+    <meta property="og:url" content="<?php echo htmlspecialchars(lang_url_absolute(current_lang()), ENT_QUOTES, 'UTF-8'); ?>">
     <meta property="og:image" content="https://3wordid.com/img/og-3wordid.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
-    <meta property="og:image:alt" content="3WordID: Three words. Every destination.">
+    <meta property="og:image:alt" content="<?php echo t('home.og_title'); ?>">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:site" content="@climatebabes">
-    <meta name="twitter:title" content="3WordID: Three words. Every destination.">
-    <meta name="twitter:description" content="Link any three words to a URL, a notification or a private message box. Easy to remember, easy to share.">
+    <meta name="twitter:title" content="<?php echo t('home.og_title'); ?>">
+    <meta name="twitter:description" content="<?php echo t('home.og_desc'); ?>">
     <meta name="twitter:image" content="https://3wordid.com/img/og-3wordid.png">
     <link rel="stylesheet" href="css/newstyle.css">
     <link rel="stylesheet" href="css/home.css">
@@ -133,12 +134,13 @@ $more_list = array_values($by_words);
             3WordID
         </a>
         <nav class="nav-links">
-              <a href="plans.php">Subscription Plans</a> <a href="terms.php">Terms</a> <a href="https://x.com/climatebabes/status/1921113933592584660">Docs on X.com</a> <a href="https://github.com/spacetheelepeltje-rgb/3wordid">Open Source on Github</a>               
+              <a href="plans.php"><?php echo t('nav.plans'); ?></a> <a href="terms.php"><?php echo t('nav.terms'); ?></a> <a href="https://x.com/climatebabes/status/1921113933592584660"><?php echo t('nav.docs'); ?></a> <a href="https://github.com/spacetheelepeltje-rgb/3wordid"><?php echo t('nav.github'); ?></a>               
         </nav>
         
         <div class="header-actions" id="userContainer">
-            <a href="<?php echo $loginUrl; ?>" class="btn btn-primary">Log in/Create ID</a>
-            <!-- <a href="<?php echo $loginUrl; ?>" class="login-icon" title="Log in (not all functions work on mobile devices)">
+            <?php echo lang_switcher(); ?>
+            <a href="<?php echo $loginUrl; ?>" class="btn btn-primary"><?php echo t('nav.login'); ?></a>
+            <!-- <a href="<?php echo $loginUrl; ?>" class="login-icon" title="<?php echo t('nav.login_title'); ?>">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="Login Icon">
                 <path d="M15 21h4a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-4"></path>
                 <polyline points="8 7 13 12 8 17"></polyline>
@@ -150,9 +152,9 @@ $more_list = array_values($by_words);
 
     <main>
         <section class="hero">
-            <div class="eyebrow">HUMAN-READABLE IDENTIFIERS <b>BETA version</b></div>
-            <h1>Three words<br>Every destination</h1>
-            <p class="subhead">Look up a URL, notification, or private message box using any three-word ID. Easy to communicate. Easy to remember.</p>
+            <div class="eyebrow"><?php echo t_raw('home.eyebrow'); ?></div>
+            <h1><?php echo t_raw('home.h1'); ?></h1>
+            <p class="subhead"><?php echo t('home.subhead'); ?></p>
             <div class="helper-note" id="helperText"><?php echo $helpertext; ?></div>
 
             <form id="searchform" name="searchform" action="3wid_forward.php" method="POST">
@@ -163,71 +165,71 @@ $more_list = array_values($by_words);
                             <path id="lockShackle" d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                         </svg>
                     </div>
-                    <input id="threewords" name="threewords" type="text" class="search-bar" placeholder="first  ·  second  ·  third" value="<?= htmlspecialchars($threewords); ?>" autocomplete="off">
-                    <button type="submit" id="submitBtn">Lookup</button>
+                    <input id="threewords" name="threewords" type="text" class="search-bar" placeholder="<?php echo t('common.placeholder_words'); ?>" value="<?= htmlspecialchars($threewords); ?>" autocomplete="off">
+                    <button type="submit" id="submitBtn"><?php echo t('home.lookup'); ?></button>
                 </div>
-                <div class="example-row">Try an example: <button type="button" id="tryExample" class="example-btn" data-words="davinci mona lisa">Try &ldquo;davinci mona lisa&rdquo;</button></div>
-                <button type="button" id="createBtn" class="create-link" data-share-url="<?php echo $loginUrl; ?>">Create your own 3WordID →</button>
+                <div class="example-row"><?php echo t('home.try_label'); ?> <button type="button" id="tryExample" class="example-btn" data-words="davinci mona lisa"><?php echo t('home.try_btn'); ?></button></div>
+                <button type="button" id="createBtn" class="create-link" data-share-url="<?php echo $loginUrl; ?>"><?php echo t('home.create'); ?></button>
                 <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
             </form>
         </section>
 
-        <section class="trust" aria-label="Why 3WordID">
-            <div class="trust-item"><b>Free to start</b></div>
-            <div class="trust-item"><b>No personal data needed</b> to look up a 3WordID</div>
-            <div class="trust-item"><b>Open source</b> &middot; <a href="https://github.com/spacetheelepeltje-rgb/3wordid">code on GitHub</a></div>
+        <section class="trust" aria-label="<?php echo t('home.trust_aria'); ?>">
+            <div class="trust-item"><?php echo t_raw('home.trust1'); ?></div>
+            <div class="trust-item"><?php echo t_raw('home.trust2'); ?></div>
+            <div class="trust-item"><?php echo t_raw('home.trust3'); ?></div>
         </section>
 
         <section class="how" id="how-it-works">
-            <h2 class="section-title">How it works</h2>
+            <h2 class="section-title"><?php echo t('home.how_title'); ?></h2>
             <div class="steps">
                 <div class="step">
                     <div class="step-num">1</div>
-                    <h3>Pick three words</h3>
-                    <p>Choose any three words, for example <code>our delicious menu</code>.</p>
+                    <h3><?php echo t('home.step1_title'); ?></h3>
+                    <p><?php echo t_raw('home.step1_text'); ?></p>
                 </div>
                 <div class="step">
                     <div class="step-num">2</div>
-                    <h3>Link them</h3>
-                    <p>Point them to a URL, a notification or a private message box. You can change the destination later.</p>
+                    <h3><?php echo t('home.step2_title'); ?></h3>
+                    <p><?php echo t('home.step2_text'); ?></p>
                 </div>
                 <div class="step">
                     <div class="step-num">3</div>
-                    <h3>Share the words</h3>
-                    <p>Say them, print them or type them. Anyone can look them up here.</p>
+                    <h3><?php echo t('home.step3_title'); ?></h3>
+                    <p><?php echo t('home.step3_text'); ?></p>
                 </div>
             </div>
         </section>
 
         <section class="cards" id="use-cases">
             <article class="card">
-                <div class="card-kicker">Museums</div>
-                <h3>Labels without QR codes</h3>
-                <p>Put three words on an exhibit label instead of a QR code. The label stays clean, visitors can read the words out loud, and you can still print a QR code that holds just the three words.</p>
-                <div class="card-example">Example: <code>davinci mona lisa</code></div>
+                <div class="card-kicker"><?php echo t('home.card1_kicker'); ?></div>
+                <h3><?php echo t('home.card1_title'); ?></h3>
+                <p><?php echo t('home.card1_text'); ?></p>
+                <div class="card-example"><?php echo t('home.example'); ?> <code>davinci mona lisa</code></div>
             </article>
             <article class="card">
-                <div class="card-kicker">Restaurants</div>
-                <h3>Your menu in three words</h3>
-                <p>Print your restaurant's words on the table or the door. Guests type them and see today's menu. Change the link when the menu changes, the words stay the same.</p>
-                <div class="card-example">Example: <code>our delicious menu</code></div>
+                <div class="card-kicker"><?php echo t('home.card2_kicker'); ?></div>
+                <h3><?php echo t('home.card2_title'); ?></h3>
+                <p><?php echo t('home.card2_text'); ?></p>
+                <div class="card-example"><?php echo t('home.example'); ?> <code>our delicious menu</code></div>
             </article>
             <article class="card">
-                <div class="card-kicker">Privacy</div>
-                <h3>A private message box</h3>
-                <p>Let people reach you without sharing your email address or phone number. Share three words and they can leave you a message. Messages stay in your account, and no personal data is needed to send one.</p>
+                <div class="card-kicker"><?php echo t('home.card3_kicker'); ?></div>
+                <h3><?php echo t('home.card3_title'); ?></h3>
+                <p><?php echo t('home.card3_text'); ?></p>
             </article>
         </section>
 
         <section class="recent" id="public-3wordids">
-            <h2>Currently public 3WordIDs</h2>
+            <h2><?php echo t('home.public_title'); ?></h2>
             <div class="recent-list" id="recentList">
 <?php
                 foreach ($featured_list as $db_3wordid_item) {
                 ?>
                 <div class="recent-row">
                     <a href="<?php echo htmlspecialchars($db_3wordid_item['threeword'], ENT_QUOTES, 'UTF-8'); ?>"><?php echo htmlspecialchars($db_3wordid_item['threeword'], ENT_QUOTES, 'UTF-8'); ?></a>
-                    <span class="views"><?php echo (int)$db_3wordid_item['views']; ?> views</span>
+                    <span class="views"><?php echo t('home.views', ['n' => (int)$db_3wordid_item['views']]); ?></span>
                 </div>
                 <?php
                 }
@@ -235,30 +237,30 @@ $more_list = array_values($by_words);
                 ?>
                 <div class="recent-row recent-more">
                     <a href="<?php echo htmlspecialchars($db_3wordid_item['threeword'], ENT_QUOTES, 'UTF-8'); ?>"><?php echo htmlspecialchars($db_3wordid_item['threeword'], ENT_QUOTES, 'UTF-8'); ?></a>
-                    <span class="views"><?php echo (int)$db_3wordid_item['views']; ?> views</span>
+                    <span class="views"><?php echo t('home.views', ['n' => (int)$db_3wordid_item['views']]); ?></span>
                 </div>
                 <?php
                 }
 ?>
             </div>
 <?php if (count($more_list) > 0) { ?>
-            <button type="button" class="recent-toggle" id="recentToggle" aria-expanded="false" aria-controls="recentList">See more</button>
+            <button type="button" class="recent-toggle" id="recentToggle" aria-expanded="false" aria-controls="recentList"><?php echo t('home.see_more'); ?></button>
 <?php } ?>
         </section>
 
         <section class="faq" id="faq">
-            <h2 class="section-title">Questions</h2>
+            <h2 class="section-title"><?php echo t('home.faq_title'); ?></h2>
             <details>
-                <summary>What if someone takes my words?</summary>
-                <p>Each combination of three words belongs to one account at a time, first come, first served. Once you have registered yours, only you can change where they point. If your favourite words are already taken, try a variation.</p>
+                <summary><?php echo t('home.faq1_q'); ?></summary>
+                <p><?php echo t_raw('home.faq1_a'); ?></p>
             </details>
             <details>
-                <summary>Is it free?</summary>
-                <p>Looking up a 3WordID is free and needs no account. Creating your own is free to start. If you need more 3WordIDs, see the <a href="plans.php">subscription plans</a>.</p>
+                <summary><?php echo t('home.faq2_q'); ?></summary>
+                <p><?php echo t_raw('home.faq2_a'); ?></p>
             </details>
             <details>
-                <summary>What's stored?</summary>
-                <p>Your email address is stored only as a one-way hash, not as readable text. Messages sent through a message box and the IP addresses they come from are logged and retained, so the service can be held accountable and lawful requests can be answered. Accounts are deactivated, never deleted, and their data and logs are kept. Details are in the <a href="terms.php">terms</a>.</p>
+                <summary><?php echo t('home.faq3_q'); ?></summary>
+                <p><?php echo t_raw('home.faq3_a'); ?></p>
             </details>
         </section>
 
@@ -266,6 +268,13 @@ $more_list = array_values($by_words);
     <footer class="site-footer">
     </footer>
 </body>
+<?php echo i18n_js([
+    'exists'    => 'home.js_exists',
+    'disabled'  => 'home.js_disabled',
+    'missing'   => 'home.js_missing',
+    'see_more'  => 'home.see_more',
+    'show_less' => 'home.show_less',
+]); ?>
 <script src="js/3wid_index_2.js"></script>
 <script>
     function handleGoogleLogin() {
@@ -296,7 +305,7 @@ $more_list = array_values($by_words);
       recentToggle.addEventListener("click", function() {
         var list = document.getElementById("recentList");
         var open = list.classList.toggle("is-expanded");
-        this.textContent = open ? "Show less" : "See more";
+        this.textContent = open ? window.T3.show_less : window.T3.see_more;
         this.setAttribute("aria-expanded", open ? "true" : "false");
       });
     }
