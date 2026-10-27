@@ -26,127 +26,82 @@ function validateURL(url) {
     }
 }
 
-// verify threeword ID before submit
-$('#threeword').on('keyup', function() {
+// Check the recipient's three words while they are typed, pasted or filled in
+function checkRecipient() {
+    var threewords = $('#threeword').val().trim();
+    var words = threewords.split(/\s+/);
 
-              threewords = $('#threeword').val();
-              let nr_words = threewords.trim().split(/\s+/).length;
-              let threewords_array = threewords.trim().split(/\s+/);
-              
-              console.log(threewords)
-              
-              invalid = 0;
-              
-              if(nr_words == 3) {
-				  
-				  
-					  $.ajax({
-						type: 'POST',
-						url: '3wid_exists.php', // Replace with your server endpoint
-						data: {
-							'threewords': threewords
-						},
-						success: function(response) {
-							//console.log('Post successful!');
-							// Here you might want to clear the input, show a success message, or update the UI to show the new post
-							
-							//console.log(response); // Log the server response
-							if(response =='exists') {
-								$('#helperText').text(tr('ok_recipient', 'recipient exists'));
-								} else {
-								$('#helperText').text(tr('bad_recipient', 'invalid recipient'));	
-								}
-						},
-						error: function(xhr, status, error) {
-							//console.error('An error occurred:', error);
-							// Handle errors appropriately, maybe show user an error message
-						}
-					});
-				
-				  
-				  for (let word of threewords_array) {
-					if(containsDigitsOrSpecialCharacters(word)) {
-						invalid = invalid + 1;  
-					}
-					//console.log(word + " " + containsDigitsOrSpecialCharacters(word));
-				  }
-				  
-				  
-				  if(invalid == 0) {
-					
-					$("#threeword").css("color", "green");
-							 
-				  } else {
-				
-				  //console.log('error in one of the three words');
-					$("#threeword").css("color", "#000");
-					$('#helperText').text(tr('invalid', '3wid invalid'));
-				 
-				  }
-				  } else {
-				 
-					$("#threeword").css("color", "#000");
-				    $('#helperText').text(tr('invalid', '3wid invalid'));
-				  }
-                
-       }); 
-	
+    if (words.length !== 3) {
+        $('#threeword').css('color', '#000');
+        $('#helperText').text(threewords === '' ? '' : tr('invalid', '3wid invalid'));
+        return;
+    }
 
-$(document).ready(function() {
+    var invalid = 0;
+    for (var i = 0; i < words.length; i++) {
+        if (containsDigitsOrSpecialCharacters(words[i])) { invalid++; }
+    }
+    if (invalid > 0) {
+        $('#threeword').css('color', '#000');
+        $('#helperText').text(tr('invalid', '3wid invalid'));
+        return;
+    }
 
-    // Attach event listener to the form
-    $('#3widForm').on('submit', function(event) {
-
-		send=0;
-		
-		$('#helperText').text(tr('clicked', 'Clicked submit'));
-		
-        // Log to confirm the handler is firing
-        console.log('Form submit handler triggered');
-
-        // Prevent default submission
-        event.preventDefault();
-        send = 1;
-        
-        //console.log('Default submission prevented');
-
-        // Grab form data
-        let form = $(this);
-        let threeword = $('#threeword').val();
-        let title = $('#title').val();
-        let message = $('#message').val();
-        
-        if(title.trim()=='') {
-			$('#helperText').text(tr('need_title', 'Please provide a message title'));
-			send=0;
-			return;
-		}
-        
-         if(message.trim()=='') {
-			$('#helperText').text(tr('need_message', 'Please provide a message'));
-			send=0;
-			return;
-		}
-        
-        if(threeword.trim()=='') {
-			$('#helperText').text(tr('need_3wid', 'Please provide an 3WordID'));
-			send=0;
-			return;
-		}
-
-
-        // If you reach here, email is valid
-        console.log('send is ' +  send);
-        // Add your next steps here (e.g., AJAX call)
-        
-        if(send==1) { 
-			window.location.href = '3wid_messageform_process.php?threewords=' + threewords; // Replace with the URL of the page you want to redirect to
-			// Use jQuery to submit the form, respecting the event handler
-			form.off('submit'); // Remove this handler to avoid infinite loop
-			form.submit(); // Trigger jQuery's submit, which sends the form
-		}
+    $('#threeword').css('color', 'green');
+    $.ajax({
+        type: 'POST',
+        url: '3wid_exists.php',
+        data: { 'threewords': threewords },
+        success: function (response) {
+            // Ignore an answer for words that were changed in the meantime
+            if ($('#threeword').val().trim() !== threewords) { return; }
+            $('#helperText').text(response == 'exists' ? tr('ok_recipient', 'recipient exists') : tr('bad_recipient', 'invalid recipient'));
+        }
     });
-	
-	
+}
+
+$('#threeword').on('input keyup', checkRecipient);
+
+$(document).ready(function () {
+
+    // Check the form, then let the browser send it as a normal POST
+    // (with the action token). The server makes a title from the message if it is empty.
+    $('#3widForm').on('submit', function (event) {
+        var form = this;
+        var threeword = $.trim($('#threeword').val() || '');
+        var message = $.trim($('#message').val() || '');
+        var title = $('#title');
+
+        if (form.getAttribute('data-sending') === '1') {
+            // Already on its way: do not send it twice
+            event.preventDefault();
+            return;
+        }
+        if (threeword === '') {
+            event.preventDefault();
+            $('#helperText').text(tr('need_3wid', 'Please provide an 3WordID'));
+            $('#threeword').focus();
+            return;
+        }
+        if (message === '') {
+            event.preventDefault();
+            $('#helperText').text(tr('need_message', 'Please provide a message'));
+            $('#message').focus();
+            return;
+        }
+        if ($.trim(title.val() || '') === '') {
+            var first = message.replace(/\s+/g, ' ');
+            title.val(first.length > 40 ? $.trim(first.slice(0, 39)) + '\u2026' : first);
+        }
+
+        form.setAttribute('data-sending', '1');
+        $('#submitBtn').prop('disabled', true).attr('aria-busy', 'true');
+        $('#helperText').text(tr('clicked', 'Sending…'));
+    });
+
+    // Back/forward cache: a page shown again must be sendable again
+    window.addEventListener('pageshow', function () {
+        $('#3widForm').removeAttr('data-sending');
+        $('#submitBtn').prop('disabled', false).removeAttr('aria-busy');
+    });
 });
-		

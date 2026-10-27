@@ -139,7 +139,7 @@ return [
     'msg.js_ok_recipient' => 'el destinatario existe',
     'msg.js_bad_recipient' => 'destinatario no válido',
     'msg.js_invalid' => '3wid no válido',
-    'msg.js_clicked' => 'Se hizo clic en enviar',
+    'msg.js_clicked' => 'Enviando…',
     'msg.js_need_title' => 'Indique un título para el mensaje',
     'msg.js_need_message' => 'Escriba un mensaje',
     'msg.js_need_3wid' => 'Indique un 3WordID',

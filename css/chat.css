@@ -318,6 +318,7 @@ button.avatar.photo { cursor: zoom-in; }
     padding: 0 0 0 2px;
 }
 .composer .send:hover, .composer .send:focus-visible { background: var(--navy-hover); outline: none; }
+.composer .send:disabled { opacity: .6; cursor: default; }
 .composer .c-note { margin: 0 4px 6px; font-size: 12px; color: var(--slate); line-height: 1.4; }
 .composer .consent { display: flex; align-items: flex-start; gap: 7px; margin: 0 4px 6px; font-size: 12px; color: var(--navy); }
 .composer .consent input { margin: 2px 0 0; flex: 0 0 auto; }
