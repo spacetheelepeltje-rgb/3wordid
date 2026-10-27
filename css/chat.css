@@ -359,6 +359,7 @@ body.chat-body {
     overflow: hidden;
     text-overflow: ellipsis;
 }
+.reply-bar .note { flex: 1 1 auto; margin: 0; padding: 8px 12px; font-size: 13px; line-height: 1.4; color: var(--navy); text-align: center; white-space: normal; border: 1px dashed var(--line); border-radius: 14px; }
 .reply-bar .fake.static { text-align: center; font-size: 13px; background: transparent; border-style: dashed; }
 .reply-bar .go {
     flex: 0 0 auto;

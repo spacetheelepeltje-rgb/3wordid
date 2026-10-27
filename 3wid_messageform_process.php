@@ -2,6 +2,7 @@
 
   require_once 'php/functions.php';
   require_once 'login/config.php';
+  require_once 'php/chat.php';
 
   error_log('messageform process page');
 /*
@@ -65,6 +66,14 @@
    if(!db_3wordid_owned_by($from_id, $data['id'])) {
 	   error_log('messageform process: user ' . $data['id'] . ' tried to send from 3wid ' . $from_id);
 	   header('location:3wid_list.php?message=' . rawurlencode(t_plain('mp.session')));
+	   exit;
+   }
+
+   // Unknown recipient, or the placeholder used for anonymous visitors (they have no
+   // account, so a reply would never reach them): back to the form with a clear note
+   if (!$threeword_data || chat_is_visitor_wid($threeword_data)) {
+	   $_SESSION['chat_error'] = $threeword_data ? 'chat.err_visitor' : 'chat.err_recipient';
+	   header('location:3wid_messageform.php?threeword_id=' . $from_id);
 	   exit;
    }
 

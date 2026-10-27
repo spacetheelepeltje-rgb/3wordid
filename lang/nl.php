@@ -582,7 +582,7 @@ De URL, mededeling en chat van deze woorden worden verwijderd. Dit kan niet onge
     'chat.conversations_one' => '{n} gesprek',
     'chat.conversations_other' => '{n} gesprekken',
     'chat.to_you' => 'aan {words}',
-    'chat.no_reply' => 'Op bezoekers die niet ingelogd zijn kun je niet reageren.',
+    'chat.no_reply' => 'Dit bericht is gestuurd door een bezoeker zonder 3WordID, dus je kunt hier niet antwoorden. Heeft de afzender contactgegevens in het bericht gezet? Gebruik die dan.',
     'chat.confirm_delete' => 'Dit bericht verwijderen? Dit kan niet ongedaan worden gemaakt.',
     'chat.received' => 'Ontvangen bericht',
     'chat.sent_by_you' => 'Door jou verstuurd',
@@ -604,4 +604,10 @@ De URL, mededeling en chat van deze woorden worden verwijderd. Dit kan niet onge
     'chat.print_visitor' => 'Bezoeker',
     'chat.print_label' => '{name}:',
     'chat.print_button' => 'Afdrukken',
+
+    // Visitors (no replies)
+    'chat.visitor' => 'Bezoeker',
+    'chat.err_visitor' => 'Je kunt bezoekers zonder 3WordID niet antwoorden. Hebben ze contactgegevens in hun bericht gezet? Gebruik die dan.',
+    'chat.err_recipient' => 'Deze 3WordID is niet gevonden. Controleer de drie woorden en probeer het opnieuw.',
+    'ext.bad_recipient' => 'Deze 3WordID is niet gevonden, je bericht is dus niet verstuurd.',
 ];

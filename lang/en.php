@@ -582,7 +582,7 @@ The URL, notification, and chat for these words will be removed. This cannot be 
     'chat.conversations_one' => '{n} conversation',
     'chat.conversations_other' => '{n} conversations',
     'chat.to_you' => 'to {words}',
-    'chat.no_reply' => 'Visitors who are not logged in cannot be replied to.',
+    'chat.no_reply' => 'This message was sent by a visitor without a 3WordID, so you can\'t reply here. If they left contact details in the message, use those.',
     'chat.confirm_delete' => 'Delete this message? This cannot be undone.',
     'chat.received' => 'Received message',
     'chat.sent_by_you' => 'Sent by you',
@@ -604,4 +604,10 @@ The URL, notification, and chat for these words will be removed. This cannot be 
     'chat.print_visitor' => 'Visitor',
     'chat.print_label' => '{name}:',
     'chat.print_button' => 'Print',
+
+    // Visitors (no replies)
+    'chat.visitor' => 'Visitor',
+    'chat.err_visitor' => 'You can\'t reply to visitors without a 3WordID. If they left contact details in their message, use those.',
+    'chat.err_recipient' => 'This 3WordID could not be found. Check the three words and try again.',
+    'ext.bad_recipient' => 'This 3WordID could not be found, so your message was not sent.',
 ];

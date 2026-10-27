@@ -37,7 +37,18 @@
   $to_name = db_3wordid_threeword_name($message_row['3wid_id']);
   $dates = db_3wordid_message_dates(array($message_row['id']));
   $sent_at = $dates[(int) $message_row['id']] ?? '';
-  $back_url = $is_owner ? '3wid_list_messages.php?wid_id=' . (int) $message_row['3wid_id'] : '3wid_list.php';
+  $is_visitor = ((int) $message_row['from_id'] === CHAT_VISITOR_USER_ID);
+  $from_name = $is_visitor ? '' : (string) db_3wordid_threeword_name($message_row['3wid_from_id'] ?? 0);
+  // The owner sees who sent it (and goes back to that conversation); the sender sees the recipient
+  if ($is_owner) {
+      $conv_key = $is_visitor ? 'visitors' : ((int) $message_row['from_id'] . ':' . $from_name);
+      $back_url = '3wid_list_messages.php?wid_id=' . (int) $message_row['3wid_id'] . '&with=' . rawurlencode($conv_key);
+      $reply_url = ($is_visitor || $from_name === '') ? '' : '3wid_messageform.php?threeword_id=' . (int) $message_row['3wid_id'] . '&threeword=' . rawurlencode($from_name);
+  } else {
+      $back_url = '3wid_list.php';
+      $reply_url = '';
+  }
+  $head_name = $is_owner ? ($is_visitor ? t_plain('chat.visitor') : $from_name) : (string) $to_name;
 
 ?>
 <!DOCTYPE html>
@@ -54,10 +65,10 @@
 <div class="chat-app">
     <header class="chat-header">
         <a class="back" href="<?php echo chat_e($back_url); ?>" aria-label="<?php echo t('common.back'); ?>"><?php echo chat_icon('back'); ?></a>
-        <?php echo chat_avatar($to_name); ?>
+        <?php echo ($is_owner && $is_visitor) ? chat_visitor_avatar() : chat_avatar($head_name); ?>
         <div class="who">
-            <div class="name"><?php echo chat_e($to_name); ?></div>
-            <div class="sub"><?php echo $is_owner ? t('chat.received') : t('chat.sent_by_you'); ?></div>
+            <div class="name"><?php echo chat_e($head_name); ?></div>
+            <div class="sub"><?php echo $is_owner ? t('chat.to_you', ['words' => $to_name]) : t('chat.sent_by_you'); ?></div>
         </div>
     </header>
 
@@ -82,6 +93,15 @@
             </div>
         </div>
     </main>
+
+    <?php if ($is_owner && $is_visitor): ?>
+    <div class="reply-bar"><p class="note" role="note"><?php echo t('chat.no_reply'); ?></p></div>
+    <?php elseif ($reply_url !== ''): ?>
+    <a class="reply-bar" href="<?php echo chat_e($reply_url); ?>" style="text-decoration:none">
+        <span class="fake"><?php echo t('lm.reply', ['name' => $from_name]); ?></span>
+        <span class="go" aria-hidden="true"><?php echo chat_icon('reply'); ?></span>
+    </a>
+    <?php endif; ?>
 </div>
 <script src="js/chat.js"></script>
 </body>

@@ -490,7 +490,7 @@ L’URL, la notification et le chat de ces mots seront supprimés. Cette action 
     'chat.conversations_one' => '{n} conversation',
     'chat.conversations_other' => '{n} conversations',
     'chat.to_you' => 'à {words}',
-    'chat.no_reply' => 'Vous ne pouvez pas répondre aux visiteurs non connectés.',
+    'chat.no_reply' => 'Ce message a été envoyé par un visiteur sans 3WordID, vous ne pouvez donc pas répondre ici. S’il a laissé ses coordonnées dans le message, utilisez-les.',
     'chat.confirm_delete' => 'Supprimer ce message ? Cette action est irréversible.',
     'chat.received' => 'Message reçu',
     'chat.sent_by_you' => 'Envoyé par vous',
@@ -512,4 +512,10 @@ L’URL, la notification et le chat de ces mots seront supprimés. Cette action 
     'chat.print_visitor' => 'Visiteur',
     'chat.print_label' => '{name} :',
     'chat.print_button' => 'Imprimer',
+
+    // Visitors (no replies)
+    'chat.visitor' => 'Visiteur',
+    'chat.err_visitor' => 'Vous ne pouvez pas répondre aux visiteurs sans 3WordID. S’ils ont laissé leurs coordonnées dans leur message, utilisez-les.',
+    'chat.err_recipient' => 'Ce 3WordID est introuvable. Vérifiez les trois mots et réessayez.',
+    'ext.bad_recipient' => 'Ce 3WordID est introuvable, votre message n’a donc pas été envoyé.',
 ];

@@ -5,6 +5,7 @@
 
   require_once 'php/functions.php';
   require_once 'login/config.php';
+  require_once 'php/chat.php';
 
   error_log('messageform process page');
 /*
@@ -38,6 +39,11 @@
 
    //error_log($threeword_val . ' ' . ' ' . $threeword . ' ' . json_encode($threeword_data));
 
+   // The visitor placeholder itself is not a real recipient
+   if (chat_is_visitor_wid($threeword_data)) {
+	   $threeword_data = null;
+   }
+
    if($threeword_data) { // valid recipient
 		
 	try {
@@ -49,7 +55,7 @@
        //  ($from_id,$to_3wordid,$to_user_id,$title,$message, $terms)
 	   // Call the function
 	   //               db_3wordid_messageform_insert($from_id,$to_3wordid,$from_3wid_id,$to_user_id,$title,$message, $terms)  
-	   $insert_result = db_3wordid_messageform_insert(25,$threeword_data['id'],178,$threeword_data['user_id'],$title,$message, 0);
+	   $insert_result = db_3wordid_messageform_insert(CHAT_VISITOR_USER_ID,$threeword_data['id'],CHAT_VISITOR_WID,$threeword_data['user_id'],$title,$message, 0);
 	   
 	   //db_3wordid_update_google_csrf($data['id'],$_SESSION["csrf_token"]);
 	   //db_3wordid_set_csrf_token($data['id'],$_SESSION["csrf_token"]);
@@ -66,7 +72,7 @@
 
 } else {
 		
-		header('location:' . $main_url . '?message=' . rawurlencode(t_plain('mp.wait_read')));
+		header('location:' . $main_url . '?message=' . rawurlencode(t_plain('ext.bad_recipient')));
 }
 
 }

@@ -50,6 +50,19 @@
 
   require_once 'php/chat.php';
 
+  // A note from 3wid_messageform_process.php (unknown recipient / visitor), shown once
+  $error_key = '';
+  if (!empty($_SESSION['chat_error']) && in_array($_SESSION['chat_error'], array('chat.err_visitor', 'chat.err_recipient'), true)) {
+      $error_key = $_SESSION['chat_error'];
+  }
+  unset($_SESSION['chat_error']);
+
+  // Never prefill the visitor placeholder as a recipient: visitors cannot get replies
+  if ($reply_to !== '' && chat_is_visitor_wid(db_3wordid_get_threeword($reply_to))) {
+      $reply_to = '';
+      $error_key = 'chat.err_visitor';
+  }
+
   $reply_to_safe = chat_e($reply_to);
 
   // The message just sent (stored by 3wid_messageform_process.php), shown once as a bubble
@@ -85,6 +98,10 @@
         <div class="chat-tools"><?php echo lang_switcher(); ?></div>
         <div class="pill-wrap"><span class="pill info"><?php echo t('msg.hint1'); ?></span></div>
         <div class="pill-wrap"><span class="pill info"><?php echo t_raw('msg.hint2'); ?></span></div>
+
+        <?php if ($error_key !== ''): ?>
+        <div class="pill-wrap"><span class="pill info" role="alert"><?php echo t($error_key); ?></span></div>
+        <?php endif; ?>
 
         <div class="setup">
             <div class="f">
