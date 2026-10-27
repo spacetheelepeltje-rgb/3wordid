@@ -42,19 +42,21 @@
   $action_token = get_action_token();
 
   $messages = db_3wordid_list_messages($threeword_id);
+  $sent_rows = db_3wordid_list_sent($threeword_id, $data['id']);
 
   //error_log('messages found ' . json_encode($messages));
 
-  if($messages == NULL ) {
+  if($messages == NULL && !$sent_rows) {
     header('location:3wid_list.php'); 
     die(t_plain('lm.none')); 
   }
  
   require_once 'php/chat.php';
 
-  // Same conversation as in 3wid_list_messages.php: the key must be one of the owner's own
-  $dates = db_3wordid_message_dates(array_column($messages, 'id'));
-  $conversations = chat_conversations($messages, $dates);
+  // Same conversation as in 3wid_list_messages.php (both directions): the key must be one of the owner's own
+  $all_ids = array_merge(array_column((array) $messages, 'id'), array_column($sent_rows, 'id'));
+  $line_dates = db_3wordid_message_dates($all_ids);
+  $conversations = chat_conversations((array) $messages, $line_dates, $sent_rows);
   $with = isset($_GET['with']) ? (string) $_GET['with'] : '';
   if ($with === '' || !isset($conversations[$with])) {
     header('location:3wid_list_messages.php?wid_id=' . (int) $threeword_id);
@@ -62,22 +64,11 @@
   }
   $open = $conversations[$with];
 
-  // Lines: the partner's messages, plus the owner's own messages to the partner (if any)
+  // Lines: both directions, oldest first (already sorted by chat_conversations)
   $lines = array();
   foreach ($open['items'] as $m) {
-    $lines[] = array('id' => (int) $m['id'], 'mine' => false, 'title' => $m['title'], 'message' => $m['message']);
+    $lines[] = array('id' => (int) $m['id'], 'mine' => $m['mine'], 'title' => $m['title'], 'message' => $m['message']);
   }
-  if (!$open['visitor']) {
-    $partner = db_3wordid_get_threeword($open['name']);
-    if ($partner && !empty($partner['id'])) {
-      foreach (db_3wordid_messages_from_to($data['id'], $threeword_id, $partner['id']) as $m) {
-        $lines[] = array('id' => (int) $m['id'], 'mine' => true, 'title' => $m['title'], 'message' => $m['message']);
-      }
-    }
-  }
-  // chronological: ids go up with time
-  usort($lines, function ($a, $b) { return $a['id'] <=> $b['id']; });
-  $line_dates = db_3wordid_message_dates(array_column($lines, 'id'));
 
   $partner_label = $open['visitor'] ? t_plain('chat.print_visitor') : $open['name'];
   $back_url = '3wid_list_messages.php?wid_id=' . (int) $threeword_id . '&with=' . rawurlencode($open['key']);

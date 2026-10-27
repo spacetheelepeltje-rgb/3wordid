@@ -393,3 +393,11 @@ button.avatar.photo { cursor: zoom-in; }
 @media (prefers-reduced-motion: no-preference) {
     .chat-row, .chat-header .back, .composer .send { transition: background-color .12s; }
 }
+
+/* Two-way chat: unread dot, "You:" preview, read ticks, conversation composer */
+.chat-row .cr-unread { flex: 0 0 auto; width: 10px; height: 10px; border-radius: 50%; background: var(--tick); }
+.chat-row.unread .cr-name { font-weight: 700; }
+.chat-row.unread .cr-preview { color: var(--navy); font-weight: 600; }
+.chat-row .cr-you { color: var(--muted); font-weight: 500; }
+.tick.read { color: var(--tick-read, #2F8FED); }
+.composer.conv .c-note.err { margin: 0 0 6px; font-size: 13px; color: #B3261E; }

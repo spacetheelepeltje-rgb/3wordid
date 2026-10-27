@@ -1373,7 +1373,12 @@ function db_message_backup($id) {
     $conn = get_db_conn();
 
     // Prepare the DELETE query
-    $query = "INSERT INTO 3wordid_messages_deleted (SELECT * FROM 3wordid_messages WHERE id = ?)";
+    // Copy only the columns both tables have, so adding a column (creation_date, read_at)
+    // to one table before the other does not break deleting.
+    $cols = db_message_backup_columns($conn);
+    $query = $cols
+        ? "INSERT INTO 3wordid_messages_deleted (" . $cols . ") SELECT " . $cols . " FROM 3wordid_messages WHERE id = ?"
+        : "INSERT INTO 3wordid_messages_deleted (SELECT * FROM 3wordid_messages WHERE id = ?)";
 
     // Prepare the statement
     $stmt = $conn->prepare($query);
@@ -2833,4 +2838,103 @@ function db_3wordid_photo_source($wid_id) {
 	$stmt->close();
 	$conn->close();
 	return $row ? (string) $row['picture'] : '';
+}
+
+
+// Column list (backticked) shared by 3wordid_messages and 3wordid_messages_deleted,
+// in the order of the messages table. Empty string when it cannot be read.
+function db_message_backup_columns($conn) {
+	$names = array();
+	foreach (array('3wordid_messages', '3wordid_messages_deleted') as $i => $table) {
+		$result = $conn->query("SHOW COLUMNS FROM " . $table);
+		if (!$result) {
+			return '';
+		}
+		$names[$i] = array();
+		while ($row = $result->fetch_assoc()) {
+			$names[$i][] = $row['Field'];
+		}
+		$result->free();
+	}
+	$common = array_values(array_intersect($names[0], $names[1]));
+	if (!$common) {
+		return '';
+	}
+	return implode(', ', array_map(function ($c) { return '`' . str_replace('`', '', $c) . '`'; }, $common));
+}
+
+// ---------------------------------------------------------------------------
+// Two-way chat
+// ---------------------------------------------------------------------------
+
+// Messages the owner ($user_id) sent FROM their 3WordID $wid_id, newest first, with the
+// recipient's three words. Same row shape as db_3wordid_list_messages() plus 3wid_id.
+function db_3wordid_list_sent($wid_id, $user_id) {
+	$wid_id = (int) $wid_id;
+	$user_id = (int) $user_id;
+	if ($wid_id < 1 || $user_id < 1) {
+		return array();
+	}
+	$conn = get_db_conn();
+	if (!$conn || $conn->connect_error) {
+		return array();
+	}
+	$stmt = $conn->prepare("SELECT m.id AS id, w.threeword AS threeword, m.3wid_id AS 3wid_id, m.3wid_from_id AS 3wid_from_id, m.from_id AS from_id, m.title AS title, m.message AS message
+	                        FROM 3wordid_messages AS m JOIN 3wordid AS w ON w.id = m.3wid_id
+	                        WHERE m.3wid_from_id = ? AND m.from_id = ? ORDER BY m.id DESC");
+	if ($stmt === false) {
+		$conn->close();
+		return array();
+	}
+	$stmt->bind_param("ii", $wid_id, $user_id);
+	$stmt->execute();
+	$rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+	$stmt->close();
+	$conn->close();
+	return $rows ? $rows : array();
+}
+
+// [message id => read_at or null]. Empty array when there is no read_at column yet.
+function db_3wordid_message_reads($ids) {
+	$ids = array_values(array_unique(array_filter(array_map('intval', (array) $ids), function ($i) { return $i > 0; })));
+	if (!$ids || !db_3wordid_messages_has_column('read_at')) {
+		return array();
+	}
+	$conn = get_db_conn();
+	if (!$conn || $conn->connect_error) {
+		return array();
+	}
+	$out = array();
+	$result = $conn->query("SELECT id, read_at FROM 3wordid_messages WHERE id IN (" . implode(',', $ids) . ")");
+	if ($result) {
+		while ($row = $result->fetch_assoc()) {
+			$out[(int) $row['id']] = $row['read_at'];
+		}
+		$result->free();
+	}
+	$conn->close();
+	return $out;
+}
+
+// Mark the messages sent from $from_wid to the owner's 3WordID $to_wid as read.
+// Call only after checking that $to_wid belongs to the logged-in user.
+function db_3wordid_mark_read($to_wid, $from_wid) {
+	$to_wid = (int) $to_wid;
+	$from_wid = (int) $from_wid;
+	if ($to_wid < 1 || $from_wid < 1 || !db_3wordid_messages_has_column('read_at')) {
+		return false;
+	}
+	$conn = get_db_conn();
+	if (!$conn || $conn->connect_error) {
+		return false;
+	}
+	$stmt = $conn->prepare("UPDATE 3wordid_messages SET read_at = NOW() WHERE 3wid_id = ? AND 3wid_from_id = ? AND read_at IS NULL");
+	$ok = false;
+	if ($stmt) {
+		$stmt->bind_param("ii", $to_wid, $from_wid);
+		$ok = $stmt->execute();
+		$stmt->close();
+	}
+	$conn->close();
+	return $ok;
 }
