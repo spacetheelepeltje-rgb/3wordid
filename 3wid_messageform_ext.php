@@ -331,11 +331,11 @@
                 <span>3WordID</span>
             </a>
             <nav class="nav-links">
-                <a href="https://x.com/climatebabes/status/1921113933592584660">Docs on X.com</a>
-                <a href="https://github.com/spacetheelepeltje-rgb/3wordid">Open Source on Github</a>
+                <a href="/plans.php">Plans</a>
+                <a href="/terms.php">Terms</a>
             </nav>
             <div class="header-actions" id="userContainer">
-                <a href="<?php echo $loginUrl; ?>" class="btn btn-primary">Log in/Create ID</a>
+                <a href="<?php echo $loginUrl; ?>" class="btn btn-primary">Get started</a>
             </div>
         </div>
     </header>
@@ -378,7 +378,13 @@
     </main>
 
     <footer class="site-footer">
-        <div class="footer-inner"><?php echo $footer; ?></div>
+        <div class="footer-inner"><?php echo $footer; ?>
+            <div>
+                <a href="https://x.com/climatebabes/status/1921113933592584660">Docs on X</a>
+                <a href="https://github.com/spacetheelepeltje-rgb/3wordid">Open source on GitHub</a>
+                <a href="/terms.php">Terms</a>
+            </div>
+        </div>
     </footer>
 </body>
 <script src="js/3wid_messageform_ext.js"></script>

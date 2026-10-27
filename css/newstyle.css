@@ -267,6 +267,8 @@
         flex-wrap: wrap;
       }
       .site-footer a { color: var(--slate); text-decoration: none; }
+      .footer-links { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }
+      .footer-links a:hover, .site-footer a:hover { color: var(--navy); }
       @media (max-width: 800px) {
         .nav-links { display: none; }
         .cards { grid-template-columns: 1fr; }

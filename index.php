@@ -77,26 +77,7 @@ $db_3wordid_list = db_3wordid_list_recent();
     </style>
 </head>
 <body>
-    <header class="site-header">
-        <a class="brand" href="<?php echo $main_url;?>">
-            <span class="brand-mark"><img width='35' src='https://3WordID.com/img/3wid_big.png'></span>
-            3WordID
-        </a>
-        <nav class="nav-links">
-              <a href="plans.php">Subscription Plans</a> <a href="terms.php">Terms</a> <a href="https://x.com/climatebabes/status/1921113933592584660">Docs on X.com</a> <a href="https://github.com/spacetheelepeltje-rgb/3wordid">Open Source on Github</a>               
-        </nav>
-        
-        <div class="header-actions" id="userContainer">
-            <a href="<?php echo $loginUrl; ?>" class="btn btn-primary">Log in/Create ID</a>
-            <!-- <a href="<?php echo $loginUrl; ?>" class="login-icon" title="Log in (not all functions work on mobile devices)">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="Login Icon">
-                <path d="M15 21h4a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-4"></path>
-                <polyline points="8 7 13 12 8 17"></polyline>
-                <line x1="13" y1="12" x2="1" y2="12"></line>
-              </svg> -->
-            </a>
-        </div>
-    </header>
+<?php require __DIR__ . '/php/header.php'; ?>
 
     <main>
         <section class="hero">
@@ -157,20 +138,10 @@ $db_3wordid_list = db_3wordid_list_recent();
         </section>
         
     </main>
-    <footer class="site-footer">
-    </footer>
+<?php require __DIR__ . '/php/footer.php'; ?>
 </body>
 <script src="js/3wid_index_2.js"></script>
 <script>
-    function handleGoogleLogin() {
-        //window.location.href = '<?php echo $loginUrl; ?>';
-    }
-
-    document.querySelector('.login-icon')?.addEventListener('click', function(e) {
-        e.preventDefault();
-        handleGoogleLogin();
-    });
-
     document.addEventListener('DOMContentLoaded', function() {
         const userPortrait = document.getElementById('userPortrait');
         if (userPortrait && '<?php echo $image_url; ?>') {

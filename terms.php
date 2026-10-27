@@ -110,26 +110,10 @@ $loginUrl = '/login/options.php';
     </style>
 </head>
 <body>
-    <header class="site-header">
-        <a class="brand" href="<?php echo $main_url; ?>">
-            <span class="brand-mark"><img width="35" src="https://3WordID.com/img/3wid_big.png" alt=""></span>
-            3WordID
-        </a>
-        <nav class="nav-links">
-            <a href="https://x.com/climatebabes/status/1921113933592584660">Docs on X.com</a>
-            <a href="https://github.com/spacetheelepeltje-rgb/3wordid">Open Source on Github</a>
-            <a href="terms.php">Terms</a>
-        </nav>
-        <div class="header-actions">
-			<a href="https://wa.me/31644311561?text=From 3WordID.com : "
-   target="_blank"
-   rel="noopener noreferrer"
-   class="btn btn-primary" style='background:#25D366;'>
-  Chat on WhatsApp
-</a>
-<a href="<?php echo $loginUrl; ?>" class="btn btn-primary">Log in/Create ID</a>
-        </div>
-    </header>
+<?php
+$header_extra = '<a href="https://wa.me/31644311561?text=From 3WordID.com : " target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="background:#25D366;">Chat on WhatsApp</a>';
+require __DIR__ . '/php/header.php';
+?>
 
     <main class="legal-wrap">
         <div class="eyebrow">LEGAL</div>
@@ -316,10 +300,9 @@ $loginUrl = '/login/options.php';
         </div>
     </main>
 
-    <footer class="site-footer">
-        <div><?php echo $footer; ?></div>
-        <div>No rights can be derived from use of this site. Service provided as is.</div>
-       
-    </footer>
+<?php
+$footer_note = 'No rights can be derived from use of this site. Service provided as is.';
+require __DIR__ . '/php/footer.php';
+?>
 </body>
 </html>
