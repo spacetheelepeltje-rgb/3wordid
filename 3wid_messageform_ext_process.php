@@ -27,11 +27,13 @@
    
    if(isset($_POST["message"])) {
 
-   $message = $_POST["message"];
+   $message = trim((string) $_POST["message"]);
 
-   $title = $_POST["title"];
+   // There is no subject field: the title is always the start of the message
+   // (a "title" sent by an old, cached form is ignored)
+   $title = chat_title_from_message($message);
    
-   $threeword = $_POST["threeword"];
+   $threeword = (string) ($_POST["threeword"] ?? '');
 
    $threeword_val = db_3wid_validate($threeword);
    
@@ -42,6 +44,12 @@
    // The visitor placeholder itself is not a real recipient
    if (chat_is_visitor_wid($threeword_data)) {
 	   $threeword_data = null;
+   }
+
+   // An empty message is never stored (the form checks this too): back to the form
+   if ($threeword_data && $message === '') {
+	   header('location:3wid_messageform_ext.php?threeword=' . rawurlencode($threeword_data['threeword']));
+	   exit;
    }
 
    if($threeword_data) { // valid recipient

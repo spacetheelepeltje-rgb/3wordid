@@ -50,7 +50,8 @@
   // Visitors get a hint to log in instead; the photo is not in this page at all for them.
   $wid_id = (is_array($row) && !chat_is_visitor_wid($row)) ? (int) $row['id'] : 0;
   $has_photo = $wid_id ? !empty(db_3wordid_photo_ids(array($wid_id))[$wid_id]) : false;
-  $viewer = $has_photo ? current_user_from_session($conn) : null;
+  // Logged in? Then "back" goes to your own 3WordIDs, otherwise to the homepage
+  $viewer = current_user_from_session($conn);
   $photo_ids = ($has_photo && $viewer) ? array($wid_id => true) : array();
 
   // The message just sent (stored by 3wid_messageform_ext_process.php), shown once as a bubble
@@ -71,23 +72,22 @@
     <?php echo lang_head_tags(); ?>
     <link rel="icon" type="image/x-icon" href="img/favicon.ico">
     <link href="/css/inter.css" rel="stylesheet">
-    <link rel="stylesheet" href="css/chat.css">
+    <link rel="stylesheet" href="<?php echo chat_asset('css/chat.css'); ?>">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body class="chat-body">
+<?php
+  echo chat_topbar(array(
+      'back'    => chat_back_home((bool) $viewer, $main_url),
+      'avatar'  => chat_avatar_for($reply_to, $wid_id, $photo_ids, '', true),
+      'name'    => $reply_to_safe,
+      'sub'     => t('tb.anonymous'),
+      'actions' => $viewer ? '' : '<a class="tb-btn tb-login" href="' . chat_e($loginUrl) . '" title="' . t('nav.login') . '" aria-label="' . t('nav.login') . '">' . chat_tb_icon('login') . '<span class="tb-btn-label">' . t('nav.login') . '</span></a>',
+  ));
+?>
 <div class="chat-app">
-    <header class="chat-header">
-        <a class="back" href="<?php echo chat_e($main_url); ?>" aria-label="<?php echo t('common.back'); ?>"><?php echo chat_icon('back'); ?></a>
-        <?php echo chat_avatar_for($reply_to, $wid_id, $photo_ids, '', true); ?>
-        <div class="who">
-            <div class="name"><?php echo $reply_to_safe; ?></div>
-            <div class="sub" id="helperText"><?php echo t('chat.message_box'); ?></div>
-        </div>
-        <a class="hbtn" href="<?php echo chat_e($loginUrl); ?>"><?php echo t('nav.login'); ?></a>
-    </header>
 
     <main class="chat-scroll" data-scroll="end">
-        <div class="chat-tools"><?php echo lang_switcher(); ?></div>
         <?php if ($has_photo && !$viewer): ?>
         <div class="pill-wrap"><span class="pill info"><a href="<?php echo chat_e($loginUrl); ?>"><?php echo t('chat.photo_login_hint'); ?></a></span></div>
         <?php endif; ?>
@@ -120,9 +120,9 @@
         <input type="hidden" id="threeword" value="<?php echo $reply_to_safe; ?>">
         <input type="hidden" name="threeword" value="<?php echo $reply_to_safe; ?>">
         <p class="c-note"><?php echo t('chat.ext_contact_hint'); ?></p>
+        <p class="c-note c-status" id="helperText" role="status" aria-live="polite"></p>
         <div class="c-row">
             <div class="c-box">
-                <input type="text" name="title" id="title" class="c-subject" maxlength="200" autocomplete="off" placeholder="<?php echo t('chat.subject_ph'); ?>" aria-label="<?php echo t('msg.title_label'); ?>">
                 <textarea name="message" id="message" class="c-text" rows="1" placeholder="<?php echo t('chat.type_message'); ?>" aria-label="<?php echo t('msg.message_label'); ?>"></textarea>
             </div>
             <button type="submit" id="submitBtn" class="send" aria-label="<?php echo t('common.send'); ?>" title="<?php echo t('common.send'); ?>"><?php echo chat_icon('send'); ?></button>
@@ -131,11 +131,10 @@
 </div>
 <?php echo i18n_js([
     'clicked'      => 'msg.js_clicked',
-    'need_title'   => 'msg.js_need_title',
     'need_message' => 'msg.js_need_message',
     'need_3wid'    => 'msg.js_need_3wid',
 ]); ?>
-<script src="js/3wid_messageform_ext.js"></script>
-<script src="js/chat.js"></script>
+<script src="<?php echo chat_asset('js/3wid_messageform_ext.js'); ?>"></script>
+<script src="<?php echo chat_asset('js/chat.js'); ?>"></script>
 </body>
 </html>

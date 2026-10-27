@@ -26,60 +26,40 @@ function validateURL(url) {
     }
 }
 
-$(document).ready(function() {
+$(document).ready(function () {
 
-    // Attach event listener to the form
-    $('#3widForm').on('submit', function(event) {
+    // Check the form, then let the browser send it as a normal POST.
+    // There is no subject field: the server makes the title from the message.
+    $('#3widForm').on('submit', function (event) {
+        var form = this;
+        var threeword = $.trim($('#threeword').val() || '');
+        var message = $.trim($('#message').val() || '');
 
-		send=0;
-		
-		$('#helperText').text(tr('clicked', 'Clicked submit'));
-		
-        // Log to confirm the handler is firing
-        console.log('Form submit handler triggered');
+        if (form.getAttribute('data-sending') === '1') {
+            // Already on its way: do not send it twice
+            event.preventDefault();
+            return;
+        }
+        if (message === '') {
+            event.preventDefault();
+            $('#helperText').text(tr('need_message', 'Please provide a message'));
+            $('#message').focus();
+            return;
+        }
+        if (threeword === '') {
+            event.preventDefault();
+            $('#helperText').text(tr('need_3wid', 'Please provide an 3WordID'));
+            return;
+        }
 
-        // Prevent default submission
-        event.preventDefault();
-        send = 1;
-        
-        //console.log('Default submission prevented');
-
-        // Grab form data
-        let form = $(this);
-        let threeword = $('#threeword').val();
-        let title = $('#title').val();
-        let message = $('#message').val();
-        
-        if(title.trim()=='') {
-			$('#helperText').text(tr('need_title', 'Please provide a message title'));
-			send=0;
-			return;
-		}
-        
-         if(message.trim()=='') {
-			$('#helperText').text(tr('need_message', 'Please provide a message'));
-			send=0;
-			return;
-		}
-        
-        if(threeword.trim()=='') {
-			$('#helperText').text(tr('need_3wid', 'Please provide an 3WordID'));
-			send=0;
-			return;
-		}
-
-        // If you reach here, email is valid
-        console.log('send is ' +  send);
-        // Add your next steps here (e.g., AJAX call)
-        
-        if(send==1) { 
-			window.location.href = '3wid_messageform_ext_process.php'; // Replace with the URL of the page you want to redirect to
-			// Use jQuery to submit the form, respecting the event handler
-			form.off('submit'); // Remove this handler to avoid infinite loop
-			form.submit(); // Trigger jQuery's submit, which sends the form
-		}
+        form.setAttribute('data-sending', '1');
+        $('#submitBtn').prop('disabled', true).attr('aria-busy', 'true');
+        $('#helperText').text(tr('clicked', 'Sending…'));
     });
-	
-	
+
+    // Back/forward cache: a page shown again must be sendable again
+    window.addEventListener('pageshow', function () {
+        $('#3widForm').removeAttr('data-sending');
+        $('#submitBtn').prop('disabled', false).removeAttr('aria-busy');
+    });
 });
-		

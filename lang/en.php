@@ -143,8 +143,6 @@ return [
     'msg.from' => 'From',
     'msg.send_from' => 'Send from : {words}',
     'msg.recipient' => 'Recipient',
-    'msg.title_label' => 'Title',
-    'msg.title_ph' => 'Enter a message title',
     'msg.message_label' => 'Message',
     'msg.message_ph' => 'Enter your message here',
     'msg.hint1' => 'Replies show up in the same conversation, so you can chat back and forth.',
@@ -154,7 +152,6 @@ return [
     'msg.js_bad_recipient' => 'invalid recipient',
     'msg.js_invalid' => '3wid invalid',
     'msg.js_clicked' => 'Sending…',
-    'msg.js_need_title' => 'Please provide a message title',
     'msg.js_need_message' => 'Please provide a message',
     'msg.js_need_3wid' => 'Please provide an 3WordID',
     'msg.js_need_terms' => 'Please accept the terms by checking the checkbox',
@@ -305,7 +302,6 @@ The URL, notification, and chat for these words will be removed. This cannot be 
     'lm.h1' => 'Messages for \'{name}\'',
     'lm.subhead' => 'Click a title to read the message.',
     'lm.user' => 'User',
-    'lm.title_message' => 'Title/Message',
     'lm.actions' => 'Actions',
     'lm.reply' => 'Reply to {name}',
     'lm.full_image' => 'Full Image',
@@ -596,7 +592,6 @@ The URL, notification, and chat for these words will be removed. This cannot be 
     'chat.err_empty' => 'Type a message first.',
     'chat.new_message' => 'New message',
     'chat.message_box' => 'Chat',
-    'chat.subject_ph' => 'Subject (filled in from your message)',
     'chat.type_message' => 'Type a message',
     'chat.ext_contact_hint' => 'Add contact details if you want a reply.',
 
@@ -633,4 +628,14 @@ The URL, notification, and chat for these words will be removed. This cannot be 
     'list.mail_received_other' => '{n} messages for {words}: open the chats',
     'list.mail_unread_one' => '{n} new message for {words}: open the chats',
     'list.mail_unread_other' => '{n} new messages for {words}: open the chats',
+
+    // Top bar of the chat pages
+    'tb.my_ids' => 'My 3WordIDs',
+    'tb.back_my_ids' => 'Back to My 3WordIDs',
+    'tb.home' => 'Home',
+    'tb.back_home' => 'Back to the homepage',
+    'tb.chats' => 'Chats',
+    'tb.back_chats' => 'Back to the chats of {words}',
+    'tb.chatting_as' => 'Chatting as {words}',
+    'tb.anonymous' => 'Anonymous message',
 ];

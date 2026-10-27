@@ -101,20 +101,18 @@
     <title><?php echo t('lm.title'); ?></title>
     <link rel="icon" type="image/x-icon" href="img/favicon.ico">
     <link href="/css/inter.css" rel="stylesheet">
-    <link rel="stylesheet" href="css/chat.css">
+    <link rel="stylesheet" href="<?php echo chat_asset('css/chat.css'); ?>">
 </head>
 <body class="chat-body">
-<div class="chat-app">
 <?php if ($open === null): ?>
-    <header class="chat-header">
-        <a class="back" href="3wid_list.php" aria-label="<?php echo t('nav.back_list'); ?>"><?php echo chat_icon('back'); ?></a>
-        <?php echo chat_avatar($threeword); ?>
-        <div class="who">
-            <div class="name"><?php echo $threeword_safe; ?></div>
-            <div class="sub"><?php echo t_n('chat.conversations', $total); ?></div>
-        </div>
-        <a class="back" href="3wid_messageform.php?threeword_id=<?php echo (int) $threeword_id; ?>" title="<?php echo t('chat.new_message'); ?>" aria-label="<?php echo t('chat.new_message'); ?>"><?php echo chat_icon('compose'); ?></a>
-    </header>
+    <?php echo chat_topbar(array(
+        'back'    => chat_back_home(true),
+        'avatar'  => chat_avatar($threeword),
+        'name'    => $threeword_safe,
+        'sub'     => t_n('chat.conversations', $total),
+        'actions' => chat_tb_button('3wid_messageform.php?threeword_id=' . (int) $threeword_id, 'compose', t_plain('chat.new_message')),
+    )); ?>
+<div class="chat-app">
 
     <main class="chat-scroll plain">
         <ul class="chat-list">
@@ -148,15 +146,18 @@
     $label = $is_visitor ? t('chat.visitors') : chat_e($open['name']);
     $prev_day = null;
 ?>
-    <header class="chat-header">
-        <a class="back" href="<?php echo chat_e($base_url); ?>" aria-label="<?php echo t('common.back'); ?>"><?php echo chat_icon('back'); ?></a>
-        <?php echo $is_visitor ? chat_visitor_avatar() : chat_avatar_for($open['name'], $open['wid'], $photo_ids, '', true); ?>
-        <div class="who">
-            <div class="name"><?php echo $label; ?></div>
-            <div class="sub"><?php echo t('chat.your_wid', ['words' => $threeword]); ?></div>
-        </div>
-        <a class="back" href="<?php echo chat_e('3wid_chat_print.php?wid_id=' . (int) $threeword_id . '&with=' . rawurlencode($open['key'])); ?>" target="_blank" rel="noopener" title="<?php echo t('chat.print_title'); ?>" aria-label="<?php echo t('chat.print_title'); ?>"><?php echo chat_icon('print'); ?></a>
-    </header>
+    <?php
+    // Inside a conversation "back" goes one step up: the chats of this 3WordID.
+    // The list button next to the language menu goes straight to My 3WordIDs.
+    echo chat_topbar(array(
+        'back'    => array($base_url, t('tb.chats'), t('tb.back_chats', ['words' => $threeword])),
+        'avatar'  => $is_visitor ? chat_visitor_avatar() : chat_avatar_for($open['name'], $open['wid'], $photo_ids, '', true),
+        'name'    => $label,
+        'sub'     => t('tb.chatting_as', ['words' => $threeword]),
+        'actions' => chat_tb_button('3wid_chat_print.php?wid_id=' . (int) $threeword_id . '&with=' . rawurlencode($open['key']), 'print', t_plain('chat.print_title'), 'target="_blank" rel="noopener"')
+                   . chat_tb_button('3wid_list.php', 'list', t_plain('tb.my_ids')),
+    )); ?>
+<div class="chat-app">
 
     <main class="chat-scroll" data-scroll="end" data-refresh="15">
         <?php foreach ($open['items'] as $i => $m):
@@ -197,7 +198,6 @@
         <input type="hidden" name="from_id" value="<?php echo (int) $threeword_id; ?>">
         <input type="hidden" name="threeword" value="<?php echo chat_e($open['name']); ?>">
         <input type="hidden" name="return" value="conv">
-        <input type="hidden" name="title" value="">
         <div class="c-row">
             <div class="c-box">
                 <textarea name="message" id="message" class="c-text" rows="1" required maxlength="5000" placeholder="<?php echo t('lm.reply', ['name' => $open['name']]); ?>" aria-label="<?php echo t('msg.message_label'); ?>"></textarea>
@@ -211,6 +211,6 @@
     <?php endif; ?>
 <?php endif; ?>
 </div>
-<script src="js/chat.js"></script>
+<script src="<?php echo chat_asset('js/chat.js'); ?>"></script>
 </body>
 </html>

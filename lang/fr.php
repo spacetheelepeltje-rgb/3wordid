@@ -129,8 +129,6 @@ return [
     'msg.from' => 'De',
     'msg.send_from' => 'Envoyer depuis : {words}',
     'msg.recipient' => 'Destinataire',
-    'msg.title_label' => 'Titre',
-    'msg.title_ph' => 'Saisissez un titre de message',
     'msg.message_label' => 'Message',
     'msg.message_ph' => 'Saisissez votre message ici',
     'msg.hint1' => 'Les réponses s’affichent dans la même conversation : vous pouvez échanger librement.',
@@ -140,7 +138,6 @@ return [
     'msg.js_bad_recipient' => 'destinataire invalide',
     'msg.js_invalid' => '3wid invalide',
     'msg.js_clicked' => 'Envoi en cours…',
-    'msg.js_need_title' => 'Veuillez saisir un titre de message',
     'msg.js_need_message' => 'Veuillez saisir un message',
     'msg.js_need_3wid' => 'Veuillez saisir un 3WordID',
     'msg.js_need_terms' => 'Veuillez accepter les conditions en cochant la case',
@@ -267,7 +264,6 @@ L’URL, la notification et le chat de ces mots seront supprimés. Cette action 
     'lm.h1' => 'Messages pour « {name} »',
     'lm.subhead' => 'Cliquez sur un titre pour lire le message.',
     'lm.user' => 'Utilisateur',
-    'lm.title_message' => 'Titre/Message',
     'lm.actions' => 'Actions',
     'lm.reply' => 'Répondre à {name}',
     'lm.full_image' => 'Image complète',
@@ -504,7 +500,6 @@ L’URL, la notification et le chat de ces mots seront supprimés. Cette action 
     'chat.err_empty' => 'Écrivez d’abord un message.',
     'chat.new_message' => 'Nouveau message',
     'chat.message_box' => 'Chat',
-    'chat.subject_ph' => 'Objet (repris de votre message)',
     'chat.type_message' => 'Écrivez un message',
     'chat.ext_contact_hint' => 'Ajoutez vos coordonnées si vous souhaitez une réponse.',
 
@@ -541,4 +536,14 @@ L’URL, la notification et le chat de ces mots seront supprimés. Cette action 
     'list.mail_received_other' => '{n} messages pour {words} : ouvrir les discussions',
     'list.mail_unread_one' => '{n} nouveau message pour {words} : ouvrir les discussions',
     'list.mail_unread_other' => '{n} nouveaux messages pour {words} : ouvrir les discussions',
+
+    // Top bar of the chat pages
+    'tb.my_ids' => 'Mes 3WordID',
+    'tb.back_my_ids' => 'Retour à Mes 3WordID',
+    'tb.home' => 'Accueil',
+    'tb.back_home' => 'Retour à la page d\'accueil',
+    'tb.chats' => 'Discussions',
+    'tb.back_chats' => 'Retour aux discussions de {words}',
+    'tb.chatting_as' => 'Vous discutez en tant que {words}',
+    'tb.anonymous' => 'Message anonyme',
 ];
