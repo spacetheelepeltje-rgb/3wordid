@@ -2706,3 +2706,29 @@ function db_3wordid_threeword_name($id) {
 	$conn->close();
 	return $row ? (string) $row['threeword'] : '';
 }
+
+// Messages the logged-in user sent from one of their 3WordIDs ($from_wid) to another
+// 3WordID ($to_wid), oldest first. Used for the "You:" lines of the printable chat.
+function db_3wordid_messages_from_to($user_id, $from_wid, $to_wid) {
+	$user_id = (int) $user_id;
+	$from_wid = (int) $from_wid;
+	$to_wid = (int) $to_wid;
+	if ($user_id < 1 || $from_wid < 1 || $to_wid < 1) {
+		return array();
+	}
+	$conn = get_db_conn();
+	if (!$conn || $conn->connect_error) {
+		return array();
+	}
+	$stmt = $conn->prepare("SELECT id, title, message FROM 3wordid_messages WHERE from_id = ? AND 3wid_from_id = ? AND 3wid_id = ? ORDER BY id ASC");
+	if ($stmt === false) {
+		$conn->close();
+		return array();
+	}
+	$stmt->bind_param("iii", $user_id, $from_wid, $to_wid);
+	$stmt->execute();
+	$rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+	$stmt->close();
+	$conn->close();
+	return $rows ? $rows : array();
+}

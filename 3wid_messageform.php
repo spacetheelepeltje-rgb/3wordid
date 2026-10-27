@@ -107,7 +107,7 @@
         <?php endif; ?>
     </main>
 
-    <form class="composer" id="3widForm" action="3wid_messageform_process.php" method="post">
+    <form class="composer" id="3widForm"<?php echo $sent ? ' data-sent="1"' : ''; ?> action="3wid_messageform_process.php" method="post">
         <label class="consent"><input type="checkbox" id="terms" name="terms"><span><?php echo t('msg.consent'); ?></span></label>
         <div class="c-row">
             <div class="c-box">
