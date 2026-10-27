@@ -1,0 +1,158 @@
+<?php
+// Small view helpers for the chat style message pages (css/chat.css).
+// Pure presentation: no database access and no schema knowledge in here.
+// Requires php/i18n.php (t, current_lang) to be loaded already.
+
+// Multibyte string helpers that also work when the mbstring extension is not installed
+function chat_len($s) {
+	$s = (string) $s;
+	if (function_exists('mb_strlen')) {
+		return mb_strlen($s, 'UTF-8');
+	}
+	return preg_match_all('/./us', $s, $m) ?: strlen($s);
+}
+function chat_substr($s, $start, $len) {
+	$s = (string) $s;
+	if (function_exists('mb_substr')) {
+		return mb_substr($s, $start, $len, 'UTF-8');
+	}
+	if (preg_match_all('/./us', $s, $m)) {
+		return implode('', array_slice($m[0], $start, $len));
+	}
+	return substr($s, $start, $len);
+}
+function chat_lower($s) {
+	return function_exists('mb_strtolower') ? mb_strtolower((string) $s, 'UTF-8') : strtolower((string) $s);
+}
+function chat_upper($s) {
+	return function_exists('mb_strtoupper') ? mb_strtoupper((string) $s, 'UTF-8') : strtoupper((string) $s);
+}
+
+// Escape for HTML output
+function chat_e($s) {
+	return htmlspecialchars((string) $s, ENT_QUOTES, 'UTF-8');
+}
+
+// First letter of a name, upper case, for the avatar circle
+function chat_initial($name) {
+	$name = trim((string) $name);
+	if ($name === '') {
+		return '?';
+	}
+	return chat_upper(chat_substr($name, 0, 1));
+}
+
+// Avatar colour class (c0..c7), stable for the same name
+function chat_color($name) {
+	return 'c' . (abs(crc32(chat_lower(trim((string) $name)))) % 8);
+}
+
+// Avatar circle markup
+function chat_avatar($name, $extra_class = '') {
+	return '<span class="avatar ' . chat_color($name) . ($extra_class ? ' ' . chat_e($extra_class) : '') . '" aria-hidden="true">' . chat_e(chat_initial($name)) . '</span>';
+}
+
+// Timestamp string -> unix time, or null
+function chat_ts($ts) {
+	if ($ts === null || $ts === '') {
+		return null;
+	}
+	$u = strtotime((string) $ts);
+	return $u === false ? null : $u;
+}
+
+// "14:05" today, otherwise the date. Empty string when there is no timestamp.
+function chat_time_label($ts) {
+	$u = chat_ts($ts);
+	if ($u === null) {
+		return '';
+	}
+	if (date('Y-m-d', $u) === date('Y-m-d')) {
+		return date('H:i', $u);
+	}
+	return chat_date_text($u);
+}
+
+// "14:05" always (inside a bubble). Empty string when there is no timestamp.
+function chat_clock($ts) {
+	$u = chat_ts($ts);
+	return $u === null ? '' : date('H:i', $u);
+}
+
+function chat_date_text($u) {
+	// English uses short month names, the other languages a numeric day/month/year
+	// (no month names to translate, so it reads the same everywhere)
+	return current_lang() === 'en' ? date('j M Y', $u) : date('d/m/Y', $u);
+}
+
+// Date separator text: Today, Yesterday or the date
+function chat_day_label($ts) {
+	$u = chat_ts($ts);
+	if ($u === null) {
+		return '';
+	}
+	$day = date('Y-m-d', $u);
+	if ($day === date('Y-m-d')) {
+		return t('chat.today');
+	}
+	if ($day === date('Y-m-d', strtotime('-1 day'))) {
+		return t('chat.yesterday');
+	}
+	return chat_date_text($u);
+}
+
+function chat_day_key($ts) {
+	$u = chat_ts($ts);
+	return $u === null ? '' : date('Y-m-d', $u);
+}
+
+// Shorten text for a preview line
+function chat_preview($text, $max = 70) {
+	$text = trim(preg_replace('/\s+/u', ' ', (string) $text));
+	if (chat_len($text) <= $max) {
+		return $text;
+	}
+	return rtrim(chat_substr($text, 0, $max - 1)) . '…';
+}
+
+// The title is filled in from the start of the message by the composer. Do not show it
+// twice when the message just starts with it.
+function chat_title_redundant($title, $message) {
+	$title = trim((string) $title);
+	if ($title === '') {
+		return true;
+	}
+	$title = (string) preg_replace('/[\x{2026}.\s]+$/u', '', $title);
+	$message = chat_lower(trim(preg_replace('/\s+/u', ' ', (string) $message)));
+	return $title !== '' && strncmp($message, chat_lower($title), strlen(chat_lower($title))) === 0;
+}
+
+// Message text: escaped, line breaks kept
+function chat_text($text) {
+	return nl2br(chat_e($text));
+}
+
+// Inline SVG icons
+function chat_icon($name) {
+	switch ($name) {
+		case 'back':
+			return '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>';
+		case 'send':
+			return '<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><path d="M3.4 20.4l17.45-7.48a1 1 0 0 0 0-1.84L3.4 3.6a.99.99 0 0 0-1.38 1.05L3 10.5l9 1.5-9 1.5-.98 5.85a.99.99 0 0 0 1.38 1.05z"/></svg>';
+		case 'trash':
+			return '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v6M14 11v6"/></svg>';
+		case 'reply':
+			return '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 6 6v3"/></svg>';
+		case 'user':
+			return '<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0z"/></svg>';
+		case 'tick':
+			// single check mark = sent
+			return '<svg class="tick" viewBox="0 0 16 12" width="16" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="' . chat_e(t('chat.sent')) . '"><path d="M2 6.5l3.5 3.5L13 2.5"/></svg>';
+	}
+	return '';
+}
+
+// Avatar for an anonymous visitor (user icon instead of an initial)
+function chat_visitor_avatar() {
+	return '<span class="avatar visitor" aria-hidden="true">' . chat_icon('user') . '</span>';
+}

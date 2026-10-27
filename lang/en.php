@@ -574,4 +574,22 @@ The URL, notification, and message box for these words will be removed. This can
     'ip.ok' => 'Ok',
     'ip.block' => 'Block',
     'ip.expired' => 'Session expired. Reload the page and try again.',
+
+    // Chat style message pages
+    'chat.today' => 'Today',
+    'chat.yesterday' => 'Yesterday',
+    'chat.visitors' => 'Visitors',
+    'chat.conversations_one' => '{n} conversation',
+    'chat.conversations_other' => '{n} conversations',
+    'chat.to_you' => 'to {words}',
+    'chat.no_reply' => 'Visitors who are not logged in cannot be replied to.',
+    'chat.confirm_delete' => 'Delete this message? This cannot be undone.',
+    'chat.received' => 'Received message',
+    'chat.sent_by_you' => 'Sent by you',
+    'chat.sent' => 'Sent',
+    'chat.new_message' => 'New message',
+    'chat.message_box' => 'Message box',
+    'chat.subject_ph' => 'Subject (filled in from your message)',
+    'chat.type_message' => 'Type a message',
+    'chat.ext_contact_hint' => 'Add contact details if you want a reply.',
 ];

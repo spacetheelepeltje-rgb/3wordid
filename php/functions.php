@@ -2634,3 +2634,75 @@ function send_3wid_list_email($email, $rows) {
 
 	return @mail($email, $subject, $body, $headers, '-fnoreply@3wordid.com');
 }
+
+
+// ---- Chat view helpers (see php/chat.php) ----
+
+// Does the table have this column? Used so the chat view can show times when the
+// messages table has a creation_date column, without breaking when it does not.
+function db_3wordid_messages_has_column($column) {
+	static $cache = array();
+	$column = (string) $column;
+	if (!preg_match('/^[a-z_]+$/', $column)) {
+		return false;
+	}
+	if (array_key_exists($column, $cache)) {
+		return $cache[$column];
+	}
+	$cache[$column] = false;
+	$conn = get_db_conn();
+	if ($conn && !$conn->connect_error) {
+		$result = $conn->query("SHOW COLUMNS FROM 3wordid_messages LIKE '" . $conn->real_escape_string($column) . "'");
+		if ($result) {
+			$cache[$column] = ($result->num_rows > 0);
+			$result->free();
+		}
+		$conn->close();
+	}
+	return $cache[$column];
+}
+
+// Returns [message id => 'Y-m-d H:i:s'] for the given message ids. Returns an empty
+// array when the messages table has no creation_date column (no schema change needed).
+function db_3wordid_message_dates($ids) {
+	$ids = array_values(array_unique(array_filter(array_map('intval', (array) $ids), function ($i) { return $i > 0; })));
+	if (!$ids || !db_3wordid_messages_has_column('creation_date')) {
+		return array();
+	}
+	$conn = get_db_conn();
+	if (!$conn || $conn->connect_error) {
+		return array();
+	}
+	// ids are integers (cast above), so the list is safe to inline
+	$result = $conn->query("SELECT id, creation_date FROM 3wordid_messages WHERE id IN (" . implode(',', $ids) . ")");
+	$dates = array();
+	if ($result) {
+		while ($row = $result->fetch_assoc()) {
+			if (!empty($row['creation_date'])) {
+				$dates[(int) $row['id']] = (string) $row['creation_date'];
+			}
+		}
+		$result->free();
+	}
+	$conn->close();
+	return $dates;
+}
+
+// Name (three words) of a 3WordID by id, or '' when not found.
+function db_3wordid_threeword_name($id) {
+	$id = (int) $id;
+	if ($id < 1) {
+		return '';
+	}
+	$conn = get_db_conn();
+	if (!$conn || $conn->connect_error) {
+		return '';
+	}
+	$stmt = $conn->prepare("SELECT threeword FROM 3wordid WHERE id = ? LIMIT 1");
+	$stmt->bind_param("i", $id);
+	$stmt->execute();
+	$row = $stmt->get_result()->fetch_assoc();
+	$stmt->close();
+	$conn->close();
+	return $row ? (string) $row['threeword'] : '';
+}

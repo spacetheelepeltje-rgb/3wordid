@@ -574,4 +574,22 @@ De URL, mededeling en berichtenbox van deze woorden worden verwijderd. Dit kan n
     'ip.ok' => 'Ok',
     'ip.block' => 'Blokkeren',
     'ip.expired' => 'Sessie verlopen. Laad de pagina opnieuw en probeer het nog eens.',
+
+    // Chat style message pages
+    'chat.today' => 'Vandaag',
+    'chat.yesterday' => 'Gisteren',
+    'chat.visitors' => 'Bezoekers',
+    'chat.conversations_one' => '{n} gesprek',
+    'chat.conversations_other' => '{n} gesprekken',
+    'chat.to_you' => 'aan {words}',
+    'chat.no_reply' => 'Op bezoekers die niet ingelogd zijn kun je niet reageren.',
+    'chat.confirm_delete' => 'Dit bericht verwijderen? Dit kan niet ongedaan worden gemaakt.',
+    'chat.received' => 'Ontvangen bericht',
+    'chat.sent_by_you' => 'Door jou verstuurd',
+    'chat.sent' => 'Verstuurd',
+    'chat.new_message' => 'Nieuw bericht',
+    'chat.message_box' => 'Berichtenbox',
+    'chat.subject_ph' => 'Onderwerp (wordt uit je bericht overgenomen)',
+    'chat.type_message' => 'Typ een bericht',
+    'chat.ext_contact_hint' => 'Voeg contactgegevens toe als je een antwoord wilt.',
 ];

@@ -482,4 +482,22 @@ Se eliminarán la URL, la notificación y el buzón de mensajes de estas palabra
     'ip.ok' => 'Ok',
     'ip.block' => 'Bloquear',
     'ip.expired' => 'La sesión ha caducado. Recargue la página e inténtelo de nuevo.',
+
+    // Chat style message pages
+    'chat.today' => 'Hoy',
+    'chat.yesterday' => 'Ayer',
+    'chat.visitors' => 'Visitantes',
+    'chat.conversations_one' => '{n} conversación',
+    'chat.conversations_other' => '{n} conversaciones',
+    'chat.to_you' => 'para {words}',
+    'chat.no_reply' => 'No se puede responder a los visitantes que no han iniciado sesión.',
+    'chat.confirm_delete' => '¿Eliminar este mensaje? No se puede deshacer.',
+    'chat.received' => 'Mensaje recibido',
+    'chat.sent_by_you' => 'Enviado por ti',
+    'chat.sent' => 'Enviado',
+    'chat.new_message' => 'Mensaje nuevo',
+    'chat.message_box' => 'Buzón de mensajes',
+    'chat.subject_ph' => 'Asunto (se toma de tu mensaje)',
+    'chat.type_message' => 'Escribe un mensaje',
+    'chat.ext_contact_hint' => 'Añade tus datos de contacto si quieres recibir una respuesta.',
 ];
