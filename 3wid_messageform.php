@@ -52,7 +52,7 @@
 
   // A note from 3wid_messageform_process.php (unknown recipient / visitor), shown once
   $error_key = '';
-  if (!empty($_SESSION['chat_error']) && in_array($_SESSION['chat_error'], array('chat.err_visitor', 'chat.err_recipient'), true)) {
+  if (!empty($_SESSION['chat_error']) && in_array($_SESSION['chat_error'], array('chat.err_visitor', 'chat.err_recipient', 'chat.err_inactive', 'chat.err_empty'), true)) {
       $error_key = $_SESSION['chat_error'];
   }
   unset($_SESSION['chat_error']);

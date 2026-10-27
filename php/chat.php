@@ -147,6 +147,9 @@ function chat_icon($name) {
 			return '<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0z"/></svg>';
 		case 'print':
 			return '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M6 14h12v7H6z"/></svg>';
+		case 'ticks':
+			// double check mark = read
+			return '<svg class="tick read" viewBox="0 0 20 12" width="20" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="' . chat_e(t('chat.read')) . '"><path d="M1.5 6.5L5 10l7.5-7.5"/><path d="M8.5 9.5l.5.5 7.5-7.5"/></svg>';
 		case 'tick':
 			// single check mark = sent
 			return '<svg class="tick" viewBox="0 0 16 12" width="16" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="' . chat_e(t('chat.sent')) . '"><path d="M2 6.5l3.5 3.5L13 2.5"/></svg>';
@@ -174,19 +177,47 @@ function chat_is_visitor_wid($row) {
 	return (int) ($row['id'] ?? 0) === CHAT_VISITOR_WID || (int) ($row['user_id'] ?? 0) === CHAT_VISITOR_USER_ID;
 }
 
-function chat_conversations($messages, $dates) {
+// Group messages into conversations, one per partner 3WordID, in BOTH directions:
+// $incoming = db_3wordid_list_messages() rows (sent to my 3WordID), $sent =
+// db_3wordid_list_sent() rows (sent from my 3WordID). Anonymous visitors (user 25)
+// share one group 'visitors'. $dates / $reads: [id => creation_date] / [id => read_at]
+// (empty when those columns do not exist yet).
+// Returns [key => ['key', 'name', 'visitor', 'wid', 'unread', 'items' (oldest first;
+// each with 'mine', 'sent_at', 'read_at' (null = unread, '' = unknown))]], newest first.
+function chat_conversations($incoming, $dates, $sent = array(), $reads = array()) {
 	$conversations = array();
-	foreach (array_reverse((array) $messages) as $m) { // oldest first
-		$is_visitor = ((int) $m['from_id'] === CHAT_VISITOR_USER_ID);
-		$key = $is_visitor ? 'visitors' : ((int) $m['from_id'] . ':' . $m['threeword']);
+	$add = function ($key, $name, $is_visitor, $wid, $m, $mine) use (&$conversations, $dates, $reads) {
 		if (!isset($conversations[$key])) {
-			$conversations[$key] = array('key' => $key, 'name' => $is_visitor ? '' : $m['threeword'], 'visitor' => $is_visitor, 'wid' => $is_visitor ? 0 : (int) ($m['3wid_from_id'] ?? 0), 'items' => array());
+			$conversations[$key] = array('key' => $key, 'name' => $name, 'visitor' => $is_visitor, 'wid' => $wid, 'unread' => 0, 'items' => array());
 		}
-		$m['sent_at'] = $dates[(int) $m['id']] ?? '';
+		$id = (int) $m['id'];
+		$m['mine'] = $mine;
+		$m['sent_at'] = $dates[$id] ?? '';
+		$m['read_at'] = array_key_exists($id, $reads) ? $reads[$id] : '';
+		if (!$mine && $m['read_at'] === null) {
+			$conversations[$key]['unread']++;
+		}
 		$conversations[$key]['items'][] = $m;
+	};
+	foreach ((array) $incoming as $m) {
+		$is_visitor = ((int) $m['from_id'] === CHAT_VISITOR_USER_ID);
+		$wid = $is_visitor ? 0 : (int) ($m['3wid_from_id'] ?? 0);
+		$key = $is_visitor ? 'visitors' : ($wid > 0 ? 'w' . $wid : ((int) $m['from_id'] . ':' . $m['threeword']));
+		$add($key, $is_visitor ? '' : $m['threeword'], $is_visitor, $wid, $m, false);
 	}
+	foreach ((array) $sent as $m) {
+		$wid = (int) ($m['3wid_id'] ?? 0);
+		if ($wid < 1 || $wid === CHAT_VISITOR_WID) {
+			continue;
+		}
+		$add('w' . $wid, $m['threeword'], false, $wid, $m, true);
+	}
+	foreach ($conversations as &$c) {
+		usort($c['items'], function ($a, $b) { return (int) $a['id'] <=> (int) $b['id']; });
+	}
+	unset($c);
 	uasort($conversations, function ($a, $b) {
-		return $b['items'][count($b['items']) - 1]['id'] <=> $a['items'][count($a['items']) - 1]['id'];
+		return (int) $b['items'][count($b['items']) - 1]['id'] <=> (int) $a['items'][count($a['items']) - 1]['id'];
 	});
 	return $conversations;
 }

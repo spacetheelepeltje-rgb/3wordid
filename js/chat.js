@@ -135,3 +135,37 @@
         close.focus();
     });
 })();
+
+// Two-way chat: while the tab is visible, look for new messages every ~15 s by
+// fetching this same (owner-only) page and swapping in the message list when it
+// changed. The composer is left alone, so typing is never interrupted.
+(function () {
+    var area = document.querySelector('.chat-scroll[data-refresh]');
+    if (!area || !window.fetch || !window.DOMParser) { return; }
+    var every = Math.max(10, parseInt(area.getAttribute('data-refresh'), 10) || 15) * 1000;
+    var busy = false;
+    function lastId(root) {
+        var rows = root.querySelectorAll('.row[data-id]');
+        return rows.length ? rows[rows.length - 1].getAttribute('data-id') + ':' + rows.length : '';
+    }
+    function nearEnd() { return area.scrollHeight - area.scrollTop - area.clientHeight < 80; }
+    function check() {
+        if (busy || document.visibilityState !== 'visible') { return; }
+        busy = true;
+        fetch(window.location.href.split('#')[0], { credentials: 'same-origin', cache: 'no-store' })
+            .then(function (r) { return (r.ok && !r.redirected) ? r.text() : ''; })
+            .then(function (html) {
+                if (!html) { return; }
+                var doc = new DOMParser().parseFromString(html, 'text/html');
+                var fresh = doc.querySelector('.chat-scroll[data-refresh]');
+                if (!fresh || lastId(fresh) === lastId(area)) { return; }
+                var stick = nearEnd();
+                area.innerHTML = fresh.innerHTML;
+                if (stick) { area.scrollTop = area.scrollHeight; }
+            })
+            .catch(function () {})
+            .then(function () { busy = false; });
+    }
+    setInterval(check, every);
+    document.addEventListener('visibilitychange', check);
+})();

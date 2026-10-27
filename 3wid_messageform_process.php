@@ -43,13 +43,22 @@
 	   exit;
 	}
 	  
-   $message = $_POST["message"];
+   $message = trim((string) ($_POST["message"] ?? ''));
  
-   $threeword = $_POST["threeword"];
+   $threeword = (string) ($_POST["threeword"] ?? '');
    
-   $title = $_POST["title"];
+   $title = trim((string) ($_POST["title"] ?? ''));
    
-   $from_id = (int) $_POST["from_id"];
+   $from_id = (int) ($_POST["from_id"] ?? 0);
+
+   // Sent from the composer inside a conversation: go back there, not to the message form
+   $to_conversation = (($_POST['return'] ?? '') === 'conv');
+
+   // The conversation composer has no subject field: use the start of the message
+   if ($title === '' && $message !== '') {
+	   $title = chat_len($message) > 40 ? rtrim(chat_substr($message, 0, 39)) . '…' : $message;
+	   $title = preg_replace('/\s+/u', ' ', $title);
+   }
    
    // The form no longer has its own checkbox: the user's privacy consent (checked above) counts
    $terms = 1;
@@ -71,9 +80,24 @@
 
    // Unknown recipient, or the placeholder used for anonymous visitors (they have no
    // account, so a reply would never reach them): back to the form with a clear note
-   if (!$threeword_data || chat_is_visitor_wid($threeword_data)) {
-	   $_SESSION['chat_error'] = $threeword_data ? 'chat.err_visitor' : 'chat.err_recipient';
-	   header('location:3wid_messageform.php?threeword_id=' . $from_id);
+   // Also: a switched-off 3WordID, or an empty message.
+   // There is no "one message until a reply" limit here: members can chat back and forth.
+   $error = '';
+   if (!$threeword_data) {
+	   $error = 'chat.err_recipient';
+   } elseif (chat_is_visitor_wid($threeword_data)) {
+	   $error = 'chat.err_visitor';
+   } elseif (isset($threeword_data['enabled']) && (int) $threeword_data['enabled'] !== 1) {
+	   $error = 'chat.err_inactive';
+   } elseif ($message === '') {
+	   $error = 'chat.err_empty';
+   }
+   $conv_url = ($threeword_data && !chat_is_visitor_wid($threeword_data))
+	   ? '3wid_list_messages.php?wid_id=' . $from_id . '&with=' . rawurlencode('w' . (int) $threeword_data['id'])
+	   : '3wid_list_messages.php?wid_id=' . $from_id;
+   if ($error !== '') {
+	   $_SESSION['chat_error'] = $error;
+	   header('location:' . ($to_conversation ? $conv_url : '3wid_messageform.php?threeword_id=' . $from_id));
 	   exit;
    }
 
@@ -96,6 +120,13 @@
 	   
 	   //error_log('messages form process csrf_token ' . $_SESSION["csrf_token"]);
 		
+	   if ($to_conversation) {
+		   // Back to the same conversation, scrolled to the newest message
+		   $_SESSION['chat_conv_sent'] = $from_id . '|w' . (int) $threeword_data['id'];
+		   header('location:' . $conv_url);
+		   exit;
+	   }
+
 	   // Show the sent message as a chat bubble on the message page (read once there)
 	   $_SESSION['chat_sent'] = array('to' => $threeword_data['threeword'], 'title' => (string) $title, 'message' => (string) $message, 'time' => time());
 	   header('location:3wid_messageform.php?threeword_id=' . $from_id . '&threeword=' . rawurlencode($threeword_data['threeword']));

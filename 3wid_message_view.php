@@ -41,7 +41,7 @@
   $from_name = $is_visitor ? '' : (string) db_3wordid_threeword_name($message_row['3wid_from_id'] ?? 0);
   // The owner sees who sent it (and goes back to that conversation); the sender sees the recipient
   if ($is_owner) {
-      $conv_key = $is_visitor ? 'visitors' : ((int) $message_row['from_id'] . ':' . $from_name);
+      $conv_key = $is_visitor ? 'visitors' : ('w' . (int) ($message_row['3wid_from_id'] ?? 0));
       $back_url = '3wid_list_messages.php?wid_id=' . (int) $message_row['3wid_id'] . '&with=' . rawurlencode($conv_key);
       $reply_url = ($is_visitor || $from_name === '') ? '' : '3wid_messageform.php?threeword_id=' . (int) $message_row['3wid_id'] . '&threeword=' . rawurlencode($from_name);
   } else {
