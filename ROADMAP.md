@@ -16,17 +16,19 @@ _Status as of 27 October 2026._
 - [x] Accounts deactivated instead of deleted; user list shows each user's 3WordID count and last login; one-time SQL adds `last_login` (PR #10)
 - [x] Session email: the login email is kept encrypted in the session only, with a "Send to my email" button on the list page (PR #12)
 - [x] The email button stays hidden until the SMTP settings are present in `login/config.php` (PR #13)
+- [x] Homepage text and SEO: typo fixes, meta description, canonical URL, Open Graph and Twitter card tags, social preview image (PR #14)
+- [x] Homepage redesign: live example, 3-step how it works, concrete use cases, curated public list, trust strip and FAQ (PR #17, re-opened from #15)
+- [x] Multi-language, English and Dutch, on the public pages: language from the browser, EN | NL switch, hreflang, one text file per language (PR #18)
+- [x] Multi-language on all remaining pages: login, list, add and edit, signup, credit, consent and admin; logged-out users go to `login/options.php` (PR #19)
 
 ## In review
-- [ ] Homepage text and SEO: typo fixes, meta description, canonical URL, Open Graph and Twitter card tags, social preview image (PR #14)
-- [ ] Homepage redesign: live example, 3-step how it works, concrete use cases, curated public list with "See more", trust strip and FAQ (PR #15, stacked on #14)
-- [ ] Header and footer links: shared header and footer with Plans, Terms and Get started, plus Docs on X, GitHub, Terms and Cookie settings (PR #16)
+- [ ] Header and footer links: shared header and footer with Plans, Terms and Get started (PR #16, needs updating for the language switch)
 - [ ] This roadmap update (PR #11)
 
 ## Next
 | Item | Area | Effort | Notes |
 |---|---|---|---|
-| Add server-only files to GitHub | Clean-up | Small | `plans.php`, `login/index.php`, `3wid_show_qr.php`, `3wid_list_ips.php`, `3wid_signup_list.php` |
+| Add server-only files to GitHub | Clean-up | Small | `plans.php`, `3wid_show_qr.php`, `3wid_list_ips.php`, `3wid_signup_list.php` (branch `add-server-files`); `3wid_list_ips.php` needs an admin-only check and must not stay public |
 | Fix `plans.php` | Privacy | Small | Still says emails are encrypted (they're hashed) and loads Google Fonts |
 | Repoint QR no-hash redirect | Clean-up | Small | `3wid_show_qr.php` without a hash still forwards to `index_2.php`; point it to `index.php` |
 | Make `errors.php` admin-only | Security | Small | Blocked through `.htaccess` for now (PR #8) |
@@ -37,6 +39,7 @@ _Status as of 27 October 2026._
 | Decide a retention period | GDPR | Small | Owner's decision, then state it on the privacy page |
 | HTML markup in notifications, with an HTML editor | Notifications | Medium | Notifications are public, so unsanitised HTML would allow XSS and phishing. Sanitise on the server with HTML Purifier and an allowlist of tags (p, br, b, i, ul, ol, li, a with http/https only, h2, h3); never trust the editor's output. Candidate editors: Quill or TinyMCE, self-hosted, no third-party CDN, for privacy |
 | Trust pages | Look and feel | Medium | About, Contact, Privacy and Pricing pages; shared header and footer links are in review (PR #16) |
+| Finish translations | Languages | Small | Proofread the Dutch legal texts, translate the server footer text in `login/config.php`, translate the server-only pages |
 | Remove old file-based pages | Clean-up | Small | `check.php`, `get_messages.php` etc. now break if still on the server |
 
 ## Longer term

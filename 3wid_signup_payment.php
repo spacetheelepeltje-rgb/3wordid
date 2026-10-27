@@ -22,12 +22,12 @@
     
 ?>  
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo current_lang(); ?>">
 <head>
 	<?php echo $google_stats; ?>
     <meta charset="UTF-8"> 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Form Page - 3WordID.com</title>
+    <title><?php echo t('signup.title'); ?></title>
     <link rel="icon" type="image/x-icon" href="img/favicon.ico">
     <link rel="stylesheet" href="css/styles_2.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -54,12 +54,10 @@ main {
 </style>
 </head>
 <body>
-    <header>
-      
-    </header>
+    <header><div style="text-align:right;padding:8px 16px;"><?php echo lang_switcher(); ?></div></header>
    <main>
   <div class="logo">
-    <a href='<?php echo $main_url;?>'><img width="100" src="img/3wid_big.png" alt="Logo"></a><br>
+    <a href='<?php echo $main_url;?>'><img width="100" src="img/3wid_big.png" alt="<?php echo t('icon.logo'); ?>"></a><br>
     <strong><?php echo htmlspecialchars($message, ENT_QUOTES, 'UTF-8'); ?></strong>
   </div>
   <?php 
@@ -67,9 +65,9 @@ main {
   if($payment_method=="Bank transfer" || $show) {  
   ?>	  
   <div id='bankdata'>
-	 <b>Bank transfer</b><br><br>
+	 <b><?php echo t('signup.pay_bank'); ?></b><br><br>
     <center><img size="200" src="rabo_qr__jun_21_2025.png"></center><br><br>
-    In Europe, you can this QR code to the payment link (goes to my personal account atm F. Rincker). You can us the 3WordID 'one year payment' on 3WordID to find the link as well. For actual bank transfer for larger nrs send an email to <a href="mailto:3wordid@climatebabes.com">us</a>.
+    <?php echo t_raw('pay.bank'); ?>
   </div>
 <?php
   }
@@ -77,7 +75,7 @@ main {
 if($payment_method=="Other" or $show) { 
   ?>	  
   <div id='bankdata'>
-	  Other Methods.
+	  <?php echo t('pay.other'); ?>
    </div>
 <?php
   }
@@ -89,7 +87,7 @@ if($payment_method=="Paypal" || $show) {
  <div id='bankdata'>
    <b>PayPal</b><br><br>
     <div id="paypal-button-container-P-1FG26942UU083052AM56O4OA"></div><br><br>
-    You can use PayPal to subscribe to an annual fee of (<?php echo $price; ?>) Euro. Add the code to the payment (<?php echo $code; ?>).<br>
+    <?php echo t('pay.paypal', ['price' => $price, 'code' => $code]); ?><br>
   </div>
 <?php
   }
@@ -99,7 +97,7 @@ if($payment_method=="Patreon" || $show) {
   ?>	  
   <div id='bankdata'>
    <b>Patreon</b><br><br>	  
-    Follow this link to sign up on Patreon : <a href="https://www.patreon.com/c/roboeconomics/membership">To Roboeconomics Patreon</a>
+    <?php echo t_raw('pay.patreon'); ?>
   </div>
   <?php
   }
@@ -126,7 +124,7 @@ if($payment_method=="Patreon" || $show) {
       },
       onApprove: function(data, actions) {
 		  
-        alert("Thank you for subscribing. You will see confirmation in your 3wordID profile soon ;-)"); // You can add optional success message for the subscriber here
+        alert(<?php echo json_encode(t_plain('credit.thanks')); ?>); // You can add optional success message for the subscriber here
       }
   }).render('#paypal-button-container-P-1FG26942UU083052AM56O4OA'); // Renders the PayPal button
 </script>

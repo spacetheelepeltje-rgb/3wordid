@@ -1,3 +1,8 @@
+// Texts for the current language come from window.T3 (set by the page, see php/i18n.php).
+var tr = window.tr || function (key, fallback) {
+    return (window.T3 && window.T3[key]) || fallback;
+};
+
 
 console.log('loading script');
 
@@ -130,13 +135,13 @@ $(document).ready(function() {
 						// This code runs after the AJAX call completes
 						if (response == 'exists') {
 							console.log('exists');
-							$('#helperText').html('3 word id exists');
+							$('#helperText').text(tr('add_exists', '3 word id exists'));
 							
 							$('#submitBtn').css('background-color', 'red');
 							$('#submitBtn').css('color', 'white'); // Optional for text
 						} else {
 							console.log('new');
-							$('#helperText').html('3 word id is new');
+							$('#helperText').text(tr('add_new', '3 word id is new'));
 							// Set to green
 							$('#submitBtn').css('background-color', 'green');
 							$('#submitBtn').css('color', 'white');
@@ -171,7 +176,7 @@ $(document).ready(function() {
 // Attach event listener to the form
     $('#3widForm').on('submit', function(event) {
 		event.preventDefault();
-        $('#helperText').html('Clicked submit');
+        $('#helperText').text(tr('clicked', 'Clicked submit'));
 		
         // Log to confirm the handler is firing
         console.log('Form submit handler triggered');
@@ -209,13 +214,13 @@ $(document).ready(function() {
         console.log('notification is ' + notification);
         
         if(threeword.trim() =='') {
-			 $('#helperText').html('Please provide a 3WordID');
+			 $('#helperText').text(tr('add_need_3wid', 'Please provide a 3WordID'));
 				  send=0;
 				  return;
 			}
 			
 		if (linkthru.toLowerCase().includes("3wordid.com")) {
-			 $('#helperText').html('You can not use a 3WordID forward');
+			 $('#helperText').text(tr('add_no_forward', 'You can not use a 3WordID forward'));
 		     send=0;
 		     return;
 		}	
@@ -223,7 +228,7 @@ $(document).ready(function() {
         if(linkthruflag == true) {
 
 			if(!validateURL(linkthru)) {
-				 $('#helperText').html('URL missing or invalid');
+				 $('#helperText').text(tr('bad_url', 'URL missing or invalid'));
 				  send=0;
 				  return;
 				 
@@ -232,21 +237,21 @@ $(document).ready(function() {
 		}
 		
 		if(nr_words != 3) {
-				  $('#helperText').html('Maximum is three words');
+				  $('#helperText').text(tr('max_three', 'Maximum is three words'));
 				  send=0;
 				  return;
 			}
 			
 		if(emailform==true) {
 			if(!validateEmail(email)) {
-				$('#helperText').html('Please provide a valid email');
+				$('#helperText').text(tr('bad_email', 'Please provide a valid email'));
 				 send=0;
 				 return;
 			}
 		}
 
 		if(linkthruflag == false  && emailform==false && notification.trim() === '') {
-			$('#helperText').html('Please at least enter text in the notification box');
+			$('#helperText').text(tr('need_notification', 'Please at least enter text in the notification box'));
 			send=0;
 		}
 

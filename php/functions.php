@@ -3,6 +3,7 @@
 include_once( __DIR__ . '/../login/config.php');
 require_once __DIR__ . '/session_boot.php';
 start_app_session();
+require_once __DIR__ . '/i18n.php'; // t(), current_lang() ... for every page
 
 //error_log('path is ' . __DIR__);
 
@@ -12,7 +13,7 @@ $session_path = ini_get('session.save_path');
 
 $email_consent = 'We collect and store email addresses to provide our services and communicate with you. By checking below checkbox, you consent to the collection and use of your email address as outlined in our Privacy Policy. If you do not agree, please refrain from using this site or contact us to opt out.';
 
-$email_consent_encrypt = 'We use Google Authentication with your consent. Your email address is stored as a one-way hash, not as readable text. We use the hash to recognise you when you log in, and we cannot use it to send you emails. Messages, IP addresses and account data are logged and kept, also after an account is deactivated, so we can respond to lawful requests from law enforcement.';
+$email_consent_encrypt = 'We use Google Authentication with your consent. Your email address is stored as a one-way hash, not as readable text. We use the hash to recognise you when you log in. The email address you log in with is used only to send what you request; it is held encrypted only during your session and is not stored in readable form. Messages, IP addresses and account data are logged and kept, also after an account is deactivated, so we can respond to lawful requests from law enforcement.';
 
 // Google Analytics, only after the visitor clicks "Accept" in the cookie banner.
 // Every page that echoes $google_stats gets the banner. Nothing is sent to Google
@@ -20,7 +21,10 @@ $email_consent_encrypt = 'We use Google Authentication with your consent. Your e
 // (localStorage key "3wid_cookie_consent") and can be changed with the
 // "Cookie settings" link that is added to the page footer, or with any link to
 // "#cookie-settings" (for example on terms.php).
-$google_stats = <<<'HTML'
+$google_stats = str_replace('__CC_TEXTS__', i18n_js_object([
+  'aria' => 'cookie.aria', 'text' => 'cookie.text', 'more' => 'cookie.more',
+  'reject' => 'cookie.reject', 'accept' => 'cookie.accept', 'settings' => 'cookie.settings',
+]), <<<'HTML'
 <style>
   #cc-banner{position:fixed;left:16px;right:16px;bottom:16px;z-index:9999;max-width:560px;margin:0 auto;
     background:#fff;color:#0f1c3f;border:1px solid #e6e3dc;border-radius:14px;box-shadow:0 10px 30px rgba(15,28,63,.15);
@@ -36,6 +40,7 @@ $google_stats = <<<'HTML'
 </style>
 <script>
 (function () {
+  var CC = __CC_TEXTS__;
   var KEY = "3wid_cookie_consent";
   var GA_ID = "G-TJWBJT8GJC";
   var loaded = false;
@@ -79,14 +84,13 @@ $google_stats = <<<'HTML'
     var b = document.createElement("div");
     b.id = "cc-banner";
     b.setAttribute("role", "dialog");
-    b.setAttribute("aria-label", "Cookie choice");
+    b.setAttribute("aria-label", CC.aria);
     b.innerHTML =
-      "<p>May we use Google Analytics to count visits? It sets cookies (_ga) and sends your IP address and browser details to Google. " +
-      "We only do this if you click Accept. Logging in only uses one necessary session cookie. " +
-      "<a href=\"/terms.php#data\">More about your data</a></p>" +
+      "<p>" + CC.text + " " +
+      "<a href=\"/terms.php#data\">" + CC.more + "</a></p>" +
       "<div class=\"cc-buttons\">" +
-      "<button type=\"button\" id=\"cc-reject\">Reject</button>" +
-      "<button type=\"button\" id=\"cc-accept\">Accept</button>" +
+      "<button type=\"button\" id=\"cc-reject\">" + CC.reject + "</button>" +
+      "<button type=\"button\" id=\"cc-accept\">" + CC.accept + "</button>" +
       "</div>";
     document.body.appendChild(b);
     document.getElementById("cc-accept").onclick = function () {
@@ -105,7 +109,7 @@ $google_stats = <<<'HTML'
     var a = document.createElement("a");
     a.href = "#cookie-settings";
     a.className = "cc-settings-link";
-    a.textContent = "Cookie settings";
+    a.textContent = CC.settings;
     var footer = document.querySelector("footer");
     if (footer) {
       footer.appendChild(a);
@@ -140,7 +144,8 @@ $google_stats = <<<'HTML'
   }
 })();
 </script>
-HTML;
+HTML
+);
 
 
 function get_db_conn() {
@@ -2561,3 +2566,71 @@ function db_3wordid_admin_search($q, $page, $page_size) {
 	return $rows;
 }
 
+
+// True only when outgoing mail settings are present in login/config.php.
+// config.php is not in the repo; add these lines there when SMTP sending is
+// set up (example values, use your own; never commit real ones):
+//   define('SMTP_HOST', 'smtp.example.com');
+//   define('SMTP_PORT', 587);
+//   define('SMTP_USER', 'user@example.com');
+//   define('SMTP_PASS', 'your-password');
+//   define('SMTP_FROM', 'noreply@3wordid.com');
+// Until all five are defined and non-empty, email features stay hidden.
+function email_sending_configured() {
+	foreach (array('SMTP_HOST', 'SMTP_PORT', 'SMTP_USER', 'SMTP_PASS', 'SMTP_FROM') as $name) {
+		if (!defined($name) || trim((string) constant($name)) === '') {
+			return false;
+		}
+	}
+	return true;
+}
+
+
+// Emails the logged-in user a plain-text list of their 3WordIDs (words plus target).
+// $email comes from get_session_email(); it is never stored or logged.
+// Returns true when PHP mail() accepted the message.
+function send_3wid_list_email($email, $rows) {
+	if (!email_sending_configured()) {
+		return false;
+	}
+	if (!is_string($email) || !filter_var($email, FILTER_VALIDATE_EMAIL) || preg_match('/[\r\n]/', $email)) {
+		return false;
+	}
+
+	$lines = array();
+	$lines[] = t_plain('mail.intro');
+	$lines[] = '';
+	if (count($rows) === 0) {
+		$lines[] = t_plain('mail.none');
+	}
+	foreach ($rows as $row) {
+		$words = trim((string) $row['threeword']);
+		$url = 'https://3wordid.com/' . implode('.', explode(' ', $words));
+		if ((int) $row['linkthruflag'] === 1 && trim((string) $row['linkthru']) !== '') {
+			$target = t_plain('mail.link') . ' ' . trim((string) $row['linkthru']);
+		} elseif (trim((string) $row['notification']) !== '') {
+			$target = t_plain('mail.notification') . ' ' . trim((string) $row['notification']);
+		} else {
+			$target = t_plain('mail.message_box');
+		}
+		$state = ((int) $row['enabled'] === 1) ? '' : ' ' . t_plain('mail.off');
+		$lines[] = $words . $state . ' - ' . $url;
+		$lines[] = '  ' . $target;
+		$lines[] = '';
+	}
+	$lines[] = t_plain('mail.footer1');
+	$lines[] = t_plain('mail.footer2');
+
+	$body = str_replace("\n", "\r\n", implode("\n", $lines));
+	$subject = t_plain('mail.subject');
+	if (preg_match('/[^\x20-\x7E]/', $subject)) {
+		$subject = '=?UTF-8?B?' . base64_encode($subject) . '?='; // non-ASCII subject (e.g. Dutch)
+	}
+	$headers = "From: 3WordID <noreply@3wordid.com>\r\n"
+		. "Reply-To: noreply@3wordid.com\r\n"
+		. "MIME-Version: 1.0\r\n"
+		. "Content-Type: text/plain; charset=UTF-8\r\n"
+		. "Content-Transfer-Encoding: 8bit";
+
+	return @mail($email, $subject, $body, $headers, '-fnoreply@3wordid.com');
+}

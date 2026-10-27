@@ -9,7 +9,7 @@ $client_ip = get_client_ip();
 $data = current_user_from_session($conn);
 
 if ($data == NULL) {
-    header('Location: login/options.php?message=' . rawurlencode('Please log in.'));
+    header('Location: login/options.php?message=' . rawurlencode(t_plain('common.login_required')));
     exit;
 }
 
@@ -32,6 +32,31 @@ $max = $data['max_3wids'] + 1;
 
 $db_3wordid_list = db_3wordid_list($id);
 
+// "Send to my email": POST with the action token, only the logged-in owner's
+// own list, at most once per 5 minutes per session. Hidden until outgoing
+// mail is configured in login/config.php (see email_sending_configured).
+$email_configured = email_sending_configured();
+$can_email_list = has_session_email() && $email_configured;
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_list_email'])) {
+    $last_sent = (int)($_SESSION['email_list_sent_at'] ?? 0);
+    if (!check_action_token($_POST['action_token'] ?? '')) {
+        $result = t_plain('list.email_expired');
+    } elseif (!$email_configured) {
+        $result = t_plain('list.email_unavailable');
+    } elseif (!$can_email_list) {
+        $result = t_plain('list.email_no_session');
+    } elseif ($last_sent > 0 && time() - $last_sent < 300) {
+        $result = t_plain('list.email_already');
+    } elseif (send_3wid_list_email(get_session_email(), $db_3wordid_list)) {
+        $_SESSION['email_list_sent_at'] = time();
+        $result = t_plain('list.email_sent');
+    } else {
+        $result = t_plain('list.email_failed');
+    }
+    header('Location: 3wid_list.php?message=' . rawurlencode($result));
+    exit;
+}
+
 // $id contains the user id
 
 $nr_of_3wordid = count($db_3wordid_list);
@@ -48,24 +73,24 @@ $count_rows = count($db_3wordid_list);
 
 if ($max - $count_rows == 0) {
     $pointer = 'style="pointer-events: none;opacity: 0.5"';
-    $title = "Unsubscribed users can create only one 3WID";
-    $create_label = "Unsubscribed users can create only one 3WID";
+    $title = t('list.one_only');
+    $create_label = t('list.one_only');
 } else {
     $pointer = '';
-    $title = "Create Three Word ID (" . ($max - $count_rows) . " remaining)";
-    $create_label = "Create 3WordID";
+    $title = t('list.create_title', ['n' => ($max - $count_rows)]);
+    $create_label = t('list.create');
 }
 
 $remaining = max(0, $max - $count_rows);
 $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo current_lang(); ?>">
 <head>
     <?php echo $google_stats; ?>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3WordID — Dashboard</title>
+    <title><?php echo t('list.title'); ?></title>
     <link rel="icon" type="image/x-icon" href="img/favicon.ico">
     <link href="/css/inter.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -301,31 +326,32 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
 </head>
 <body>
     <header class="site-header">
-        <a class="brand" href="<?php echo $main_url; ?>" title="to 3wordID.com">
+        <a class="brand" href="<?php echo $main_url; ?>" title="<?php echo t('nav.to_home'); ?>">
             <span class="brand-mark"><img width='35' src='https://3WordID.com/img/3wid_big.png'></span>
             3WordID
         </a>
         
         <nav class="nav-links">
-             <a href="plans.php">Subscription Plans</a>               
+             <a href="plans.php"><?php echo t('nav.plans'); ?></a>               
             </nav>
         <div class="header-actions">
             <a href="https://wa.me/31644311561?text=From 3WordID.com : "
    target="_blank"
    rel="noopener noreferrer"
    class="btn btn-primary" style='background:#25D366;'>
-  Whatsapp admin
+  <?php echo t('nav.whatsapp_admin'); ?>
 </a>
 
  
 
+            <?php echo lang_switcher(); ?>
             <a class="btn btn-primary" href="3wid_add.php" title="<?php echo $title; ?>" <?php echo $pointer; ?>><?php echo $create_label; ?></a>
             
            
             
             
-            <a href="login/logout.php" class="logout-icon" title="log out">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="Logout Icon">
+            <a href="login/logout.php" class="logout-icon" title="<?php echo t('nav.logout'); ?>">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="<?php echo t('icon.logout'); ?>">
                     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
                     <polyline points="16 17 21 12 16 7"></polyline>
                     <line x1="21" y1="12" x2="9" y2="12"></line>
@@ -337,7 +363,7 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
     <main class="wrap">
         <div class="page-head">
             <div>
-                <h1>Your 3WordIDs</h1>
+                <h1><?php echo t('list.h1'); ?></h1>
                 <p class="lede"></p>
             </div>
         </div>
@@ -347,19 +373,25 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
         <?php } ?>
 
         <section class="stats">
-            <div class="stat"><span>Active IDs</span><strong><?php echo $count_rows; ?></strong></div>
-            <div class="stat"><span>Remaining</span><strong><?php echo $remaining; ?></strong></div> <!-- needs to work -->
-            <div class="stat"><span>Total searches</span><strong><div id='totalviewcount'></div></strong></div>
+            <div class="stat"><span><?php echo t('list.stat_active'); ?></span><strong><?php echo $count_rows; ?></strong></div>
+            <div class="stat"><span><?php echo t('list.stat_remaining'); ?></span><strong><?php echo $remaining; ?></strong></div> <!-- needs to work -->
+            <div class="stat"><span><?php echo t('list.stat_searches'); ?></span><strong><div id='totalviewcount'></div></strong></div>
         </section>
 
         <div class="toolbar">
-            <a class="btn btn-ghost <?php echo $state; ?>" <?php echo $style; ?> href="3wid_messageform.php" title="You need to create a 3WordID to send messages to 3WordIDs">Compose Message to other 3WID</a>
+            <a class="btn btn-ghost <?php echo $state; ?>" <?php echo $style; ?> href="3wid_messageform.php" title="<?php echo t('list.compose_title'); ?>"><?php echo t('list.compose'); ?></a>
+            <?php if ($can_email_list && $count_rows > 0) { ?>
+            <form method="post" action="3wid_list.php" style="margin:0">
+                <input type="hidden" name="action_token" value="<?php echo htmlspecialchars($action_token, ENT_QUOTES, 'UTF-8'); ?>">
+                <button class="btn btn-ghost" type="submit" name="send_list_email" value="1" title="<?php echo t('list.send_email_title'); ?>"><?php echo t('list.send_email'); ?></button>
+            </form>
+            <?php } ?>
         </div>
 
         <section class="panel">
         <?php
         if ($count_rows === 0) {
-            echo '<div class="id-row"><div>No 3WordIDs yet. Top right corner. </div></div>';
+            echo '<div class="id-row"><div>' . t('list.none') . '</div></div>';
         }
 
 		$count_total = 0;
@@ -378,59 +410,59 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
         ?>
             <div class="id-row">
                 <div>
-                    <a href="3wid_forward.php?threewords=<?php echo $db_3wordid_item['threeword'] ?>" class="id-name <?php echo $enabled ? '' : 'grayed-out'; ?>" title="id : <?php echo $db_3wordid_item['id'] ?> views : <?php echo $db_3wordid_item['views']; ?> created : <?php echo $db_3wordid_item['creation_date']; ?> days to expire : <?php echo $days; ?>">
+                    <a href="3wid_forward.php?threewords=<?php echo $db_3wordid_item['threeword'] ?>" class="id-name <?php echo $enabled ? '' : 'grayed-out'; ?>" title="<?php echo t('list.row_title', ['id' => $db_3wordid_item['id'], 'views' => $db_3wordid_item['views'], 'created' => $db_3wordid_item['creation_date'], 'days' => $days]); ?>">
                         <?php echo htmlspecialchars($db_3wordid_item['threeword']); ?> 
                     </a>
                     <div class="id-meta">
                         <?php echo htmlspecialchars($threeword_url); ?>
-                        · <?php echo (int)$db_3wordid_item['views']; ?> views
+                        · <?php echo t_n('home.views', (int)$db_3wordid_item['views']); ?>
                         
-                        <span class="badge <?php echo $enabled ? 'badge-on' : 'badge-off'; ?>"><?php echo $enabled ? 'On' : 'Off'; ?></span>
+                        <span class="badge <?php echo $enabled ? 'badge-on' : 'badge-off'; ?>"><?php echo $enabled ? t('common.on') : t('common.off'); ?></span>
                     </div>
                 </div>
 
                 <div class="icon-row">
-                    <a href="<?php echo $db_3wordid_item['linkthru']; ?>" class="icon-btn link-icon <?php if ($db_3wordid_item['linkthruflag'] != 1) { echo "disabled"; } ?>" title="Visit Forward Site : <?php echo $db_3wordid_item['linkthru']; ?>">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="Link Icon">
+                    <a href="<?php echo $db_3wordid_item['linkthru']; ?>" class="icon-btn link-icon <?php if ($db_3wordid_item['linkthruflag'] != 1) { echo "disabled"; } ?>" title="<?php echo t('list.visit_title', ['url' => $db_3wordid_item['linkthru']]); ?>">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="<?php echo t('icon.link'); ?>">
                             <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
                             <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
                         </svg>
                     </a>
-                    <button class="copy-button" onclick="copyToClipboard(this)" aria-label="Copy URL to clipboard">
+                    <button class="copy-button" onclick="copyToClipboard(this)" aria-label="<?php echo t('list.copy_aria'); ?>">
                         <svg class="xcopy-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
                             <path d="M15 2H9a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1z"/>
                         </svg>
-                        <span class="tooltip">Copy URL for <?php echo htmlspecialchars($db_3wordid_item['threeword']); ?></span>
+                        <span class="tooltip"><?php echo t('list.copy_for', ['words' => $db_3wordid_item['threeword']]); ?></span>
                     </button>
                     <span class="hidden-url"><?php echo htmlspecialchars("https://3wordid.com/" . $threeword_url); ?></span>
                 </div>
 
                 <div class="icon-row">
-                    <a href="3wid_3wid.php?id=<?php echo (int)$db_3wordid_item['id']; ?>" class="icon-btn edit-icon" title="Edit Three Word ID">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="Edit Icon">
+                    <a href="3wid_3wid.php?id=<?php echo (int)$db_3wordid_item['id']; ?>" class="icon-btn edit-icon" title="<?php echo t('list.edit_title'); ?>">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="<?php echo t('icon.edit'); ?>">
                             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                         </svg>
                     </a>
-                    <a href="3wid_toggle.php?id=<?php echo (int)$db_3wordid_item['id']; ?>&action_token=<?php echo $action_token; ?>" class="icon-btn toggle-icon <?php echo $enabled ? 'enabled' : 'disabled-toggle'; ?>" title="<?php echo $enabled ? 'Disable, 3wid is currently enabled' : 'Enable, 3wid is currently disabled'; ?>">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="Toggle Icon">
+                    <a href="3wid_toggle.php?id=<?php echo (int)$db_3wordid_item['id']; ?>&action_token=<?php echo $action_token; ?>" class="icon-btn toggle-icon <?php echo $enabled ? 'enabled' : 'disabled-toggle'; ?>" title="<?php echo $enabled ? t('list.disable_title') : t('list.enable_title'); ?>">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="<?php echo t('icon.toggle'); ?>">
                             <path d="M12 2v10"></path>
                             <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
                         </svg>
                     </a>
-                    <a href="3wid_list_messages.php?uid=<?php echo $id; ?>&wid_id=<?php echo $db_3wordid_item['id']; ?>&threeword=<?php echo $db_3wordid_item['threeword']; ?>" class="icon-btn mail-icon <?php echo $msg_state; ?>" title="<?php echo $message_count['count']; ?> messages for this 3WordID">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="Message Icon">
+                    <a href="3wid_list_messages.php?uid=<?php echo $id; ?>&wid_id=<?php echo $db_3wordid_item['id']; ?>&threeword=<?php echo $db_3wordid_item['threeword']; ?>" class="icon-btn mail-icon <?php echo $msg_state; ?>" title="<?php echo t('list.messages_title', ['n' => $message_count['count']]); ?>">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="<?php echo t('icon.message'); ?>">
                             <path d="M21 4H3a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path>
                             <path d="M1 6l11 7 11-7"></path>
                         </svg>
                     </a>
                     <a href="3wid_delete.php?id=<?php echo (int)$db_3wordid_item['id']; ?>&action_token=<?php echo $action_token; ?>"
 					class="icon-btn trash-icon"
-					title="Delete Three Word ID"
+					title="<?php echo t('list.delete_title'); ?>"
 					onclick="return confirmDelete(this);"
 					data-threeword="<?php echo htmlspecialchars($db_3wordid_item['threeword'], ENT_QUOTES); ?>">
-					<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="Delete Icon">
+					<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="<?php echo t('icon.delete'); ?>">
 						<polyline points="3 6 5 6 21 6"></polyline>
 						<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
 					</svg>
@@ -442,7 +474,7 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
 
         <div class="foot-card">
             <div class="reseller">
-				If you want to use this app professionally contact our administrator at <a href='mailto:frits@rincker.nl'>frits@rincker.nl</a> we are working on our subscription process. 
+				<?php echo t_raw('list.pro'); ?>
                 <!-- Reseller code: <code><?php echo htmlspecialchars($reseller_code); ?></code>
                 -->
             </div>
@@ -453,11 +485,11 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
                     <a href="3wid_list_ips.php">I</a>
                     <a href="3wid_signup_list.php">S</a>
                     <a href="3wid_user_list.php">U</a>
-                    <a href="3wid_admin_3wids.php" title="All 3WordIDs">A</a>
+                    <a href="3wid_admin_3wids.php" title="<?php echo t('list.admin_all'); ?>">A</a>
                 </span>
                 <form class="admin-search" method="get" action="3wid_admin_3wids.php">
-                    <input type="search" name="q" placeholder="Find 3WordID or owner" aria-label="Search all 3WordIDs">
-                    <button type="submit">Search</button>
+                    <input type="search" name="q" placeholder="<?php echo t('list.admin_find'); ?>" aria-label="<?php echo t('list.admin_find_aria'); ?>">
+                    <button type="submit"><?php echo t('common.search'); ?></button>
                 </form>
                 <?php } ?>
             </div>
@@ -469,8 +501,8 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
 </body>
 <script>
 	function confirmDelete(link) {
-		var name = link.getAttribute('data-threeword') || 'this 3WordID';
-		return confirm('Delete “' + name + '”?\n\nThe URL, notification, and message box for these words will be removed. This cannot be undone.');
+		var name = link.getAttribute('data-threeword') || <?php echo json_encode(t_plain('list.confirm_delete_this')); ?>;
+		return confirm(<?php echo json_encode(t_plain('list.confirm_delete')); ?>.replace('{name}', name));
 	}
 	
     function copyToClipboard(button) {

@@ -5,14 +5,14 @@ require_once 'login/config.php';
 $data = current_user_from_session($conn);
 
 if ($data == NULL) {
-    header('Location: login/options.php?message=' . rawurlencode('Please log in.'));
+    header('Location: login/options.php?message=' . rawurlencode(t_plain('common.login_required')));
     exit;
 }
 
 $admin_id = 4;
 
 if ((int)$data['id'] !== $admin_id) {
-    header('Location: 3wid_list.php?message=' . rawurlencode('Not allowed.'));
+    header('Location: 3wid_list.php?message=' . rawurlencode(t_plain('admin.not_allowed')));
     exit;
 }
 
@@ -33,12 +33,12 @@ $message = isset($_GET['message']) ? $_GET['message'] : '';
 $count = count($users);
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo current_lang(); ?>">
 <head>
     <?php echo $google_stats; ?>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3WordID — Users</title>
+    <title><?php echo t('ul.title'); ?></title>
     <link rel="icon" type="image/x-icon" href="img/favicon.ico">
     <link href="/css/inter.css" rel="stylesheet">
     <style>
@@ -189,18 +189,19 @@ $count = count($users);
 </head>
 <body>
 <header class="site-header">
-    <a class="brand" href="<?php echo $main_url; ?>" title="to 3wordID.com">
+    <a class="brand" href="<?php echo $main_url; ?>" title="<?php echo t('admin.to_home'); ?>">
         <span class="brand-mark"><img width="35" src="https://3WordID.com/img/3wid_big.png" alt=""></span>
         3WordID
     </a>
     <div class="header-actions">
-        <a class="btn btn-ghost" href="3wid_list.php">Dashboard</a>
-        <a class="btn btn-ghost" href="3wid_admin_3wids.php">All 3WordIDs</a>
+        <?php echo lang_switcher(); ?>
+        <a class="btn btn-ghost" href="3wid_list.php"><?php echo t('admin.dashboard'); ?></a>
+        <a class="btn btn-ghost" href="3wid_admin_3wids.php"><?php echo t('admin.all_3wids'); ?></a>
         <a class="btn btn-primary" href="3wid_user_list.php?order=<?php echo $order === 'ASC' ? 'DESC' : 'ASC'; ?>">
-            Sort <?php echo $order === 'ASC' ? 'newest' : 'oldest'; ?>
+            <?php echo $order === 'ASC' ? t('ul.sort_newest') : t('ul.sort_oldest'); ?>
         </a>
-        <a href="login/logout.php" class="logout-icon" title="log out">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="Logout Icon">
+        <a href="login/logout.php" class="logout-icon" title="<?php echo t('nav.logout'); ?>">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="<?php echo t('icon.logout'); ?>">
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
                 <polyline points="16 17 21 12 16 7"></polyline>
                 <line x1="21" y1="12" x2="9" y2="12"></line>
@@ -212,8 +213,8 @@ $count = count($users);
 <main class="wrap">
     <div class="page-head">
         <div>
-            <h1>Users</h1>
-            <p class="lede">google_users records. Restricted to admin id <?php echo (int)$admin_id; ?>.</p>
+            <h1><?php echo t('ul.h1'); ?></h1>
+            <p class="lede"><?php echo t('ul.lede', ['id' => (int)$admin_id]); ?></p>
         </div>
     </div>
 
@@ -222,45 +223,45 @@ $count = count($users);
     <?php } ?>
 
     <div class="stats">
-        <div class="stat"><span>This page</span><strong><?php echo (int)$count; ?></strong></div>
-        <div class="stat"><span>Page</span><strong><?php echo (int)$page; ?></strong></div>
-        <div class="stat"><span>Order</span><strong><?php echo htmlspecialchars($order); ?></strong></div>
+        <div class="stat"><span><?php echo t('ul.this_page'); ?></span><strong><?php echo (int)$count; ?></strong></div>
+        <div class="stat"><span><?php echo t('ul.page'); ?></span><strong><?php echo (int)$page; ?></strong></div>
+        <div class="stat"><span><?php echo t('ul.order'); ?></span><strong><?php echo htmlspecialchars($order); ?></strong></div>
     </div>
 
     <form class="toolbar" method="get" action="3wid_admin_3wids.php">
-        <input class="search" type="search" name="q" placeholder="Search 3WordIDs by words, owner name or user id">
-        <button class="btn btn-primary" type="submit">Search 3WordIDs</button>
+        <input class="search" type="search" name="q" placeholder="<?php echo t('admin.search_ph'); ?>">
+        <button class="btn btn-primary" type="submit"><?php echo t('admin.search_btn'); ?></button>
     </form>
 
     <div class="toolbar">
         <?php if ($page > 0) { ?>
-            <a class="btn btn-ghost" href="3wid_user_list.php?page=<?php echo $page - 1; ?>&amp;order=<?php echo urlencode($order); ?>">Previous</a>
+            <a class="btn btn-ghost" href="3wid_user_list.php?page=<?php echo $page - 1; ?>&amp;order=<?php echo urlencode($order); ?>"><?php echo t('ul.prev'); ?></a>
         <?php } ?>
         <?php if ($count >= $page_size) { ?>
-            <a class="btn btn-ghost" href="3wid_user_list.php?page=<?php echo $page + 1; ?>&amp;order=<?php echo urlencode($order); ?>">Next</a>
+            <a class="btn btn-ghost" href="3wid_user_list.php?page=<?php echo $page + 1; ?>&amp;order=<?php echo urlencode($order); ?>"><?php echo t('ul.next'); ?></a>
         <?php } ?>
     </div>
 
     <div class="panel">
         <?php if ($count === 0) { ?>
-            <div class="empty">No users returned for this page.</div>
+            <div class="empty"><?php echo t('ul.empty'); ?></div>
         <?php } else { ?>
             <div class="id-row head">
-                <div class="meta">Id</div>
-                <div class="meta">Name</div>
-                <div class="meta">Login via</div>
-                <div class="meta">Type</div>
-                <div class="meta">Credit</div>
-                <div class="meta">3WordIDs</div>
-                <div class="meta">Last login</div>
-                <div class="meta">Consent</div>
+                <div class="meta"><?php echo t('ul.col_id'); ?></div>
+                <div class="meta"><?php echo t('ul.col_name'); ?></div>
+                <div class="meta"><?php echo t('ul.col_login'); ?></div>
+                <div class="meta"><?php echo t('ul.col_type'); ?></div>
+                <div class="meta"><?php echo t('ul.col_credit'); ?></div>
+                <div class="meta"><?php echo t('admin.3wids'); ?></div>
+                <div class="meta"><?php echo t('ul.col_last'); ?></div>
+                <div class="meta"><?php echo t('ul.col_consent'); ?></div>
                 <div class="meta"></div>
             </div>
             <?php foreach ($users as $user) {
                 $nr_3wids = (int)($user['nr_3wids'] ?? 0);
                 $last_login_at = (string)($user['last_login_at'] ?? '');
                 $last_login_ts = $last_login_at !== '' ? strtotime($last_login_at) : false;
-                $last_login_text = $last_login_ts ? date('Y-m-d H:i', $last_login_ts) : 'never';
+                $last_login_text = $last_login_ts ? date('Y-m-d H:i', $last_login_ts) : t_plain('ul.never');
             ?>
                 <div class="id-row">
                     <div class="meta">#<?php echo (int)$user['id']; ?></div>
@@ -271,22 +272,22 @@ $count = count($users);
                         <div class="meta"><?php echo htmlspecialchars((string)$user['email']); ?></div>
                     </div>
                     <div class="meta"><?php echo htmlspecialchars((string)($user['auth_provider'] ?? '')); ?></div>
-                    <div class="meta">type <?php echo htmlspecialchars((string)($user['user_type'] ?? '')); ?></div>
+                    <div class="meta"><?php echo t('ul.type'); ?> <?php echo htmlspecialchars((string)($user['user_type'] ?? '')); ?></div>
                     <div class="meta"><?php echo htmlspecialchars((string)($user['credit'] ?? '0')); ?> €</div>
                     <div>
-                        <a class="count-link" href="3wid_user_3wids.php?user_id=<?php echo (int)$user['id']; ?>" title="Show this user's 3WordIDs"><?php echo $nr_3wids; ?></a>
+                        <a class="count-link" href="3wid_user_3wids.php?user_id=<?php echo (int)$user['id']; ?>" title="<?php echo t('ul.show_3wids'); ?>"><?php echo $nr_3wids; ?></a>
                     </div>
-                    <div class="meta" title="Last login"><?php echo htmlspecialchars($last_login_text); ?></div>
+                    <div class="meta" title="<?php echo t('ul.col_last'); ?>"><?php echo htmlspecialchars($last_login_text); ?></div>
                     <div>
                         <?php if ((int)($user['privacy_consent'] ?? 0) === 1) { ?>
-                            <span class="pill on">Consent</span>
+                            <span class="pill on"><?php echo t('ul.col_consent'); ?></span>
                         <?php } else { ?>
-                            <span class="pill">No consent</span>
+                            <span class="pill"><?php echo t('ul.no_consent'); ?></span>
                         <?php } ?>
                     </div>
                     <div class="row-actions">
-                        <a class="btn btn-ghost" href="3wid_user_3wids.php?user_id=<?php echo (int)$user['id']; ?>">3WordIDs</a>
-                        <a class="btn btn-ghost" href="3wid_user_edit.php?id=<?php echo (int)$user['id']; ?>">Edit</a>
+                        <a class="btn btn-ghost" href="3wid_user_3wids.php?user_id=<?php echo (int)$user['id']; ?>"><?php echo t('admin.3wids'); ?></a>
+                        <a class="btn btn-ghost" href="3wid_user_edit.php?id=<?php echo (int)$user['id']; ?>"><?php echo t('common.edit'); ?></a>
                     </div>
                 </div>
             <?php } ?>

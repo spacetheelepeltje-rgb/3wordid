@@ -56,7 +56,7 @@
 	   
 	   //error_log('messages form process csrf_token ' . $_SESSION["csrf_token"]);
 		
-	   header('location:index.php?message=Thank, you your message to ' . $threeword_data['threeword'] . ' is being processed');
+	   header('location:index.php?message=' . rawurlencode(t_plain('mp.thanks_to', ['name' => $threeword_data['threeword']])));
 	   
 	} catch (Exception $e) {
 		error_log("Error: " . $e->getMessage());
@@ -64,7 +64,7 @@
 
 } else {
 		
-		header('location:' . $main_url . '?message=You can only send new messages when the old one has been read');
+		header('location:' . $main_url . '?message=' . rawurlencode(t_plain('mp.wait_read')));
 }
 
 }

@@ -6,7 +6,7 @@
   $data = current_user_from_session($conn);
   
   if ($data == NULL) {
-    header('Location: login/options.php?message=' . rawurlencode('Login expired. Log in again.'));
+    header('Location: login/options.php?message=' . rawurlencode(t_plain('common.login_expired')));
     exit;
   }
   
@@ -79,7 +79,7 @@ try {
    
    //3wid_list.php?csrf_token=' . $_POST['csrf_token']);
 } catch (Exception $e) {
-    echo "Error: " . $e->getMessage();
+    echo t('common.error', ['msg' => $e->getMessage()]);
 }
 
 

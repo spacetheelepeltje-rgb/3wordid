@@ -6,7 +6,7 @@
   $data = current_user_from_session($conn);
  
 	if ($data == NULL) {
-    header('Location: login/options.php?message=' . rawurlencode('Please log in.'));
+    header('Location: login/options.php?message=' . rawurlencode(t_plain('common.login_required')));
     exit;
 	}
   
@@ -47,17 +47,17 @@
 
   if($messages == NULL ) {
     header('location:3wid_list.php'); 
-    die('no messages'); 
+    die(t_plain('lm.none')); 
   }
  
 ?>   
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo current_lang(); ?>">
 <head>
     <?php echo $google_stats; ?>
     <meta charset="UTF-8"> 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Messages — 3WordID</title>
+    <title><?php echo t('lm.title'); ?></title>
     <link rel="icon" type="image/x-icon" href="img/favicon.ico">
     <link href="/css/inter.css" rel="stylesheet">
     <link rel="stylesheet" href="css/newstyle.css">
@@ -203,20 +203,21 @@
             3WordID
         </a>
         <div class="header-actions" id="userContainer">
-            <a class="btn-ghost" href="3wid_list.php">Back to list</a>
+            <?php echo lang_switcher(); ?>
+            <a class="btn-ghost" href="3wid_list.php"><?php echo t('nav.back_list'); ?></a>
           
         </div>
    </header>
    <main class="page">
-        <p class="eyebrow">Inbox</p>
-        <h1>Messages for '<?php echo htmlspecialchars($threeword); ?>'</h1>
-        <p class="subhead">Click a title to read the message.</p>
+        <p class="eyebrow"><?php echo t('lm.eyebrow'); ?></p>
+        <h1><?php echo t('lm.h1', ['name' => $threeword]); ?></h1>
+        <p class="subhead"><?php echo t('lm.subhead'); ?></p>
 
     <div class="panel message-list">
         <div class="row header">
-            <span class="avatar-header">User</span>
-            <span class="text-header">Title/Message</span>
-            <span class="icons-header">Actions</span>
+            <span class="avatar-header"><?php echo t('lm.user'); ?></span>
+            <span class="text-header"><?php echo t('lm.title_message'); ?></span>
+            <span class="icons-header"><?php echo t('lm.actions'); ?></span>
         </div>
         <?php foreach ($messages as $message): ?>
         <?php if($message['picture'] == "") {
@@ -226,7 +227,7 @@
 			
 		?>	
         <div class="row">
-            <img onclick="openModal(this.src)" src="<?php echo htmlspecialchars($message['picture']); ?>" alt="User" class="thumbnail avatar" title="<?php echo $message["threeword"];?>">
+            <img onclick="openModal(this.src)" src="<?php echo htmlspecialchars($message['picture']); ?>" alt="<?php echo t('lm.user'); ?>" class="thumbnail avatar" title="<?php echo $message["threeword"];?>">
             
             <div class="text"
                  data-title="<?php echo $message["threeword"] . " : " . htmlspecialchars($message['title'], ENT_QUOTES); ?>"
@@ -239,8 +240,8 @@
                 // block in case of external message
                 if($message["from_id"]!=25) {
                 ?>
-                <a class="mail-icon" disabled href="3wid_messageform.php?threeword_id=<?php echo $threeword_id; ?>&threeword=<?php echo $message["threeword"];?>" title="Reply to <?php echo ucfirst($message["threeword"]);?>">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="Message Icon">
+                <a class="mail-icon" disabled href="3wid_messageform.php?threeword_id=<?php echo $threeword_id; ?>&threeword=<?php echo $message["threeword"];?>" title="<?php echo t('lm.reply', ['name' => ucfirst($message["threeword"])]); ?>">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="<?php echo t('icon.message'); ?>">
                         <path d="M21 4H3a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path>
                         <path d="M1 6l11 7 11-7"></path>
                     </svg>
@@ -248,8 +249,8 @@
                 <?php 
                 } 
                 ?>
-                <a href="3wid_message_delete.php?id=<?php echo (int)$message['id']; ?>&action_token=<?php echo $action_token; ?>" title="Delete">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="Delete Icon">
+                <a href="3wid_message_delete.php?id=<?php echo (int)$message['id']; ?>&action_token=<?php echo $action_token; ?>" title="<?php echo t('common.delete'); ?>">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="<?php echo t('icon.delete'); ?>">
                         <polyline points="3 6 5 6 21 6"></polyline>
                         <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                     </svg>
@@ -262,7 +263,7 @@
 
              <div id="imageModal" class="modal">
                 <span class="close" onclick="closeModal()">&times;</span>
-                <img id="fullImage" src="" alt="Full Image">
+                <img id="fullImage" src="" alt="<?php echo t('lm.full_image'); ?>">
             </div>
             
     <footer class="site-footer">

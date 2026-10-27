@@ -1,3 +1,8 @@
+// Texts for the current language come from window.T3 (set by the page, see php/i18n.php).
+var tr = window.tr || function (key, fallback) {
+    return (window.T3 && window.T3[key]) || fallback;
+};
+
 
 $(document).ready(function() {
 
@@ -6,7 +11,7 @@ $(document).ready(function() {
 
 		send=0;
 		
-		$('#helperText').html('Clicked submit');
+		$('#helperText').text(tr('clicked', 'Clicked submit'));
 		
         // Log to confirm the handler is firing
         console.log('Form submit handler triggered');
@@ -23,7 +28,7 @@ $(document).ready(function() {
         
      
 		if(!consent) {
-			$('#helperText').html('Please consent/agree by checking the checkbox');
+			$('#helperText').text(tr('pc_need_consent', 'Please consent/agree by checking the checkbox'));
 			send=0;
 			return;
 		} else {

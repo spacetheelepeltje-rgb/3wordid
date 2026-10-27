@@ -6,7 +6,7 @@
 
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo current_lang(); ?>">
 <head>
 	<?php echo $google_stats; ?>
     <meta charset="UTF-8"> 
@@ -29,35 +29,34 @@
 <body>
     <header>
        <div class="top-right" id="userPortrait">
-       <a href="login/login.php" class="login-icon" title="Log in">
+       <?php echo lang_switcher(); ?>
+       <a href="login/options.php" class="login-icon" title="<?php echo t('common.log_in'); ?>">
 	   <link rel="stylesheet" href="css/styles_3.css">	   
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="Login Icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="<?php echo t('icon.login'); ?>">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
             <circle cx="12" cy="7" r="4"></circle>
         </svg>
     </a>
-    <img id="userPortrait" style="display:none;" alt="User Portrait">
+    <img id="userPortrait" style="display:none;" alt="<?php echo t('icon.portrait'); ?>">
 </div>
     </header>
    <main>
    <div class="search-container-mid">
     <a href="index.php" class="logo-link">
-      <img width="100" src="img/3wid_big.png" alt="3WordID Logo">
+      <img width="100" src="img/3wid_big.png" alt="<?php echo t('icon.logo_3wid'); ?>">
     </a>
-    <h2>Become a Reseller of 3WordID.com</h2>
+    <h2><?php echo t('reseller.h'); ?></h2>
     <br><br>
 	<ul>
-	  <li>Log in and create a 3WordID</li>
-	  <li>Find others that might want a 3WordID</li>
-	  <li>Get them to <a href="https://3wordid.com/3wid_signup.php">sign</a> up and become a <a href="https://www.patreon.com/roboeconomics">patreon</a> using your code</li>
-	  <li>When you sign up 20 people who also log in (so the email becomes available for matching) you get payout.</li>
+	  <li><?php echo t('reseller.l1'); ?></li>
+	  <li><?php echo t('reseller.l2'); ?></li>
+	  <li><?php echo t_raw('reseller.l3'); ?></li>
+	  <li><?php echo t('reseller.l4'); ?></li>
 	</ul>
 	<br><br>
     <p>
-      Every user that logs in is provided a reseller code. 
-      You can help other people sign up for 3WordID.com and give you your reseller code. If they use it and pay their subscription, you will receive a kickback (20% payed out after 20 signups ~$48,-). If you sign up more than 20 at a time, you can get more. For large customers, send us an email at 
-      <a href="mailto:3wordid@climatebabes.com">3wordid@climatebabes.com</a>.<br><br>
-      More on marketing 3WordID <a href="https://x.com/climatebabes/status/1915321707327349114">here (X.com)</a>.
+      <?php echo t_raw('reseller.p1'); ?><br><br>
+      <?php echo t_raw('reseller.p2'); ?>
     </p>
   </div>
   

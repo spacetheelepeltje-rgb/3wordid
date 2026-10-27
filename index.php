@@ -27,11 +27,11 @@ $loginUrl = '/login/options.php';
 if (isset($_GET['message'])) {
     $helpertext = htmlspecialchars($_GET['message'], ENT_QUOTES, 'UTF-8');
 } else {
-    $helpertext = '<a href="https://x.com/climatebabes/status/1921113933592584660">What is this site? Explanation on X.com</a>';
+    $helpertext = t_raw('home.helper_x');
 }
 
 if (check_mobile() === 'mobile') {
-    $helpertext = 'Log in top right to create you own 3WordID';
+    $helpertext = t('home.helper_mobile');
 }
 
 if (isset($_GET['threewords'])) {
@@ -43,28 +43,79 @@ if (isset($_GET['threewords'])) {
 $threewords = '';
 $db_3wordid_list = db_3wordid_list_recent();
 
+// Homepage list of public 3WordIDs. Easy to edit:
+// - $featured_threewords: shown first, in this order (only if the 3WordID is public and enabled).
+// - $hidden_threewords: never shown on the homepage (test or private-looking entries).
+// - Every other public 3WordID sits behind the "See more" button.
+$featured_threewords = [
+    'our delicious menu',
+    'davinci mona lisa',
+    'fondation louis vuitton',
+    'stock growth calculator',
+    'student debt calculator',
+    'italian verb list',
+    'guitar fretboard trainer',
+    'latte cafe wifi',
+];
+$hidden_threewords = [
+    'she is pretty',
+    'king of injustice',
+    'demo of notification',
+    'my personal notification',
+    'message is external',
+    'greencheck messages form',
+];
+
+$by_words = [];
+foreach ($db_3wordid_list as $item) {
+    $by_words[strtolower(trim($item['threeword']))] = $item;
+}
+$featured_list = [];
+foreach ($featured_threewords as $w) {
+    if (isset($by_words[$w])) {
+        $featured_list[] = $by_words[$w];
+        unset($by_words[$w]);
+    }
+}
+foreach ($hidden_threewords as $w) {
+    unset($by_words[$w]);
+}
+$more_list = array_values($by_words);
+
 
  
  $loginUrl ='/login/options.php';
  $helpertext ='';
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo current_lang(); ?>">
 <head>
     <?php echo $google_stats; ?>
-    <meta http-equiv="refresh" content="60">
     <meta charset="UTF-8"> 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3WordID — Three words. Every destination.</title>
+    <title><?php echo t('home.title'); ?></title>
     <link rel="icon" type="image/x-icon" href="img/favicon.ico">
     <link href="/css/inter.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <meta name="description" content="<?php echo t('home.meta_desc'); ?>">
+    <?php echo lang_head_tags(); ?>
+    <meta property="og:locale" content="<?php echo current_lang() === 'nl' ? 'nl_NL' : 'en_US'; ?>">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="3WordID">
+    <meta property="og:title" content="<?php echo t('home.og_title'); ?>">
+    <meta property="og:description" content="<?php echo t('home.og_desc'); ?>">
+    <meta property="og:url" content="<?php echo htmlspecialchars(lang_url_absolute(current_lang()), ENT_QUOTES, 'UTF-8'); ?>">
+    <meta property="og:image" content="https://3wordid.com/img/og-3wordid.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="<?php echo t('home.og_title'); ?>">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:site" content="@climatebabes">
-    <meta name="twitter:title" content="3WordID - Your Unique Identity Solution">
-    <meta name="twitter:description" content="Sign up for a 3WordID account to get a unique, easy-to-remember identity for all your online needs.">
-    <meta name="twitter:image" content="https://3WordID.com/card_0926.png">
+    <meta name="twitter:title" content="<?php echo t('home.og_title'); ?>">
+    <meta name="twitter:description" content="<?php echo t('home.og_desc'); ?>">
+    <meta name="twitter:image" content="https://3wordid.com/img/og-3wordid.png">
     <link rel="stylesheet" href="css/newstyle.css">
+    <link rel="stylesheet" href="css/home.css">
     <style>
         .lock.is-found {
             color: #16a34a;
@@ -83,12 +134,13 @@ $db_3wordid_list = db_3wordid_list_recent();
             3WordID
         </a>
         <nav class="nav-links">
-              <a href="plans.php">Subscription Plans</a> <a href="terms.php">Terms</a> <a href="https://x.com/climatebabes/status/1921113933592584660">Docs on X.com</a> <a href="https://github.com/spacetheelepeltje-rgb/3wordid">Open Source on Github</a>               
+              <a href="plans.php"><?php echo t('nav.plans'); ?></a> <a href="terms.php"><?php echo t('nav.terms'); ?></a> <a href="https://x.com/climatebabes/status/1921113933592584660"><?php echo t('nav.docs'); ?></a> <a href="https://github.com/spacetheelepeltje-rgb/3wordid"><?php echo t('nav.github'); ?></a>               
         </nav>
         
         <div class="header-actions" id="userContainer">
-            <a href="<?php echo $loginUrl; ?>" class="btn btn-primary">Log in/Create ID</a>
-            <!-- <a href="<?php echo $loginUrl; ?>" class="login-icon" title="Log in (not all functions work on mobile devices)">
+            <?php echo lang_switcher(); ?>
+            <a href="<?php echo $loginUrl; ?>" class="btn btn-primary"><?php echo t('nav.login'); ?></a>
+            <!-- <a href="<?php echo $loginUrl; ?>" class="login-icon" title="<?php echo t('nav.login_title'); ?>">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="Login Icon">
                 <path d="M15 21h4a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-4"></path>
                 <polyline points="8 7 13 12 8 17"></polyline>
@@ -100,9 +152,9 @@ $db_3wordid_list = db_3wordid_list_recent();
 
     <main>
         <section class="hero">
-            <div class="eyebrow">HUMAN-READABLE IDENTIFIERS <b><style="color:black;">BETA version</style></b></div>
-            <h1>Three words<br>Every destination</h1>
-            <p class="subhead">Look up a URL, notification, or private message box using any three-word ID. Easy to communicate. Easy to remember.</p>
+            <div class="eyebrow"><?php echo t_raw('home.eyebrow'); ?></div>
+            <h1><?php echo t_raw('home.h1'); ?></h1>
+            <p class="subhead"><?php echo t('home.subhead'); ?></p>
             <div class="helper-note" id="helperText"><?php echo $helpertext; ?></div>
 
             <form id="searchform" name="searchform" action="3wid_forward.php" method="POST">
@@ -113,53 +165,116 @@ $db_3wordid_list = db_3wordid_list_recent();
                             <path id="lockShackle" d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                         </svg>
                     </div>
-                    <input id="threewords" name="threewords" type="text" class="search-bar" placeholder="first  ·  second  ·  third" value="<?= htmlspecialchars($threewords); ?>" autocomplete="off">
-                    <button type="submit" id="submitBtn">Lookup</button>
+                    <input id="threewords" name="threewords" type="text" class="search-bar" placeholder="<?php echo t('common.placeholder_words'); ?>" value="<?= htmlspecialchars($threewords); ?>" autocomplete="off">
+                    <button type="submit" id="submitBtn"><?php echo t('home.lookup'); ?></button>
                 </div>
-                <div class="search-hints">Try the thee word IDs listed below</div>
-                <button type="button" id="createBtn" class="create-link" data-share-url="<?php echo $loginUrl; ?>">Create your own 3WordID →</button>
+                <div class="example-row"><?php echo t('home.try_label'); ?> <button type="button" id="tryExample" class="example-btn" data-words="davinci mona lisa"><?php echo t('home.try_btn'); ?></button></div>
+                <button type="button" id="createBtn" class="create-link" data-share-url="<?php echo $loginUrl; ?>"><?php echo t('home.create'); ?></button>
                 <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
             </form>
         </section>
 
+        <section class="trust" aria-label="<?php echo t('home.trust_aria'); ?>">
+            <div class="trust-item"><?php echo t_raw('home.trust1'); ?></div>
+            <div class="trust-item"><?php echo t_raw('home.trust2'); ?></div>
+            <div class="trust-item"><?php echo t_raw('home.trust3'); ?></div>
+        </section>
+
+        <section class="how" id="how-it-works">
+            <h2 class="section-title"><?php echo t('home.how_title'); ?></h2>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-num">1</div>
+                    <h3><?php echo t('home.step1_title'); ?></h3>
+                    <p><?php echo t_raw('home.step1_text'); ?></p>
+                </div>
+                <div class="step">
+                    <div class="step-num">2</div>
+                    <h3><?php echo t('home.step2_title'); ?></h3>
+                    <p><?php echo t('home.step2_text'); ?></p>
+                </div>
+                <div class="step">
+                    <div class="step-num">3</div>
+                    <h3><?php echo t('home.step3_title'); ?></h3>
+                    <p><?php echo t('home.step3_text'); ?></p>
+                </div>
+            </div>
+        </section>
+
         <section class="cards" id="use-cases">
             <article class="card">
-                
-                <h3>Three Word aliasses</h3>
-                <p>Link any three words to any URL. Share the words and thus share the profile, file, or resource. Easy to remember, easy to communicate</p>
+                <div class="card-kicker"><?php echo t('home.card1_kicker'); ?></div>
+                <h3><?php echo t('home.card1_title'); ?></h3>
+                <p><?php echo t('home.card1_text'); ?></p>
+                <div class="card-example"><?php echo t('home.example'); ?> <code>davinci mona lisa</code></div>
             </article>
             <article class="card">
-                
-                <h3>Three Word Message Box</h3>
-                <p>Create a private mailbox linked to three words, which can also be a number or alias or license plate</p>
+                <div class="card-kicker"><?php echo t('home.card2_kicker'); ?></div>
+                <h3><?php echo t('home.card2_title'); ?></h3>
+                <p><?php echo t('home.card2_text'); ?></p>
+                <div class="card-example"><?php echo t('home.example'); ?> <code>our delicious menu</code></div>
             </article>
             <article class="card">
-               
-                <h3>Get rid of QR codes</h3>
-                <p>Use three words instead of QR codes, or create a QR code based on three words, which means you can prevent tampering. Musea can get a cleaner look on their labels, menu cards can just have the restaurant name.</p>
+                <div class="card-kicker"><?php echo t('home.card3_kicker'); ?></div>
+                <h3><?php echo t('home.card3_title'); ?></h3>
+                <p><?php echo t('home.card3_text'); ?></p>
             </article>
         </section>
 
-        <section class="recent" id="how-it-works">
-            <h2>Currently public 3WordIDs</h2>
-            <div class="recent-list">
+        <section class="recent" id="public-3wordids">
+            <h2><?php echo t('home.public_title'); ?></h2>
+            <div class="recent-list" id="recentList">
 <?php
-                foreach($db_3wordid_list as $db_3wordid_item) {
+                foreach ($featured_list as $db_3wordid_item) {
                 ?>
                 <div class="recent-row">
-                    <a href="<?php echo $db_3wordid_item['threeword']; ?>"><?php echo $db_3wordid_item['threeword']; ?></a>
-                    <span class="views"><?php echo $db_3wordid_item['views']; ?> views</span>
+                    <a href="<?php echo htmlspecialchars($db_3wordid_item['threeword'], ENT_QUOTES, 'UTF-8'); ?>"><?php echo htmlspecialchars($db_3wordid_item['threeword'], ENT_QUOTES, 'UTF-8'); ?></a>
+                    <span class="views"><?php echo t_n('home.views', (int)$db_3wordid_item['views']); ?></span>
+                </div>
+                <?php
+                }
+                foreach ($more_list as $db_3wordid_item) {
+                ?>
+                <div class="recent-row recent-more">
+                    <a href="<?php echo htmlspecialchars($db_3wordid_item['threeword'], ENT_QUOTES, 'UTF-8'); ?>"><?php echo htmlspecialchars($db_3wordid_item['threeword'], ENT_QUOTES, 'UTF-8'); ?></a>
+                    <span class="views"><?php echo t_n('home.views', (int)$db_3wordid_item['views']); ?></span>
                 </div>
                 <?php
                 }
 ?>
             </div>
+<?php if (count($more_list) > 0) { ?>
+            <button type="button" class="recent-toggle" id="recentToggle" aria-expanded="false" aria-controls="recentList"><?php echo t('home.see_more'); ?></button>
+<?php } ?>
         </section>
-        
+
+        <section class="faq" id="faq">
+            <h2 class="section-title"><?php echo t('home.faq_title'); ?></h2>
+            <details>
+                <summary><?php echo t('home.faq1_q'); ?></summary>
+                <p><?php echo t_raw('home.faq1_a'); ?></p>
+            </details>
+            <details>
+                <summary><?php echo t('home.faq2_q'); ?></summary>
+                <p><?php echo t_raw('home.faq2_a'); ?></p>
+            </details>
+            <details>
+                <summary><?php echo t('home.faq3_q'); ?></summary>
+                <p><?php echo t_raw('home.faq3_a'); ?></p>
+            </details>
+        </section>
+
     </main>
     <footer class="site-footer">
     </footer>
 </body>
+<?php echo i18n_js([
+    'exists'    => 'home.js_exists',
+    'disabled'  => 'home.js_disabled',
+    'missing'   => 'home.js_missing',
+    'see_more'  => 'home.see_more',
+    'show_less' => 'home.show_less',
+]); ?>
 <script src="js/3wid_index_2.js"></script>
 <script>
     function handleGoogleLogin() {
@@ -178,6 +293,23 @@ $db_3wordid_list = db_3wordid_list_recent();
         }
     });
     
+    document.getElementById("tryExample").addEventListener("click", function() {
+      var input = document.getElementById("threewords");
+      input.value = this.getAttribute("data-words");
+      input.focus();
+      if (window.jQuery) { window.jQuery(input).trigger("keyup"); }
+    });
+
+    var recentToggle = document.getElementById("recentToggle");
+    if (recentToggle) {
+      recentToggle.addEventListener("click", function() {
+        var list = document.getElementById("recentList");
+        var open = list.classList.toggle("is-expanded");
+        this.textContent = open ? window.T3.show_less : window.T3.see_more;
+        this.setAttribute("aria-expanded", open ? "true" : "false");
+      });
+    }
+
     document.getElementById("threewords").addEventListener("keypress", function(event) {
     if (event.key === "Enter") {
       event.preventDefault();

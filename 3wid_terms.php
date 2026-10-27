@@ -2,6 +2,7 @@
 require_once 'config.php';
 require_once __DIR__ . '/../php/session_boot.php';
 start_app_session();
+require_once __DIR__ . '/../php/i18n.php'; // t(), current_lang(), lang_switcher()
 
 if (current_user_from_session($conn)) {
     header('Location: ../3wid_list.php');
@@ -22,13 +23,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $confirm = $_POST['password_confirm'] ?? '';
 
     if (!hash_equals($_SESSION['csrf_token'], $posted_csrf)) {
-        $error = 'Session expired. Try again.';
+        $error = t_plain('common.session_expired');
     } elseif (!filter_var($email_value, FILTER_VALIDATE_EMAIL)) {
-        $error = 'Enter a valid email address.';
+        $error = t_plain('reg.bad_email');
     } elseif (strlen($password) < 10) {
-        $error = 'Password must be at least 10 characters.';
+        $error = t_plain('reg.short');
     } elseif ($password !== $confirm) {
-        $error = 'Passwords do not match.';
+        $error = t_plain('reg.mismatch');
     } else {
         $email_hash = md5($email_value);
 
@@ -38,9 +39,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $existing = $stmt->get_result()->fetch_assoc();
 
         if ($existing && !empty($existing['password_hash'])) {
-            $error = 'That account already exists. Sign in instead.';
+            $error = t_plain('reg.exists');
         } elseif ($existing && empty($existing['password_hash'])) {
-            $error = 'This email already uses Google. Continue with Google.';
+            $error = t_plain('reg.google');
         } else {
             $hash = password_hash($password, PASSWORD_DEFAULT);
             $token = bin2hex(random_bytes(32));
@@ -70,22 +71,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($ins->execute()) {
                 $userId = (int)$ins->insert_id;
                 $ins->close();
-                establish_user_session($conn, $userId);
+                establish_user_session($conn, $userId, $email_value);
                 header('Location: ../3wid_list.php');
                 exit;
             }
 
-            $error = 'Could not create the account. Confirm the password_hash column exists.';
+            $error = t_plain('reg.failed');
         }
     }
 }
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo current_lang(); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create account — 3WordID</title>
+    <title><?php echo t('reg.title'); ?></title>
     <link rel="icon" type="image/x-icon" href="../img/favicon.ico">
     <link href="/css/inter.css" rel="stylesheet">
     <style>
@@ -123,37 +124,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <header class="site-header">
         <a class="brand" href="../index.php"><span class="brand-mark"><img width='35' src='https://3WordID.com/img/3wid_big.png'></span>3WordID</a>
 
-        <a class="btn-header" href="../index.php">Home page</a>
+        <span><?php echo lang_switcher(); ?><a class="btn-header" href="../index.php"><?php echo t('login.home'); ?></a></span>
     </header>
 
     <main class="wrap">
-        <div class="eyebrow">Account</div>
-        <h1>Create account</h1>
-        <p class="sub">Email and password. The address is hashed before it is saved. Unused accounts will be deactivated after 3 months.</p>
+        <div class="eyebrow"><?php echo t('login.account'); ?></div>
+        <h1><?php echo t('reg.h1'); ?></h1>
+        <p class="sub"><?php echo t('reg.sub'); ?></p>
 
         <?php if ($error !== ''): ?>
             <div class="flash"><?php echo htmlspecialchars($error, ENT_QUOTES, 'UTF-8'); ?></div>
         <?php endif; ?>
 
         <form class="card" method="post" action="email_register.php" autocomplete="off">
-            <label for="email">Email</label>
+            <label for="email"><?php echo t('login.email'); ?></label>
             <input id="email" name="email" type="email" required maxlength="255" placeholder="you@example.com" value="<?php echo htmlspecialchars($email_value, ENT_QUOTES, 'UTF-8'); ?>">
 
-            <label for="password">Password</label>
-            <input id="password" name="password" type="password" required minlength="10" placeholder="At least 10 characters">
-            <p class="meta">Minimum 10 characters.</p>
+            <label for="password"><?php echo t('login.password'); ?></label>
+            <input id="password" name="password" type="password" required minlength="10" placeholder="<?php echo t('reg.password_ph'); ?>">
+            <p class="meta"><?php echo t('reg.min10'); ?></p>
 
-            <label for="password_confirm">Confirm password</label>
-            <input id="password_confirm" name="password_confirm" type="password" required minlength="10" placeholder="Repeat password">
+            <label for="password_confirm"><?php echo t('reg.confirm'); ?></label>
+            <input id="password_confirm" name="password_confirm" type="password" required minlength="10" placeholder="<?php echo t('reg.repeat_ph'); ?>">
 
             <!-- Placeholder: email verification is not sent. Enable later if you start mailing. -->
             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8'); ?>">
-            <button class="btn" type="submit">Create account</button>
+            <button class="btn" type="submit"><?php echo t('reg.submit'); ?></button>
         </form>
 
         <p class="hint">
-            Already registered? <a href="email_login.php">Sign in</a><br>
-            <a href="options.php">Use Google instead</a>
+            <?php echo t_raw('reg.hint1'); ?><br>
+            <?php echo t_raw('login.use_google'); ?>
         </p>
     </main>
 

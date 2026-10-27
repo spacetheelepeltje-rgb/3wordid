@@ -1,3 +1,8 @@
+// Texts for the current language come from window.T3 (set by the page, see php/i18n.php).
+function tr(key, fallback) {
+    return (window.T3 && window.T3[key]) || fallback;
+}
+
 
 const emailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 
@@ -28,7 +33,7 @@ $(document).ready(function() {
 
 		send=0;
 		
-		$('#helperText').html('Clicked submit');
+		$('#helperText').text(tr('clicked', 'Clicked submit'));
 		
         // Log to confirm the handler is firing
         console.log('Form submit handler triggered');
@@ -46,19 +51,19 @@ $(document).ready(function() {
         let message = $('#message').val();
         
         if(title.trim()=='') {
-			$('#helperText').html('Please provide a message title');
+			$('#helperText').text(tr('need_title', 'Please provide a message title'));
 			send=0;
 			return;
 		}
         
          if(message.trim()=='') {
-			$('#helperText').html('Please provide a message');
+			$('#helperText').text(tr('need_message', 'Please provide a message'));
 			send=0;
 			return;
 		}
         
         if(threeword.trim()=='') {
-			$('#helperText').html('Please provide an 3WordID');
+			$('#helperText').text(tr('need_3wid', 'Please provide an 3WordID'));
 			send=0;
 			return;
 		}

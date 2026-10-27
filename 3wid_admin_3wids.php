@@ -5,14 +5,14 @@ require_once 'login/config.php';
 $data = current_user_from_session($conn);
 
 if ($data == NULL) {
-    header('Location: login/options.php?message=' . rawurlencode('Please log in.'));
+    header('Location: login/options.php?message=' . rawurlencode(t_plain('common.login_required')));
     exit;
 }
 
 $admin_id = 4;
 
 if ((int)$data['id'] !== $admin_id) {
-    header('Location: 3wid_list.php?message=' . rawurlencode('Not allowed.'));
+    header('Location: 3wid_list.php?message=' . rawurlencode(t_plain('admin.not_allowed')));
     exit;
 }
 
@@ -49,12 +49,12 @@ function admin_page_link($page, $q) {
 }
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo current_lang(); ?>">
 <head>
     <?php echo $google_stats; ?>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3WordID — All 3WordIDs</title>
+    <title><?php echo t('aa.title'); ?></title>
     <link rel="icon" type="image/x-icon" href="img/favicon.ico">
     <link href="/css/inter.css" rel="stylesheet">
     <style>
@@ -204,15 +204,16 @@ function admin_page_link($page, $q) {
 </head>
 <body>
 <header class="site-header">
-    <a class="brand" href="<?php echo htmlspecialchars($main_url); ?>" title="to 3wordID.com">
+    <a class="brand" href="<?php echo htmlspecialchars($main_url); ?>" title="<?php echo t('admin.to_home'); ?>">
         <span class="brand-mark"><img width="35" src="https://3WordID.com/img/3wid_big.png" alt=""></span>
         3WordID
     </a>
     <div class="header-actions">
-        <a class="btn btn-ghost" href="3wid_user_list.php">All users</a>
-        <a class="btn btn-ghost" href="3wid_list.php">Dashboard</a>
-        <a href="login/logout.php" class="logout-icon" title="log out">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="Logout Icon">
+        <?php echo lang_switcher(); ?>
+        <a class="btn btn-ghost" href="3wid_user_list.php"><?php echo t('ue.all_users'); ?></a>
+        <a class="btn btn-ghost" href="3wid_list.php"><?php echo t('admin.dashboard'); ?></a>
+        <a href="login/logout.php" class="logout-icon" title="<?php echo t('nav.logout'); ?>">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="<?php echo t('icon.logout'); ?>">
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
                 <polyline points="16 17 21 12 16 7"></polyline>
                 <line x1="21" y1="12" x2="9" y2="12"></line>
@@ -224,8 +225,8 @@ function admin_page_link($page, $q) {
 <main class="wrap">
     <div class="page-head">
         <div>
-            <h1>All 3WordIDs</h1>
-            <p class="lede">Search by the three words, the owner's name, or the owner's user id. Restricted to admin id <?php echo (int)$admin_id; ?>.</p>
+            <h1><?php echo t('admin.all_3wids'); ?></h1>
+            <p class="lede"><?php echo t('aa.lede', ['id' => (int)$admin_id]); ?></p>
         </div>
     </div>
 
@@ -234,31 +235,31 @@ function admin_page_link($page, $q) {
     <?php } ?>
 
     <form class="toolbar" method="get" action="3wid_admin_3wids.php">
-        <input class="search" type="search" name="q" value="<?php echo htmlspecialchars($q); ?>" placeholder="e.g. apple tree house, Frits, or 75" autofocus>
-        <button class="btn btn-primary" type="submit">Search</button>
+        <input class="search" type="search" name="q" value="<?php echo htmlspecialchars($q); ?>" placeholder="<?php echo t('aa.ph'); ?>" autofocus>
+        <button class="btn btn-primary" type="submit"><?php echo t('common.search'); ?></button>
         <?php if ($q !== '') { ?>
-            <a class="btn btn-ghost" href="3wid_admin_3wids.php">Clear</a>
+            <a class="btn btn-ghost" href="3wid_admin_3wids.php"><?php echo t('aa.clear'); ?></a>
         <?php } ?>
     </form>
 
     <div class="stats">
-        <div class="stat"><span>This page</span><strong><?php echo (int)$count; ?></strong></div>
-        <div class="stat"><span>Page</span><strong><?php echo (int)$page; ?></strong></div>
-        <div class="stat"><span>Search</span><strong><?php echo $q === '' ? 'All' : htmlspecialchars($q); ?></strong></div>
+        <div class="stat"><span><?php echo t('ul.this_page'); ?></span><strong><?php echo (int)$count; ?></strong></div>
+        <div class="stat"><span><?php echo t('ul.page'); ?></span><strong><?php echo (int)$page; ?></strong></div>
+        <div class="stat"><span><?php echo t('common.search'); ?></span><strong><?php echo $q === '' ? t('aa.all') : htmlspecialchars($q); ?></strong></div>
     </div>
 
     <div class="toolbar">
         <?php if ($page > 0) { ?>
-            <a class="btn btn-ghost" href="<?php echo htmlspecialchars(admin_page_link($page - 1, $q)); ?>">Previous</a>
+            <a class="btn btn-ghost" href="<?php echo htmlspecialchars(admin_page_link($page - 1, $q)); ?>"><?php echo t('ul.prev'); ?></a>
         <?php } ?>
         <?php if ($has_next) { ?>
-            <a class="btn btn-ghost" href="<?php echo htmlspecialchars(admin_page_link($page + 1, $q)); ?>">Next</a>
+            <a class="btn btn-ghost" href="<?php echo htmlspecialchars(admin_page_link($page + 1, $q)); ?>"><?php echo t('ul.next'); ?></a>
         <?php } ?>
     </div>
 
     <div class="panel">
         <?php if ($count === 0) { ?>
-            <div class="empty">No 3WordIDs found.</div>
+            <div class="empty"><?php echo t('aa.empty'); ?></div>
         <?php } else { ?>
             <?php foreach ($wids as $w) {
                 $words_url = implode('.', explode(' ', (string)$w['threeword']));
@@ -267,7 +268,7 @@ function admin_page_link($page, $q) {
                 $owner_id = (int)$w['user_id'];
                 $owner_name = trim((string)($w['owner_name'] ?? ''));
                 if ($owner_name === '') {
-                    $owner_name = 'User #' . $owner_id;
+                    $owner_name = t_plain('u3.user_n', ['id' => $owner_id]);
                 }
             ?>
                 <div class="id-row">
@@ -281,22 +282,22 @@ function admin_page_link($page, $q) {
                     <div class="meta forward">
                         <?php if ($forward !== '') { ?>
                             <a href="<?php echo htmlspecialchars($forward); ?>" target="_blank" rel="noopener noreferrer"><?php echo htmlspecialchars($forward); ?></a>
-                            <?php if ((int)$w['linkthruflag'] !== 1) { ?><br>(forward not used)<?php } ?>
+                            <?php if ((int)$w['linkthruflag'] !== 1) { ?><br><?php echo t('u3.fwd_unused'); ?><?php } ?>
                         <?php } else { ?>
-                            No forward link
+                            <?php echo t('u3.no_forward'); ?>
                         <?php } ?>
                     </div>
                     <div>
-                        <a class="id-name" href="3wid_user_3wids.php?user_id=<?php echo $owner_id; ?>" title="All 3WordIDs of this user"><?php echo htmlspecialchars($owner_name); ?></a>
-                        <div class="meta">user #<?php echo $owner_id; ?></div>
+                        <a class="id-name" href="3wid_user_3wids.php?user_id=<?php echo $owner_id; ?>" title="<?php echo t('aa.owner_title'); ?>"><?php echo htmlspecialchars($owner_name); ?></a>
+                        <div class="meta"><?php echo t('aa.user_n', ['id' => $owner_id]); ?></div>
                     </div>
                     <div>
-                        <span class="pill<?php echo $is_on ? ' on' : ''; ?>"><?php echo $is_on ? 'On' : 'Off'; ?></span>
+                        <span class="pill<?php echo $is_on ? ' on' : ''; ?>"><?php echo $is_on ? t('common.on') : t('common.off'); ?></span>
                     </div>
-                    <div class="meta"><?php echo (int)$w['views']; ?> views</div>
+                    <div class="meta"><?php echo t_n('home.views', (int)$w['views']); ?></div>
                     <div class="meta"><?php echo htmlspecialchars((string)$w['creation_date']); ?></div>
                     <div>
-                        <a class="btn btn-ghost" href="3wid_3wid.php?id=<?php echo (int)$w['id']; ?>&amp;from=admin">Edit</a>
+                        <a class="btn btn-ghost" href="3wid_3wid.php?id=<?php echo (int)$w['id']; ?>&amp;from=admin"><?php echo t('common.edit'); ?></a>
                     </div>
                 </div>
             <?php } ?>

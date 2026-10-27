@@ -10,7 +10,7 @@
   
  $data = current_user_from_session($conn);
     if ($data == NULL) {
-        header('Location: login/options.php?message=' . rawurlencode('Please log in.'));
+        header('Location: login/options.php?message=' . rawurlencode(t_plain('common.login_required')));
         exit;
     }
  
@@ -19,12 +19,12 @@
 
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo current_lang(); ?>">
 <head>
     <?php echo $google_stats; ?>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Privacy consent — 3WordID</title>
+    <title><?php echo t('pc.title'); ?></title>
     <link rel="icon" type="image/x-icon" href="img/favicon.ico">
     <link href="/css/inter.css" rel="stylesheet">
     <link rel="stylesheet" href="css/newstyle.css">
@@ -155,84 +155,76 @@
             3WordID
         </a>
         <nav class="nav-links">
-            <a href="terms.php">Terms</a>
-            <a href="https://github.com/spacetheelepeltje-rgb/3wordid">Open Source on Github</a>
+            <a href="terms.php"><?php echo t('nav.terms'); ?></a>
+            <a href="https://github.com/spacetheelepeltje-rgb/3wordid"><?php echo t('nav.github'); ?></a>
         </nav>
         <div class="header-actions" id="userContainer">
-         
+         <?php echo lang_switcher(); ?>
         </div>
     </header>
 
     <main class="consent-wrap">
-        <div class="eyebrow">REQUIRED</div>
-        <h1>Privacy and service consent</h1>
+        <div class="eyebrow"><?php echo t('pc.eyebrow'); ?></div>
+        <h1><?php echo t('pc.h1'); ?></h1>
         <p class="consent-lead">
-            Read this before you continue. Checking the box accepts the service as is and allows storage of the data listed below.
+            <?php echo t('pc.lead'); ?>
         </p>
 
         <div class="flash">
-            3WordID only links three words to a URL, a notification, or a message box.
-            You accept the site as is. No rights can be derived from any interaction with this site.
+            <?php echo t('pc.flash'); ?>
         </div>
 
         <div class="search-container consent-card">
             <form id="3widForm" action="3wid_privacy_consent_process.php" method="post">
 
                 <div class="policy-block">
-                    <h2>Data policy</h2>
+                    <h2><?php echo t('pc.data_h'); ?></h2>
                     <p>
-                        To run the lookup tool we store personal data supplied by Google and data you submit:
+                        <?php echo t('pc.data_p1'); ?>
                     </p>
                     <ul>
-                        <li>first name and last name;</li>
-                        <li>a link to your avatar;</li>
-                        <li>your email address, stored as a one-way hash, not as readable text, so we cannot use it to email you;</li>
-                        <li>messages you send and receive;</li>
-                        <li>text you put in the notification field of a 3WordID;</li>
-                        <li>the 3WordIDs you create and related lookup data.</li>
+                        <li><?php echo t('pc.li1'); ?></li>
+                        <li><?php echo t('pc.li2'); ?></li>
+                        <li><?php echo t('pc.li3'); ?></li>
+                        <li><?php echo t('pc.li4'); ?></li>
+                        <li><?php echo t('pc.li5'); ?></li>
+                        <li><?php echo t('pc.li6'); ?></li>
                     </ul>
                     <p>
-                        We share this data with third parties only if we are legally obligated to, or as needed to host and process the service — not to sell it.
-                        We may show this page again so you can reconfirm.
+                        <?php echo t('pc.data_p2'); ?>
                     </p>
                     <p>
-                        Messages, IP addresses and account data are logged and kept, also after an account is deactivated, so we can respond to lawful requests from law enforcement.
+                        <?php echo t('pc.data_p3'); ?>
                     </p>
                 </div>
 
                 <div class="policy-block">
-                    <h2>Functionality policy</h2>
+                    <h2><?php echo t('pc.func_h'); ?></h2>
                     <p>
-                        If you check the box you accept the service as it is offered.
-                        Features may change or stop at any time in the interest of the site.
-                        We will make a reasonable effort to offer what we describe. That is not a warranty.
+                        <?php echo t('pc.func_p1'); ?>
                     </p>
                     <p>
-                        Paid accounts overrule free accounts when reserving a 3WordID.
-                        3WordIDs may be localized by country, city, or other locale.
-                        The site owner may terminate a 3WordID at any time if it deems that necessary.
-                        Unpaid IDs may expire or be taken by another user.
-                        Messages are currently unencrypted — use them accordingly.
+                        <?php echo t('pc.func_p2'); ?>
                     </p>
                     <p>
-                        The full terms are on the <a href="terms.php">terms page</a>. Those terms apply to this consent.
+                        <?php echo t_raw('pc.func_p3'); ?>
                     </p>
                 </div>
 
                 <div class="check-row">
                     <input type="checkbox" id="consent" name="consent">
                     <label for="consent">
-                        I consent to storage of my data as described in the data policy above, and I agree with the functionality policy above, including use of the site as is.
+                        <?php echo t('pc.consent'); ?>
                     </label>
                 </div>
 
                 <div class="buttons">
-                    <button type="submit" id="submitBtn">Submit</button>
+                    <button type="submit" id="submitBtn"><?php echo t('pc.submit'); ?></button>
                     <div id="helperText"></div>
                 </div>
 
                 <p class="consent-meta">
-                    You can leave this page without checking the box. The account will not be enabled for the service until you consent.
+                    <?php echo t('pc.meta'); ?>
                 </p>
 
                 <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
@@ -243,8 +235,9 @@
 
     <footer class="site-footer">
         <div><?php echo $footer; ?></div>
-        <div>No rights can be derived from use of this site. Service provided as is.</div>
+        <div><?php echo t('pc.footer'); ?></div>
     </footer>
 </body>
+<?php echo i18n_js_all(); ?>
 <script src="js/3wid_privacy_consent.js"></script>
 </html>
