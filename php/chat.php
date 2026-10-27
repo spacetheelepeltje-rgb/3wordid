@@ -145,6 +145,8 @@ function chat_icon($name) {
 			return '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 6 6v3"/></svg>';
 		case 'user':
 			return '<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0z"/></svg>';
+		case 'print':
+			return '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M6 14h12v7H6z"/></svg>';
 		case 'tick':
 			// single check mark = sent
 			return '<svg class="tick" viewBox="0 0 16 12" width="16" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="' . chat_e(t('chat.sent')) . '"><path d="M2 6.5l3.5 3.5L13 2.5"/></svg>';
@@ -155,4 +157,25 @@ function chat_icon($name) {
 // Avatar for an anonymous visitor (user icon instead of an initial)
 function chat_visitor_avatar() {
 	return '<span class="avatar visitor" aria-hidden="true">' . chat_icon('user') . '</span>';
+}
+
+// Group the rows of db_3wordid_list_messages() into conversations, one per sender
+// 3WordID. Anonymous visitors (user 25) share one group: there is no sender to tell apart.
+// Returns [key => ['key', 'name', 'visitor', 'items' (oldest first, with 'sent_at')]],
+// newest conversation first. $dates comes from db_3wordid_message_dates().
+function chat_conversations($messages, $dates) {
+	$conversations = array();
+	foreach (array_reverse((array) $messages) as $m) { // oldest first
+		$is_visitor = ((int) $m['from_id'] === 25);
+		$key = $is_visitor ? 'visitors' : ((int) $m['from_id'] . ':' . $m['threeword']);
+		if (!isset($conversations[$key])) {
+			$conversations[$key] = array('key' => $key, 'name' => $is_visitor ? '' : $m['threeword'], 'visitor' => $is_visitor, 'items' => array());
+		}
+		$m['sent_at'] = $dates[(int) $m['id']] ?? '';
+		$conversations[$key]['items'][] = $m;
+	}
+	uasort($conversations, function ($a, $b) {
+		return $b['items'][count($b['items']) - 1]['id'] <=> $a['items'][count($a['items']) - 1]['id'];
+	});
+	return $conversations;
 }

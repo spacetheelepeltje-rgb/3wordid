@@ -55,22 +55,8 @@
   // Message times: only available when the messages table has a creation_date column
   $dates = db_3wordid_message_dates(array_column($messages, 'id'));
 
-  // Group the messages into conversations, one per sender 3WordID.
-  // Anonymous visitors (user 25) all share one group, there is no sender to tell apart.
-  $conversations = array();
-  foreach (array_reverse($messages) as $m) { // oldest first
-    $is_visitor = ((int) $m['from_id'] === 25);
-    $key = $is_visitor ? 'visitors' : ((int) $m['from_id'] . ':' . $m['threeword']);
-    if (!isset($conversations[$key])) {
-      $conversations[$key] = array('key' => $key, 'name' => $is_visitor ? '' : $m['threeword'], 'visitor' => $is_visitor, 'items' => array());
-    }
-    $m['sent_at'] = $dates[(int) $m['id']] ?? '';
-    $conversations[$key]['items'][] = $m;
-  }
-  // newest conversation first
-  uasort($conversations, function ($a, $b) {
-    return $b['items'][count($b['items']) - 1]['id'] <=> $a['items'][count($a['items']) - 1]['id'];
-  });
+  // Conversations, one per sender 3WordID, newest first (see php/chat.php)
+  $conversations = chat_conversations($messages, $dates);
 
   // Open conversation: the key must be one of the owner's own conversations
   $with = isset($_GET['with']) ? (string) $_GET['with'] : '';
@@ -143,6 +129,7 @@
             <div class="name"><?php echo $label; ?></div>
             <div class="sub"><?php echo t('chat.to_you', ['words' => $threeword]); ?></div>
         </div>
+        <a class="back" href="<?php echo chat_e('3wid_chat_print.php?wid_id=' . (int) $threeword_id . '&with=' . rawurlencode($open['key'])); ?>" target="_blank" rel="noopener" title="<?php echo t('chat.print_title'); ?>" aria-label="<?php echo t('chat.print_title'); ?>"><?php echo chat_icon('print'); ?></a>
     </header>
 
     <main class="chat-scroll" data-scroll="end">

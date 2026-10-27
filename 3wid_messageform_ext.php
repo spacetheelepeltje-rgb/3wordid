@@ -106,7 +106,7 @@
         <footer class="chat-footer"><?php echo $footer; ?></footer>
     </main>
 
-    <form class="composer" id="3widForm" action="3wid_messageform_ext_process.php" method="post">
+    <form class="composer" id="3widForm"<?php echo $sent ? ' data-sent="1"' : ''; ?> action="3wid_messageform_ext_process.php" method="post">
         <input type="hidden" id="threeword" value="<?php echo $reply_to_safe; ?>">
         <input type="hidden" name="threeword" value="<?php echo $reply_to_safe; ?>">
         <p class="c-note"><?php echo t('chat.ext_contact_hint'); ?></p>

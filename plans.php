@@ -137,7 +137,7 @@ $loginUrl = '/login/options.php';
         <div class="eyebrow">PLANS</div>
         <h1>Subscription plans</h1>
         <p class="legal-lead">
-            3WordID is a lookup tool. It links three words to a URL, a notification, or a message box. That is the whole service. Use 
+            3WordID is a lookup tool. It links three words to a URL, a notification, or a chat. That is the whole service. Use 
             it only on that basis. Please check our <a href='terms.php'>Terms and Conditions</a>. As a startup we do not accept any liability or abuse of the service.</p>
         <p class="legal-meta">Effective 23 September 2026. Replaces any earlier terms page.</p>
 
