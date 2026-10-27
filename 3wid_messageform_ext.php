@@ -45,11 +45,12 @@
   $has_note = $notification !== '';
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo current_lang(); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leave a message — 3WordID</title>
+    <title><?php echo t('ext.title'); ?></title>
+    <?php echo lang_head_tags(); ?>
     <link rel="icon" type="image/x-icon" href="img/favicon.ico">
     <link href="/css/inter.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -331,20 +332,21 @@
                 <span>3WordID</span>
             </a>
             <nav class="nav-links">
-                <a href="https://x.com/climatebabes/status/1921113933592584660">Docs on X.com</a>
-                <a href="https://github.com/spacetheelepeltje-rgb/3wordid">Open Source on Github</a>
+                <a href="https://x.com/climatebabes/status/1921113933592584660"><?php echo t('nav.docs'); ?></a>
+                <a href="https://github.com/spacetheelepeltje-rgb/3wordid"><?php echo t('nav.github'); ?></a>
             </nav>
             <div class="header-actions" id="userContainer">
-                <a href="<?php echo $loginUrl; ?>" class="btn btn-primary">Log in/Create ID</a>
+                <?php echo lang_switcher(); ?>
+                <a href="<?php echo $loginUrl; ?>" class="btn btn-primary"><?php echo t('nav.login'); ?></a>
             </div>
         </div>
     </header>
 
     <main class="page">
-        <p class="eyebrow">Message form</p>
-        <h1><?php echo $has_note ? 'Leave a message' : 'Leave your message here'; ?></h1>
+        <p class="eyebrow"><?php echo t('ext.eyebrow'); ?></p>
+        <h1><?php echo $has_note ? t('ext.h1_note') : t('ext.h1_nonote'); ?></h1>
         <?php if (!$has_note): ?>
-        <p class="subhead">Send a note to <strong><?php echo $reply_to_safe; ?></strong>. Add contact details or log in and send a direct message if you want a reply.</p>
+        <p class="subhead"><?php echo t_raw('ext.subhead', ['words' => $reply_to]); ?></p>
         <?php endif; ?>
         <?php if ($has_note): ?>
         <div class="flash"><?php echo $notification; ?></div>
@@ -353,34 +355,40 @@
         <div class="panel search-container">
             <form id="3widForm" action="3wid_messageform_ext_process.php" method="post">
                 <div class="field">
-                    <label class="lbl" for="threeword">Recipient</label>
-                    <input disabled type="text" name="" id="threeword" class="search-bar" placeholder="first  ·  second  ·  third" value="to : <?php echo $reply_to_safe; ?>">
+                    <label class="lbl" for="threeword"><?php echo t('msg.recipient'); ?></label>
+                    <input disabled type="text" name="" id="threeword" class="search-bar" placeholder="<?php echo t('common.placeholder_words'); ?>" value="<?php echo t('ext.to', ['words' => $reply_to]); ?>">
                 </div>
                 <div class="field">
-                    <label class="lbl" for="title">Title</label>
-                    <input type="text" name="title" id="title" class="search-bar" placeholder="Enter a message title" value="">
+                    <label class="lbl" for="title"><?php echo t('msg.title_label'); ?></label>
+                    <input type="text" name="title" id="title" class="search-bar" placeholder="<?php echo t('msg.title_ph'); ?>" value="">
                 </div>
                 <div class="field">
-                    <label class="lbl" for="message">Message</label>
-                    <textarea name="message" id="message" class="search-bar" placeholder="Enter your message here. If you want a reply provide contact info or log in and create your own 3WordID" rows="4"></textarea>
+                    <label class="lbl" for="message"><?php echo t('msg.message_label'); ?></label>
+                    <textarea name="message" id="message" class="search-bar" placeholder="<?php echo t('ext.message_ph'); ?>" rows="4"></textarea>
                 </div>
                 <div class="buttons">
-                    <button type="submit" id="submitBtn" class="btn btn-primary">Send</button>
+                    <button type="submit" id="submitBtn" class="btn btn-primary"><?php echo t('common.send'); ?></button>
                     <div id="helperText"></div>
                 </div>
                 <input type="hidden" name="threeword" value="<?php echo $reply_to_safe; ?>">
             </form>
         </div>
 
-        <p class="hint">Your message is shown to the owner of this 3WordID. Your message and IP address are stored and kept, also for lawful requests from law enforcement. <a href="/terms.php#data">Read more</a></p>
+        <p class="hint"><?php echo t_raw('ext.hint1'); ?></p>
 
-        <p class="hint">Want a direct reply? <a href="<?php echo $loginUrl; ?>">Log in and create your own 3WordID</a></p>
+        <p class="hint"><?php echo t_raw('ext.hint2', ['login' => $loginUrl]); ?></p>
     </main>
 
     <footer class="site-footer">
         <div class="footer-inner"><?php echo $footer; ?></div>
     </footer>
 </body>
+<?php echo i18n_js([
+    'clicked'      => 'msg.js_clicked',
+    'need_title'   => 'msg.js_need_title',
+    'need_message' => 'msg.js_need_message',
+    'need_3wid'    => 'msg.js_need_3wid',
+]); ?>
 <script src="js/3wid_messageform_ext.js"></script>
 <script>
     $('#threeword').trigger('keyup');

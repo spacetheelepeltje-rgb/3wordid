@@ -42,11 +42,11 @@
  
 ?>  
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo current_lang(); ?>">
 <head>
     <meta charset="UTF-8"> 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Send message — 3WordID</title>
+    <title><?php echo t('msg.title'); ?></title>
     <link rel="icon" type="image/png" href="3wid_1.png">
     <link href="/css/inter.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -293,9 +293,10 @@
           <span>3WordID</span>
         </a>
         <div class="header-actions" id="userContainer">
-          <a class="btn btn-ghost" href="3wid_list.php">Back to list</a>
-          <a class="btn btn-primary" href="3wid_list.php">My IDs</a>
-          <a href="<?php echo $loginUrl; ?>" class="icon-btn login-icon" title="Log in (not all functions work on mobile devices)">
+          <?php echo lang_switcher(); ?>
+          <a class="btn btn-ghost" href="3wid_list.php"><?php echo t('nav.back_list'); ?></a>
+          <a class="btn btn-primary" href="3wid_list.php"><?php echo t('nav.my_ids'); ?></a>
+          <a href="<?php echo $loginUrl; ?>" class="icon-btn login-icon" title="<?php echo t('nav.login_title'); ?>">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="Login Icon">
               <path d="M15 21h4a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-4"></path>
               <polyline points="8 7 13 12 8 17"></polyline>
@@ -307,14 +308,14 @@
     </header>
 
     <main class="page">
-        <p class="eyebrow">Messages</p>
-        <h1>Send a message</h1>
-        <p class="subhead">You can send and receive messages from all the 3 Word IDs you define.</p>
+        <p class="eyebrow"><?php echo t('msg.eyebrow'); ?></p>
+        <h1><?php echo t('msg.h1'); ?></h1>
+        <p class="subhead"><?php echo t('msg.subhead'); ?></p>
 
         <div class="panel search-container">
             <form id="3widForm" action="3wid_messageform_process.php" method="post">
                 <div class="field">
-                  <label class="lbl" for="from_id">From</label>
+                  <label class="lbl" for="from_id"><?php echo t('msg.from'); ?></label>
                   <select class="search-bar" name="from_id" id="from_id">
                     <?php
                     
@@ -338,7 +339,7 @@
 							   $selected ="";
 							   }
 						   
-                           echo "<option value='" .  $select_row["id"] . "' " . $selected . ">Send from : " .  $select_row["threeword"] . "</option>"; 
+                           echo "<option value='" .  $select_row["id"] . "' " . $selected . ">" . t('msg.send_from', ['words' => $select_row["threeword"]]) . "</option>"; 
                            
                            }
                            
@@ -347,22 +348,22 @@
                   </select>
                 </div>
                 <div class="field">
-                  <label class="lbl" for="threeword">Recipient</label>
-                  <input type="text" name="threeword" id="threeword" class="search-bar" placeholder="first  ·  second  ·  third" value="<?php echo $reply_to; ?>">
+                  <label class="lbl" for="threeword"><?php echo t('msg.recipient'); ?></label>
+                  <input type="text" name="threeword" id="threeword" class="search-bar" placeholder="<?php echo t('common.placeholder_words'); ?>" value="<?php echo $reply_to; ?>">
                 </div>
                 <div class="field">
-                  <label class="lbl" for="title">Title</label>
-                  <input type="text" name="title" id="title" class="search-bar" placeholder="Enter a message title" value="">
+                  <label class="lbl" for="title"><?php echo t('msg.title_label'); ?></label>
+                  <input type="text" name="title" id="title" class="search-bar" placeholder="<?php echo t('msg.title_ph'); ?>" value="">
                 </div>
                 <div class="field">
-                  <label class="lbl" for="message">Message</label>
-                  <textarea name="message" id="message" class="search-bar" placeholder="Enter your message here" rows="4"></textarea>
+                  <label class="lbl" for="message"><?php echo t('msg.message_label'); ?></label>
+                  <textarea name="message" id="message" class="search-bar" placeholder="<?php echo t('msg.message_ph'); ?>" rows="4"></textarea>
                 </div>
-                <p class="hint">You can only send one message until you get a reply. Your google login image will be shared with the recipient. By checking the below checkbox you consent in sharing your google user image and (re-)confirm you consent in us storing the identification data google shares with us when you log in to this website.</p>
-                <label class="consent"><input type="checkbox" id="terms" name="terms">I consent with the above</label>
-                <p class="hint">Your message is shown to the recipient. Your message and IP address are stored and kept, also for lawful requests from law enforcement. <a href="/terms.php#data">Read more</a></p>
+                <p class="hint"><?php echo t('msg.hint1'); ?></p>
+                <label class="consent"><input type="checkbox" id="terms" name="terms"><?php echo t('msg.consent'); ?></label>
+                <p class="hint"><?php echo t_raw('msg.hint2'); ?></p>
                 <div class="buttons">
-                    <button type="submit" id="submitBtn">Send</button>
+                    <button type="submit" id="submitBtn"><?php echo t('common.send'); ?></button>
                     <div id="helperText"></div>
                 </div>
                 <input type='hidden' name='action_token' value='<?php echo htmlspecialchars(get_action_token(), ENT_QUOTES, 'UTF-8'); ?>'>
@@ -371,6 +372,16 @@
     </main>
     
 </body>
+<?php echo i18n_js([
+    'ok_recipient'  => 'msg.js_ok_recipient',
+    'bad_recipient' => 'msg.js_bad_recipient',
+    'invalid'       => 'msg.js_invalid',
+    'clicked'       => 'msg.js_clicked',
+    'need_title'    => 'msg.js_need_title',
+    'need_message'  => 'msg.js_need_message',
+    'need_3wid'     => 'msg.js_need_3wid',
+    'need_terms'    => 'msg.js_need_terms',
+]); ?>
 <script src="js/3wid_messageform.js"></script>
 <script>
     $('#threeword').trigger('keyup');

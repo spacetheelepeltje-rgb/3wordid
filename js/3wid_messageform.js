@@ -1,3 +1,8 @@
+// Texts for the current language come from window.T3 (set by the page, see php/i18n.php).
+function tr(key, fallback) {
+    return (window.T3 && window.T3[key]) || fallback;
+}
+
 
 const emailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 
@@ -47,9 +52,9 @@ $('#threeword').on('keyup', function() {
 							
 							//console.log(response); // Log the server response
 							if(response =='exists') {
-								$('#helperText').html('recipient exists');
+								$('#helperText').text(tr('ok_recipient', 'recipient exists'));
 								} else {
-								$('#helperText').html('invalid recipient');	
+								$('#helperText').text(tr('bad_recipient', 'invalid recipient'));	
 								}
 						},
 						error: function(xhr, status, error) {
@@ -75,13 +80,13 @@ $('#threeword').on('keyup', function() {
 				
 				  //console.log('error in one of the three words');
 					$("#threeword").css("color", "#000");
-					$('#helperText').html('3wid invalid');
+					$('#helperText').text(tr('invalid', '3wid invalid'));
 				 
 				  }
 				  } else {
 				 
 					$("#threeword").css("color", "#000");
-				    $('#helperText').html('3wid invalid');
+				    $('#helperText').text(tr('invalid', '3wid invalid'));
 				  }
                 
        }); 
@@ -94,7 +99,7 @@ $(document).ready(function() {
 
 		send=0;
 		
-		$('#helperText').html('Clicked submit');
+		$('#helperText').text(tr('clicked', 'Clicked submit'));
 		
         // Log to confirm the handler is firing
         console.log('Form submit handler triggered');
@@ -113,25 +118,25 @@ $(document).ready(function() {
         let message = $('#message').val();
         
         if(title.trim()=='') {
-			$('#helperText').html('Please provide a message title');
+			$('#helperText').text(tr('need_title', 'Please provide a message title'));
 			send=0;
 			return;
 		}
         
          if(message.trim()=='') {
-			$('#helperText').html('Please provide a message');
+			$('#helperText').text(tr('need_message', 'Please provide a message'));
 			send=0;
 			return;
 		}
         
         if(threeword.trim()=='') {
-			$('#helperText').html('Please provide an 3WordID');
+			$('#helperText').text(tr('need_3wid', 'Please provide an 3WordID'));
 			send=0;
 			return;
 		}
 
 		if(!terms) {
-			$('#helperText').html('Please accept the terms by checking the checkbox');
+			$('#helperText').text(tr('need_terms', 'Please accept the terms by checking the checkbox'));
 			send=0;
 			return;
 		}	
