@@ -31,7 +31,7 @@ if (isset($_GET['message'])) {
 }
 
 if (check_mobile() === 'mobile') {
-    $helpertext = 'Log in top right to create you own 3WordID';
+    $helpertext = 'Log in top right to create your own 3WordID';
 }
 
 if (isset($_GET['threewords'])) {
@@ -59,11 +59,22 @@ $db_3wordid_list = db_3wordid_list_recent();
     <link rel="icon" type="image/x-icon" href="img/favicon.ico">
     <link href="/css/inter.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <meta name="description" content="Link any three words to a URL, a notification or a private message box. Easy to remember, easy to share. Three words. Every destination.">
+    <link rel="canonical" href="https://3wordid.com/">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="3WordID">
+    <meta property="og:title" content="3WordID: Three words. Every destination.">
+    <meta property="og:description" content="Link any three words to a URL, a notification or a private message box. Easy to remember, easy to share.">
+    <meta property="og:url" content="https://3wordid.com/">
+    <meta property="og:image" content="https://3wordid.com/img/og-3wordid.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="3WordID: Three words. Every destination.">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:site" content="@climatebabes">
-    <meta name="twitter:title" content="3WordID - Your Unique Identity Solution">
-    <meta name="twitter:description" content="Sign up for a 3WordID account to get a unique, easy-to-remember identity for all your online needs.">
-    <meta name="twitter:image" content="https://3WordID.com/card_0926.png">
+    <meta name="twitter:title" content="3WordID: Three words. Every destination.">
+    <meta name="twitter:description" content="Link any three words to a URL, a notification or a private message box. Easy to remember, easy to share.">
+    <meta name="twitter:image" content="https://3wordid.com/img/og-3wordid.png">
     <link rel="stylesheet" href="css/newstyle.css">
     <style>
         .lock.is-found {
@@ -100,7 +111,7 @@ $db_3wordid_list = db_3wordid_list_recent();
 
     <main>
         <section class="hero">
-            <div class="eyebrow">HUMAN-READABLE IDENTIFIERS <b><style="color:black;">BETA version</style></b></div>
+            <div class="eyebrow">HUMAN-READABLE IDENTIFIERS <b>BETA version</b></div>
             <h1>Three words<br>Every destination</h1>
             <p class="subhead">Look up a URL, notification, or private message box using any three-word ID. Easy to communicate. Easy to remember.</p>
             <div class="helper-note" id="helperText"><?php echo $helpertext; ?></div>
@@ -116,7 +127,7 @@ $db_3wordid_list = db_3wordid_list_recent();
                     <input id="threewords" name="threewords" type="text" class="search-bar" placeholder="first  ·  second  ·  third" value="<?= htmlspecialchars($threewords); ?>" autocomplete="off">
                     <button type="submit" id="submitBtn">Lookup</button>
                 </div>
-                <div class="search-hints">Try the thee word IDs listed below</div>
+                <div class="search-hints">Try one of the three-word IDs listed below</div>
                 <button type="button" id="createBtn" class="create-link" data-share-url="<?php echo $loginUrl; ?>">Create your own 3WordID →</button>
                 <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
             </form>
@@ -125,18 +136,18 @@ $db_3wordid_list = db_3wordid_list_recent();
         <section class="cards" id="use-cases">
             <article class="card">
                 
-                <h3>Three Word aliasses</h3>
-                <p>Link any three words to any URL. Share the words and thus share the profile, file, or resource. Easy to remember, easy to communicate</p>
+                <h3>Three-word aliases</h3>
+                <p>Link any three words to any URL. Share the words and you share the profile, file or resource. Easy to remember, easy to communicate.</p>
             </article>
             <article class="card">
                 
-                <h3>Three Word Message Box</h3>
-                <p>Create a private mailbox linked to three words, which can also be a number or alias or license plate</p>
+                <h3>Three-word message box</h3>
+                <p>Create a private message box linked to three words. The words can also be a number, an alias or a license plate.</p>
             </article>
             <article class="card">
                
-                <h3>Get rid of QR codes</h3>
-                <p>Use three words instead of QR codes, or create a QR code based on three words, which means you can prevent tampering. Musea can get a cleaner look on their labels, menu cards can just have the restaurant name.</p>
+                <h3>Better than QR codes</h3>
+                <p>Use three words instead of QR codes, or create a QR code based on three words, which helps prevent tampering. Museums can get a cleaner look on their labels, and menu cards can just show the restaurant name.</p>
             </article>
         </section>
 
