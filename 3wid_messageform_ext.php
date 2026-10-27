@@ -123,7 +123,6 @@
         <p class="c-note c-status" id="helperText" role="status" aria-live="polite"></p>
         <div class="c-row">
             <div class="c-box">
-                <input type="text" name="title" id="title" class="c-subject" maxlength="200" autocomplete="off" placeholder="<?php echo t('chat.subject_ph'); ?>" aria-label="<?php echo t('msg.title_label'); ?>">
                 <textarea name="message" id="message" class="c-text" rows="1" placeholder="<?php echo t('chat.type_message'); ?>" aria-label="<?php echo t('msg.message_label'); ?>"></textarea>
             </div>
             <button type="submit" id="submitBtn" class="send" aria-label="<?php echo t('common.send'); ?>" title="<?php echo t('common.send'); ?>"><?php echo chat_icon('send'); ?></button>
@@ -132,7 +131,6 @@
 </div>
 <?php echo i18n_js([
     'clicked'      => 'msg.js_clicked',
-    'need_title'   => 'msg.js_need_title',
     'need_message' => 'msg.js_need_message',
     'need_3wid'    => 'msg.js_need_3wid',
 ]); ?>

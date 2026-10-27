@@ -115,8 +115,15 @@ function chat_preview($text, $max = 70) {
 	return rtrim(chat_substr($text, 0, $max - 1)) . '…';
 }
 
-// The title is filled in from the start of the message by the composer. Do not show it
-// twice when the message just starts with it.
+// Messages have no subject field any more. The database column `title` is still filled,
+// with the start of the message, so older code, lists and the print view keep working.
+function chat_title_from_message($message) {
+	return chat_preview($message, 40);
+}
+
+// The title is made from the start of the message (see chat_title_from_message). Do not
+// show it twice when the message just starts with it. Older messages with a real,
+// different subject still show it.
 function chat_title_redundant($title, $message) {
 	$title = trim((string) $title);
 	if ($title === '') {
@@ -263,7 +270,7 @@ function chat_avatar_for($name, $wid_id, $photo_ids, $extra_class = '', $zoom = 
 
 // Version of css/chat.css and js/chat.js: raise it when they change, so browsers
 // load the new files without a hard refresh (Ctrl+F5).
-if (!defined('CHAT_ASSET_VERSION')) { define('CHAT_ASSET_VERSION', '2'); }
+if (!defined('CHAT_ASSET_VERSION')) { define('CHAT_ASSET_VERSION', '3'); }
 
 function chat_asset($path) {
 	return chat_e($path . '?v=' . CHAT_ASSET_VERSION);

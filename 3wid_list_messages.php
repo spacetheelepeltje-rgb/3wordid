@@ -198,7 +198,6 @@
         <input type="hidden" name="from_id" value="<?php echo (int) $threeword_id; ?>">
         <input type="hidden" name="threeword" value="<?php echo chat_e($open['name']); ?>">
         <input type="hidden" name="return" value="conv">
-        <input type="hidden" name="title" value="">
         <div class="c-row">
             <div class="c-box">
                 <textarea name="message" id="message" class="c-text" rows="1" required maxlength="5000" placeholder="<?php echo t('lm.reply', ['name' => $open['name']]); ?>" aria-label="<?php echo t('msg.message_label'); ?>"></textarea>

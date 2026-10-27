@@ -14,7 +14,6 @@
     }
 
     var text = document.querySelector('.composer .c-text');
-    var subject = document.querySelector('.composer .c-subject');
 
     function grow() {
         if (!text) { return; }
@@ -37,9 +36,9 @@
     function saveDraft() {
         var st = store();
         if (!st || !text) { return; }
-        var d = { m: text.value, s: subject ? subject.value : '', t: subject && subject.getAttribute('data-touched') ? 1 : 0, to: to ? to.value : null };
+        var d = { m: text.value, to: to ? to.value : null };
         try {
-            if (d.m === '' && d.s === '') { st.removeItem(draftKey); } else { st.setItem(draftKey, JSON.stringify(d)); }
+            if (d.m === '') { st.removeItem(draftKey); } else { st.setItem(draftKey, JSON.stringify(d)); }
         } catch (e) { /* storage full or blocked: ignore */ }
     }
     function clearDrafts() {
@@ -62,26 +61,24 @@
             try {
                 var d = JSON.parse(raw);
                 if (text.value === '' && typeof d.m === 'string') { text.value = d.m; }
-                if (subject && subject.value === '' && typeof d.s === 'string') { subject.value = d.s; }
-                if (subject && d.t) { subject.setAttribute('data-touched', '1'); }
+                // Drafts saved before the subject field was removed may hold a subject (d.s).
+                // Keep it only when the person typed their own and the message does not
+                // already start with it, so nothing they wrote is lost.
+                if (d.t && typeof d.s === 'string' && d.s.trim() !== '') {
+                    var subj = d.s.trim();
+                    var body = text.value.replace(/\s+/g, ' ').trim().toLowerCase();
+                    if (body.indexOf(subj.replace(/[\u2026.\s]+$/, '').toLowerCase()) !== 0) {
+                        text.value = subj + (text.value ? '\n' + text.value : '');
+                    }
+                }
                 if (to && to.value === '' && typeof d.to === 'string') { to.value = d.to; }
             } catch (e) { /* bad data: ignore */ }
         }
     }
 
-    if (subject) {
-        // The title is required by the form. Fill it from the start of the message
-        // until the person types their own.
-        subject.addEventListener('input', function () { subject.setAttribute('data-touched', '1'); saveDraft(); });
-    }
-
     if (text) {
         text.addEventListener('input', function () {
             grow();
-            if (subject && !subject.getAttribute('data-touched')) {
-                var first = text.value.replace(/\s+/g, ' ').trim();
-                subject.value = first.length > 40 ? first.slice(0, 39).trim() + '…' : first;
-            }
             saveDraft();
         });
 

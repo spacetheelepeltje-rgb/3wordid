@@ -47,18 +47,15 @@
  
    $threeword = (string) ($_POST["threeword"] ?? '');
    
-   $title = trim((string) ($_POST["title"] ?? ''));
    
    $from_id = (int) ($_POST["from_id"] ?? 0);
 
    // Sent from the composer inside a conversation: go back there, not to the message form
    $to_conversation = (($_POST['return'] ?? '') === 'conv');
 
-   // The conversation composer has no subject field: use the start of the message
-   if ($title === '' && $message !== '') {
-	   $title = chat_len($message) > 40 ? rtrim(chat_substr($message, 0, 39)) . '…' : $message;
-	   $title = preg_replace('/\s+/u', ' ', $title);
-   }
+   // There is no subject field: the title is always the start of the message
+   // (a "title" sent by an old, cached form is ignored)
+   $title = chat_title_from_message($message);
    
    // The form no longer has its own checkbox: the user's privacy consent (checked above) counts
    $terms = 1;

@@ -65,12 +65,12 @@ $('#threeword').on('input keyup', checkRecipient);
 $(document).ready(function () {
 
     // Check the form, then let the browser send it as a normal POST
-    // (with the action token). The server makes a title from the message if it is empty.
+    // (with the action token). There is no subject field: the server makes the title
+    // from the start of the message.
     $('#3widForm').on('submit', function (event) {
         var form = this;
         var threeword = $.trim($('#threeword').val() || '');
         var message = $.trim($('#message').val() || '');
-        var title = $('#title');
 
         if (form.getAttribute('data-sending') === '1') {
             // Already on its way: do not send it twice
@@ -88,10 +88,6 @@ $(document).ready(function () {
             $('#helperText').text(tr('need_message', 'Please provide a message'));
             $('#message').focus();
             return;
-        }
-        if ($.trim(title.val() || '') === '') {
-            var first = message.replace(/\s+/g, ' ');
-            title.val(first.length > 40 ? $.trim(first.slice(0, 39)) + '\u2026' : first);
         }
 
         form.setAttribute('data-sending', '1');
