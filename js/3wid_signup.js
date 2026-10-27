@@ -1,3 +1,8 @@
+// Texts for the current language come from window.T3 (set by the page, see php/i18n.php).
+var tr = window.tr || function (key, fallback) {
+    return (window.T3 && window.T3[key]) || fallback;
+};
+
 
 console.log('loading script');
 
@@ -19,7 +24,7 @@ $(document).ready(function() {
     $('#3widSignupForm').on('submit', function(event) {
 		event.preventDefault();
 		
-        $('#helperText').html('Processing');
+        $('#helperText').text(tr('processing', 'Processing'));
 
 		let send = 1;
         // Grab form data
@@ -29,13 +34,13 @@ $(document).ready(function() {
 		console.log(terms);
      
         if(email.trim() =='') {
-			 $('#helperText').html('Please provide your email (Google login)');
+			 $('#helperText').text(tr('su_need_email', 'Please provide your email (Google login)'));
 				  send=0;
 				  return;
 			}
 
 		if(!validateEmail(email)) {
-					$('#helperText').html('Please provide a valid email (Google login)');
+					$('#helperText').text(tr('su_bad_email', 'Please provide a valid email (Google login)'));
 				  send=0;
 				  return;
 			}
@@ -43,7 +48,7 @@ $(document).ready(function() {
 		if ($("#terms").is(":checked")) {
 			//console.log("Checkbox is checked");
 		} else {
-			$('#helperText').html('Please agree with the terms (checkbox)');
+			$('#helperText').text(tr('su_need_terms', 'Please agree with the terms (checkbox)'));
 			send=0;
 			return;
 		}	
@@ -53,7 +58,7 @@ $(document).ready(function() {
 			form.off('submit'); // Remove this handler to avoid infinite loop
 			form.submit(); // Trigger jQuery's submit, which sends the form
 		} else {
-			$('#helperText').html('Send failed');
+			$('#helperText').text(tr('su_failed', 'Send failed'));
 		}
     });
 	

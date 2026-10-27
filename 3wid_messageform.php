@@ -36,7 +36,7 @@
  $user_threeword_rows = db_3wid_get_3wids($data["id"]);
  
  if($user_threeword_rows == NULL) {
-     header('location:3wid_list.php?message=Create a 3WordID first to send a message from');  
+     header('location:3wid_list.php?message=' . rawurlencode(t_plain('mp.create_first')));  
      exit;
  }
  

@@ -17,7 +17,7 @@
 $data = current_user_from_session($conn);
 
 if ($data == NULL) {
-    header('Location: login/options.php?message=' . rawurlencode('Please log in.'));
+    header('Location: login/options.php?message=' . rawurlencode(t_plain('common.login_required')));
     exit;
 }
   
@@ -32,7 +32,7 @@ if ($data == NULL) {
 
    // CSRF protection: the form must carry this session's action token
    if (!check_action_token($_POST['action_token'] ?? '')) {
-       header('Location: 3wid_list.php?message=' . rawurlencode('Session expired, please try again.'));
+       header('Location: 3wid_list.php?message=' . rawurlencode(t_plain('common.session_expired_retry')));
        exit;
    }
 
@@ -97,7 +97,7 @@ try {
     if ((int)$data["id"] === 4 && ($_POST['from'] ?? '') === 'admin') {
         $updated = db_3wordid_get($id);
         if ($updated) {
-            header('Location: 3wid_user_3wids.php?user_id=' . (int)$updated['user_id'] . '&message=' . rawurlencode('3WordID saved.'));
+            header('Location: 3wid_user_3wids.php?user_id=' . (int)$updated['user_id'] . '&message=' . rawurlencode(t_plain('edit.saved')));
             exit;
         }
     }
@@ -110,7 +110,7 @@ try {
     exit;
     
 } catch (Exception $e) {
-    echo "Error: " . $e->getMessage();
+    echo t('common.error', ['msg' => $e->getMessage()]);
 }
 
 

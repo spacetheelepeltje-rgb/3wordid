@@ -180,7 +180,7 @@ function validate_threeword(threeword) {
 					} else {
 						
 					//console.log('forward to create');
-                    window.location.href = 'login/login.php'; // Replace with the URL of the page you want to redirect to
+                    window.location.href = 'login/options.php'; // Replace with the URL of the page you want to redirect to
                    
 
 			       }

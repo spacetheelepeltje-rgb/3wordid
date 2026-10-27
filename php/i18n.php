@@ -13,7 +13,8 @@
  *   <html lang="<?php echo current_lang(); ?>">
  *   <?php echo t('home.lookup'); ?>                  plain text, HTML-escaped
  *   <?php echo t_raw('home.step1_text'); ?>          text with intended markup (links, <b>, ...)
- *   <?php echo t('home.views', ['n' => 5]); ?>       {n} in the text is replaced (and escaped)
+ *   <?php echo t('home.views_other', ['n' => 5]); ?> {n} in the text is replaced (and escaped)
+ *   <?php echo t_n('home.views', 1); ?>              singular/plural: home.views_one / home.views_other
  *   <?php echo lang_switcher(); ?>                   small "EN | NL" switch
  *   <?php echo lang_head_tags(); ?>                  canonical + hreflang links for <head>
  */
@@ -137,6 +138,16 @@ function t(string $key, array $vars = []): string
     return htmlspecialchars(t_plain($key, $vars), ENT_QUOTES, 'UTF-8');
 }
 
+/**
+ * Text with a singular/plural choice: uses '<key>_one' when $n is 1, otherwise '<key>_other'.
+ * {n} in the text is replaced by $n. Example: t_n('home.views', 5)
+ */
+function t_n(string $key, int $n, array $vars = []): string
+{
+    $vars['n'] = $n;
+    return t($key . ($n === 1 ? '_one' : '_other'), $vars);
+}
+
 /** Text that contains intended markup (links, <b>, <br>). The text is not escaped; the {placeholders} values are. */
 function t_raw(string $key, array $vars = []): string
 {
@@ -233,6 +244,21 @@ function i18n_js_object(array $map): string
 function i18n_js(array $map): string
 {
     return '<script>window.T3 = ' . i18n_js_object($map) . ';</script>';
+}
+
+/**
+ * <script> with window.T3 holding every text whose key starts with "js." (the strings used by the
+ * JavaScript files in js/), under the name without the prefix: key "js.bad_url" becomes T3.bad_url.
+ */
+function i18n_js_all(string $prefix = 'js.'): string
+{
+    $map = [];
+    foreach (array_keys(i18n_load('en')) as $key) {
+        if (strpos($key, $prefix) === 0) {
+            $map[substr($key, strlen($prefix))] = $key;
+        }
+    }
+    return i18n_js($map);
 }
 
 // Pages differ per language, so caches must not mix them up.

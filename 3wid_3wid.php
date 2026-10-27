@@ -5,7 +5,7 @@
   
   $data = current_user_from_session($conn);
 	if ($data == NULL) {
-		header('Location: login/options.php?message=' . rawurlencode('Please log in.'));
+		header('Location: login/options.php?message=' . rawurlencode(t_plain('common.login_required')));
 		exit;
 	}
 
@@ -32,7 +32,7 @@
     }
  
  if($row == NULL) {
-     header('location:' . $main_url . "?message=This is not the correct 3wid id for this user");
+     header('location:' . $main_url . "?message=" . rawurlencode(t_plain('edit.wrong_user')));
      die('fool');
      }
 
@@ -45,19 +45,19 @@
   $from_admin = ((int)$data["id"] === 4 && ($_GET['from'] ?? '') === 'admin');
   if ($from_admin) {
       $back_url = '3wid_user_3wids.php?user_id=' . (int)$row['user_id'];
-      $back_label = "Back to this user's 3WordIDs";
+      $back_label = t_plain('edit.back_user');
   } else {
       $back_url = '3wid_list.php';
-      $back_label = 'Back to list';
+      $back_label = t_plain('nav.back_list');
   }
 
 ?>  
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo current_lang(); ?>">
 <head>
     <meta charset="UTF-8"> 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit 3WordID</title>
+    <title><?php echo t('edit.title'); ?></title>
     <link rel="icon" type="image/x-icon" href="img/favicon.ico">
     <link href="/css/inter.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -232,45 +232,46 @@
             3WordID
         </a>
         <div class="header-actions" id="userPortrait">
+            <?php echo lang_switcher(); ?>
             <a class="btn btn-ghost" href="<?php echo htmlspecialchars($back_url); ?>"><?php echo htmlspecialchars($back_label); ?></a>
-            <button type="submit" form="3widForm" id="submitBtn" class="btn btn-primary">Update</button>           
+            <button type="submit" form="3widForm" id="submitBtn" class="btn btn-primary"><?php echo t('edit.update'); ?></button>           
         </div>
     </header>
 
     <main class="wrap">
         
-        <h1>Edit this 3WordID</h1>
-        <p class="lede">Change the message, destination URL, and visibility. The three-word name remains the same.</p>
+        <h1><?php echo t('edit.h1'); ?></h1>
+        <p class="lede"><?php echo t('edit.lede'); ?></p>
 
         <div class="panel search-container">
             <form id="3widForm" action="3wid_update.php" method="post">
                 <div class="id-box">
                     <strong><?php echo htmlspecialchars($row["threeword"]); ?></strong>
-                    <code>URL is www.3WordID.com/<?php echo htmlspecialchars($threeword_url); ?></code>
+                    <code><?php echo t('edit.url_is', ['url' => 'www.3WordID.com/' . $threeword_url]); ?></code>
                 </div>
 
-                <input disabled type="text" name="threeword" class="search-bar" placeholder="Your Three Word ID" value="<?= htmlspecialchars($row["threeword"]); ?>" style="display:none;">
+                <input disabled type="text" name="threeword" class="search-bar" placeholder="<?php echo t('edit.threeword_ph'); ?>" value="<?= htmlspecialchars($row["threeword"]); ?>" style="display:none;">
 
                 <div class="meta">hash # <?php echo htmlspecialchars($row["hash"]); ?></div>
                 <div class="qr-links">
-                    <a class="btn btn-ghost" href="3wid_gen_qr.php?csrf_token=<?php echo $_SESSION['csrf_token'];?>&hash=<?= $row["hash"]; ?>" title='so https://www.3wordid.com/index.php?hash=<?= $row["hash"]; ?>'>Create Hashed QR</a>
-                    <a class="btn btn-ghost" href="3wid_gen_qr_threeword.php?csrf_token=<?php echo $_SESSION['csrf_token'];?>&threeword=<?= $row["threeword"]; ?>" title='so https://www.3wordid.com/index.php?threeword=<?= $row["threeword"]; ?>'>Create Readable QR</a>
+                    <a class="btn btn-ghost" href="3wid_gen_qr.php?csrf_token=<?php echo $_SESSION['csrf_token'];?>&hash=<?= $row["hash"]; ?>" title='so https://www.3wordid.com/index.php?hash=<?= $row["hash"]; ?>'><?php echo t('edit.qr_hash'); ?></a>
+                    <a class="btn btn-ghost" href="3wid_gen_qr_threeword.php?csrf_token=<?php echo $_SESSION['csrf_token'];?>&threeword=<?= $row["threeword"]; ?>" title='so https://www.3wordid.com/index.php?threeword=<?= $row["threeword"]; ?>'><?php echo t('edit.qr_readable'); ?></a>
                 </div>
 
-                <label class="field" for="notification">Message</label>
-                <textarea name="notification" id="notification" class="search-bar" placeholder="Enter your message here" rows="4"><?= htmlspecialchars((string)$row["notification"]); ?></textarea>
+                <label class="field" for="notification"><?php echo t('edit.message'); ?></label>
+                <textarea name="notification" id="notification" class="search-bar" placeholder="<?php echo t('add.notification_ph'); ?>" rows="4"><?= htmlspecialchars((string)$row["notification"]); ?></textarea>
 
-                <label class="field" for="linkthru" style="margin-top:16px;">Forward URL</label>
-                <input type="text" name="linkthru" id="linkthru" class="search-bar" placeholder="Enter forward URL with HTTPS://" value="<?= htmlspecialchars((string)$row["linkthru"]); ?>">
+                <label class="field" for="linkthru" style="margin-top:16px;"><?php echo t('add.linkthru'); ?></label>
+                <input type="text" name="linkthru" id="linkthru" class="search-bar" placeholder="<?php echo t('edit.linkthru_ph'); ?>" value="<?= htmlspecialchars((string)$row["linkthru"]); ?>">
 
                 <div class="checks">
-                    <label><input <?php echo $row["linkthruflag"]== 1 ?'checked':''; ?> type="checkbox" id="linkthruflag" name="linkthruflag"> Use forward URL</label>
-                    <label><input <?php echo $row["emailform"]== 1 ?'checked':''; ?> type="checkbox" id="emailform" name="emailform"> Link 3WordID to message form</label>
-                    <label><input <?php echo $row["private"]== 1 ?'checked':''; ?> type="checkbox" id="private" name="private"> Keep 3WordID private</label>
+                    <label><input <?php echo $row["linkthruflag"]== 1 ?'checked':''; ?> type="checkbox" id="linkthruflag" name="linkthruflag"> <?php echo t('add.use_forward'); ?></label>
+                    <label><input <?php echo $row["emailform"]== 1 ?'checked':''; ?> type="checkbox" id="emailform" name="emailform"> <?php echo t('edit.link_form'); ?></label>
+                    <label><input <?php echo $row["private"]== 1 ?'checked':''; ?> type="checkbox" id="private" name="private"> <?php echo t('edit.private'); ?></label>
                 </div>
 
                 <div class="form-actions buttons">
-                    <button type="submit" class="btn btn-primary">Update</button>
+                    <button type="submit" class="btn btn-primary"><?php echo t('edit.update'); ?></button>
                     <a class="btn btn-ghost" href="<?php echo htmlspecialchars($back_url); ?>"><?php echo htmlspecialchars($back_label); ?></a>
                     <div id="helperText"></div>
                 </div>
@@ -288,6 +289,7 @@
         <div><?php echo $footer; ?></div>
     </footer>
 </body>
+<?php echo i18n_js_all(); ?>
 <script src="js/3wid_3wid.js"></script>
 <script>
     function handleGoogleLogin() {
@@ -302,7 +304,7 @@
         e.preventDefault();
         handleGoogleLogin();
         setTimeout(() => {
-            window.location.href = '/login/index.php';
+            window.location.href = '/login/options.php';
         }, 1000);
     });
 </script>

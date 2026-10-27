@@ -17,7 +17,7 @@ _Status as of 25 October 2026._
 | Homepage that explains itself | Look and feel | Small | One clear promise, 3-step how-it-works, real examples, fix typos and hidden helper text |
 | Trust pages and footer | Look and feel | Medium | About, Contact, Privacy (separate from Terms), Pricing, linked on every page |
 | Lock down `errors.php` | Security | Small | The error log is public and shows visitor IP addresses |
-| Check server-only admin pages | Security | Small | Add `3wid_list_ips.php`, `3wid_signup_list.php`, `login/index.php` to GitHub for review |
+| Check server-only admin pages | Security | Small | Add `3wid_list_ips.php`, `3wid_signup_list.php` to GitHub for review |
 | Remove old file-based pages | Clean-up | Small | `check.php`, `get_messages.php` etc. now break if still on the server |
 
 ## Longer term

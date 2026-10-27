@@ -1,3 +1,8 @@
+// Texts for the current language come from window.T3 (set by the page, see php/i18n.php).
+var tr = window.tr || function (key, fallback) {
+    return (window.T3 && window.T3[key]) || fallback;
+};
+
 
 const emailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 
@@ -22,7 +27,7 @@ $(document).ready(function() {
     // Attach event listener to the form
     $('#3widForm').on('submit', function(event) {
 		
-		$('#helperText').html('Clicked submit');
+		$('#helperText').text(tr('clicked', 'Clicked submit'));
 		
         // Log to confirm the handler is firing
         console.log('Form submit handler triggered');
@@ -52,7 +57,7 @@ $(document).ready(function() {
         if(linkthruflag == true) {
 
 			if(!validateURL(linkthru)) {
-				 $('#helperText').html('URL missing or invalid');
+				 $('#helperText').text(tr('bad_url', 'URL missing or invalid'));
 				  send=0;
 				 
 			}
@@ -61,13 +66,13 @@ $(document).ready(function() {
 			
 		if(emailform==true) {
 			if(!validateEmail(email)) {
-				$('#helperText').html('Please provide a valid email');
+				$('#helperText').text(tr('bad_email', 'Please provide a valid email'));
 				 send=0;
 			}
 		}
 
 		if(linkthruflag == false  && emailform==false && notification == '') {
-			$('#helperText').html('Please at least enter text in the notification box');
+			$('#helperText').text(tr('need_notification', 'Please at least enter text in the notification box'));
 			send=0;
 		}
 

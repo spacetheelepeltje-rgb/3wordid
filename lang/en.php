@@ -71,7 +71,6 @@ return [
     'home.card3_text' => 'Let people reach you without sharing your email address or phone number. Share three words and they can leave you a message. Messages stay in your account, and no personal data is needed to send one.',
     'home.example' => 'Example:',
     'home.public_title' => 'Currently public 3WordIDs',
-    'home.views' => '{n} views',
     'home.see_more' => 'See more',
     'home.show_less' => 'Show less',
     'home.faq_title' => 'Questions',
@@ -170,4 +169,394 @@ return [
     'ext.message_ph' => 'Enter your message here. If you want a reply provide contact info or log in and create your own 3WordID',
     'ext.hint1' => 'Your message is shown to the owner of this 3WordID. Your message and IP address are stored and kept, also for lawful requests from law enforcement. <a href="/terms.php#data">Read more</a>',
     'ext.hint2' => 'Want a direct reply? <a href="{login}">Log in and create your own 3WordID</a>',
+
+    // ---- nav
+    'nav.logout' => 'Log out',
+    'nav.whatsapp_admin' => 'Whatsapp admin',
+    'nav.to_home' => 'to 3wordID.com',
+
+    // ---- common
+    'common.on' => 'On',
+    'common.off' => 'Off',
+    'common.cancel' => 'Cancel',
+    'common.save' => 'Save',
+    'common.back' => 'Back',
+    'common.delete' => 'Delete',
+    'common.search' => 'Search',
+    'common.session_expired' => 'Session expired. Try again.',
+    'common.login_required' => 'Please log in.',
+
+    // ---- list
+    'list.title' => '3WordID — Dashboard',
+    'list.h1' => 'Your 3WordIDs',
+    'list.stat_active' => 'Active IDs',
+    'list.stat_remaining' => 'Remaining',
+    'list.stat_searches' => 'Total searches',
+    'list.compose' => 'Compose Message to other 3WID',
+    'list.compose_title' => 'You need to create a 3WordID to send messages to 3WordIDs',
+    'list.send_email' => 'Send to my email',
+    'list.send_email_title' => 'Email yourself a list of your 3WordIDs',
+    'list.none' => 'No 3WordIDs yet. Top right corner.',
+    'list.one_only' => 'Unsubscribed users can create only one 3WID',
+    'list.create_title' => 'Create Three Word ID ({n} remaining)',
+    'list.create' => 'Create 3WordID',
+    'list.row_title' => 'id : {id} views : {views} created : {created} days to expire : {days}',
+    'list.visit_title' => 'Visit Forward Site : {url}',
+    'list.copy_aria' => 'Copy URL to clipboard',
+    'list.copy_for' => 'Copy URL for {words}',
+    'list.edit_title' => 'Edit Three Word ID',
+    'list.disable_title' => 'Disable, 3wid is currently enabled',
+    'list.enable_title' => 'Enable, 3wid is currently disabled',
+    'list.messages_title' => '{n} messages for this 3WordID',
+    'list.delete_title' => 'Delete Three Word ID',
+    'list.pro' => 'If you want to use this app professionally contact our administrator at <a href=\'mailto:frits@rincker.nl\'>frits@rincker.nl</a> we are working on our subscription process.',
+    'list.admin_all' => 'All 3WordIDs',
+    'list.admin_find' => 'Find 3WordID or owner',
+    'list.admin_find_aria' => 'Search all 3WordIDs',
+    'list.confirm_delete_this' => 'this 3WordID',
+    'list.confirm_delete' => 'Delete “{name}”?
+
+The URL, notification, and message box for these words will be removed. This cannot be undone.',
+    'list.email_expired' => 'Session expired. Try again.',
+    'list.email_unavailable' => 'Sending email is not available yet. Please try again later.',
+    'list.email_no_session' => 'Email is not available. Log out and log in again to use it.',
+    'list.email_already' => 'Already sent. You can send it again in a few minutes.',
+    'list.email_sent' => 'Your 3WordID list was sent to your email.',
+    'list.email_failed' => 'Sending the email failed. Try again later.',
+
+    // ---- home
+    'home.views_one' => '{n} view',
+    'home.views_other' => '{n} views',
+
+    // ---- js
+    'js.clicked' => 'Clicked submit',
+    'js.add_exists' => '3 word id exists',
+    'js.add_new' => '3 word id is new',
+    'js.add_need_3wid' => 'Please provide a 3WordID',
+    'js.add_no_forward' => 'You can not use a 3WordID forward',
+    'js.bad_url' => 'URL missing or invalid',
+    'js.max_three' => 'Maximum is three words',
+    'js.bad_email' => 'Please provide a valid email',
+    'js.need_notification' => 'Please at least enter text in the notification box',
+    'js.processing' => 'Processing',
+    'js.su_need_email' => 'Please provide your email (Google login)',
+    'js.su_bad_email' => 'Please provide a valid email (Google login)',
+    'js.su_need_terms' => 'Please agree with the terms (checkbox)',
+    'js.su_failed' => 'Send failed',
+    'js.pc_need_consent' => 'Please consent/agree by checking the checkbox',
+
+    // ---- add
+    'add.title' => 'Create ID — 3WordID',
+    'add.eyebrow' => 'New Three Word ID',
+    'add.h1' => 'Create 3WordID',
+    'add.subhead' => 'Choose three words, an optional message, and how this ID should behave.',
+    'add.threeword' => 'Three Word ID',
+    'add.notification' => 'Notification',
+    'add.notification_ph' => 'Enter your message here',
+    'add.linkthru' => 'Forward URL',
+    'add.linkthru_ph' => 'Enter forward URL',
+    'add.use_forward' => 'Use forward URL',
+    'add.link_form' => 'Link 3WordID to message form (don\'t forget to activate it)',
+    'add.private' => 'Keep 3WordID private (won\'t be published anywhere)',
+    'add.subscribe_hint' => 'You can subscribe to make sure your 3WordID is not taken by another user or deleted. It expires after two weeks. Subscription can be done via <a href=\'https://3wordid.com/3wid_signup.php\'>the signup form</a>.',
+    'add.create' => 'Create',
+
+    // ---- edit
+    'edit.wrong_user' => 'This is not the correct 3wid id for this user',
+    'edit.back_user' => 'Back to this user\'s 3WordIDs',
+    'edit.title' => 'Edit 3WordID',
+    'edit.update' => 'Update',
+    'edit.h1' => 'Edit this 3WordID',
+    'edit.lede' => 'Change the message, destination URL, and visibility. The three-word name remains the same.',
+    'edit.url_is' => 'URL is {url}',
+    'edit.threeword_ph' => 'Your Three Word ID',
+    'edit.qr_hash' => 'Create Hashed QR',
+    'edit.qr_readable' => 'Create Readable QR',
+    'edit.message' => 'Message',
+    'edit.linkthru_ph' => 'Enter forward URL with HTTPS://',
+    'edit.link_form' => 'Link 3WordID to message form',
+    'edit.private' => 'Keep 3WordID private',
+
+    // ---- credit
+    'credit.title' => 'Form Page - 3WordID.com',
+    'credit.account_title' => 'To Account page',
+    'credit.current' => 'Your current credit is {amount} €',
+    'credit.p1' => 'If you have not paid, your 3wordID can be deleted or taken by another user. It expires after two weeks.',
+    'credit.p2' => 'You can opt for a <a href="https://www.patreon.com/roboeconomics">subscription via Patreon</a>. Then your credit here will remain zero. It takes a day or so to process.',
+    'credit.p3' => 'To add credit, you currently can use bank transfer, but more options will be made available. Of course, an invoice is also possible for larger accounts.',
+    'credit.p4' => 'Send an email to <a href="mailto:3wordid@climatebabes.com">our email address</a> to request pricing. One 3WordId costs $10/Year, but discounts for larger numbers are possible.',
+    'credit.paypal' => 'You can use PayPal to subscribe to an annual fee of 12 Euro (admin handling added). Just make sure your name is the same as with the Google account. If you want to help us out, send an email to <a href=\'mailto:3wordid@climatebabes.com\'>3wordid@climatebabes.com</a> with your name and email so we can make sure the transaction is processed correctly (Paypal does not hand us a good identifier unless we pay more). We are working on integrating with PayPal, so for the time being, it would help to send your transaction details to ensure we process it correctly.',
+    'credit.qr' => 'In Europe, you can also use this QR code to find a payment link. You can us the 3WordID \'one year payment\' to find it as well. Make sure you send us an <a href="mailto:3wordid@climatebabes.com">email</a> too. We will make a form here soon to make all this easier.',
+    'credit.thanks' => 'Thank you for subscribing. You will see confirmation in your 3wordID profile soon ;-)',
+
+    // ---- msgview
+    'msgview.title' => 'Form Page - 3WordID.com',
+    'msgview.home_title' => 'To 3wordID.com homepage, create your own!',
+    'msgview.answer' => 'Answer to this message',
+    'msgview.delete' => 'Delete this message',
+
+    // ---- notif
+    'notif.home' => 'To Homepage',
+    'notif.lede' => 'Notification attached to this 3WordID:',
+
+    // ---- lm
+    'lm.title' => 'Messages — 3WordID',
+    'lm.eyebrow' => 'Inbox',
+    'lm.h1' => 'Messages for \'{name}\'',
+    'lm.subhead' => 'Click a title to read the message.',
+    'lm.user' => 'User',
+    'lm.title_message' => 'Title/Message',
+    'lm.actions' => 'Actions',
+    'lm.reply' => 'Reply to {name}',
+    'lm.full_image' => 'Full Image',
+    'lm.none' => 'no messages',
+
+    // ---- signup
+    'signup.need_login' => 'You need to Log in to subscribe',
+    'signup.title' => 'Form Page - 3WordID.com',
+    'signup.h' => '3WordID.com Subscription',
+    'signup.p1' => 'Here you can subscribe to 3WordID.com so your chosen IDs do not expire. Cost is ~18 Euro/Year or ~$1.5 per month per 3WordID (Patreon is the currenty preferred method). We will integrate with more common systems soon and you can always use a direct bank transfer.',
+    'signup.p2' => 'If you are a <a class="reseller-link" href="3wid_reseller.php">reseller</a> you need to enter your code below (You can find the code on the overview page when you log in). To resell you need to be subscribed yourself.',
+    'signup.p3' => 'The terms as found on the <a href="https://3wordid.com/terms.php">terms page</a> apply.',
+    'signup.email_ph' => 'Your Google Login email address',
+    'signup.reseller_ph' => 'Type the reseller code if applicable',
+    'signup.remarks_ph' => 'Remarks',
+    'signup.agree' => 'I read the <a href="https://3wordid.com/terms.php">terms page</a> and agree with them',
+    'signup.select_payment' => 'Select payment option',
+    'signup.pay_bank' => 'Bank transfer',
+    'signup.pay_other' => 'Other',
+    'signup.submit' => 'Subscribe',
+    'signup.invalid_email' => 'Invalid email: must be a valid email address',
+
+    // ---- common
+    'common.error' => 'Error: {msg}',
+
+    // ---- signup
+    'signup.processed' => 'Your signup has been processed',
+
+    // ---- pay
+    'pay.bank' => 'In Europe, you can this QR code to the payment link (goes to my personal account atm F. Rincker). You can us the 3WordID \'one year payment\' on 3WordID to find the link as well. For actual bank transfer for larger nrs send an email to <a href="mailto:3wordid@climatebabes.com">us</a>.',
+    'pay.other' => 'Other Methods.',
+    'pay.paypal' => 'You can use PayPal to subscribe to an annual fee of ({price}) Euro. Add the code to the payment ({code}).',
+    'pay.patreon' => 'Follow this link to sign up on Patreon : <a href="https://www.patreon.com/c/roboeconomics/membership">To Roboeconomics Patreon</a>',
+
+    // ---- reseller
+    'reseller.h' => 'Become a Reseller of 3WordID.com',
+    'reseller.l1' => 'Log in and create a 3WordID',
+    'reseller.l2' => 'Find others that might want a 3WordID',
+    'reseller.l3' => 'Get them to <a href="https://3wordid.com/3wid_signup.php">sign</a> up and become a <a href="https://www.patreon.com/roboeconomics">patreon</a> using your code',
+    'reseller.l4' => 'When you sign up 20 people who also log in (so the email becomes available for matching) you get payout.',
+    'reseller.p1' => 'Every user that logs in is provided a reseller code. You can help other people sign up for 3WordID.com and give you your reseller code. If they use it and pay their subscription, you will receive a kickback (20% payed out after 20 signups ~$48,-). If you sign up more than 20 at a time, you can get more. For large customers, send us an email at <a href="mailto:3wordid@climatebabes.com">3wordid@climatebabes.com</a>.',
+    'reseller.p2' => 'More on marketing 3WordID <a href="https://x.com/climatebabes/status/1915321707327349114">here (X.com)</a>.',
+
+    // ---- common
+    'common.log_in' => 'Log in',
+
+    // ---- login
+    'login.title' => 'Log in — 3WordID',
+    'login.eyebrow' => 'Manage your three word IDs',
+    'login.h1' => 'Log in',
+    'login.sub' => 'Choose Google or an email account. Your email address is stored as a one-way hash, not as readable text, so we can\'t send you emails.',
+    'login.google_p' => 'Use your existing Google account.',
+    'login.google_btn' => 'Log in with Google',
+    'login.or' => 'or',
+    'login.email_h' => 'Email login',
+    'login.email_p' => 'Register once, then sign in with your password.',
+    'login.email_signin' => 'Sign in with email',
+    'login.email_register' => 'Register with email',
+
+    // ---- elogin
+    'elogin.invalid' => 'Invalid email or password.',
+    'elogin.google_account' => 'This account uses Google. Go back and continue with Google.',
+    'elogin.title' => 'Sign in — 3WordID',
+
+    // ---- login
+    'login.home' => 'Home page',
+    'login.account' => 'Account',
+
+    // ---- elogin
+    'elogin.h1' => 'Sign in',
+    'elogin.sub' => 'Use the email and password you registered with.',
+
+    // ---- login
+    'login.email' => 'Email',
+    'login.password' => 'Password',
+
+    // ---- elogin
+    'elogin.password_ph' => 'Your password',
+    'elogin.submit' => 'Sign in',
+    'elogin.hint1' => 'No account yet? <a href="email_register.php">Create email account</a>',
+
+    // ---- login
+    'login.use_google' => '<a href="options.php">Use Google instead</a>',
+
+    // ---- reg
+    'reg.bad_email' => 'Enter a valid email address.',
+    'reg.short' => 'Password must be at least 10 characters.',
+    'reg.mismatch' => 'Passwords do not match.',
+    'reg.exists' => 'That account already exists. Sign in instead.',
+    'reg.google' => 'This email already uses Google. Continue with Google.',
+    'reg.failed' => 'Could not create the account. Confirm the password_hash column exists.',
+    'reg.title' => 'Create account — 3WordID',
+    'reg.h1' => 'Create account',
+    'reg.sub' => 'Email and password. The address is hashed before it is saved. Unused accounts will be deactivated after 3 months.',
+    'reg.password_ph' => 'At least 10 characters',
+    'reg.min10' => 'Minimum 10 characters.',
+    'reg.confirm' => 'Confirm password',
+    'reg.repeat_ph' => 'Repeat password',
+    'reg.submit' => 'Create account',
+    'reg.hint1' => 'Already registered? <a href="email_login.php">Sign in</a>',
+
+    // ---- welcome
+    'welcome.expired' => 'Login expired. Try Google again.',
+    'welcome.failed' => 'Google login failed.',
+    'welcome.spam' => 'Sowwy your email is on the spam abuse list!',
+
+    // ---- pc
+    'pc.title' => 'Privacy consent — 3WordID',
+    'pc.eyebrow' => 'REQUIRED',
+    'pc.h1' => 'Privacy and service consent',
+    'pc.lead' => 'Read this before you continue. Checking the box accepts the service as is and allows storage of the data listed below.',
+    'pc.flash' => '3WordID only links three words to a URL, a notification, or a message box. You accept the site as is. No rights can be derived from any interaction with this site.',
+    'pc.data_h' => 'Data policy',
+    'pc.data_p1' => 'To run the lookup tool we store personal data supplied by Google and data you submit:',
+    'pc.li1' => 'first name and last name;',
+    'pc.li2' => 'a link to your avatar;',
+    'pc.li3' => 'your email address, stored as a one-way hash, not as readable text; during your session it is held encrypted and used only to send what you request;',
+    'pc.li4' => 'messages you send and receive;',
+    'pc.li5' => 'text you put in the notification field of a 3WordID;',
+    'pc.li6' => 'the 3WordIDs you create and related lookup data.',
+    'pc.data_p2' => 'We share this data with third parties only if we are legally obligated to, or as needed to host and process the service — not to sell it. We may show this page again so you can reconfirm.',
+    'pc.data_p3' => 'Messages, IP addresses and account data are logged and kept, also after an account is deactivated, so we can respond to lawful requests from law enforcement.',
+    'pc.func_h' => 'Functionality policy',
+    'pc.func_p1' => 'If you check the box you accept the service as it is offered. Features may change or stop at any time in the interest of the site. We will make a reasonable effort to offer what we describe. That is not a warranty.',
+    'pc.func_p2' => 'Paid accounts overrule free accounts when reserving a 3WordID. 3WordIDs may be localized by country, city, or other locale. The site owner may terminate a 3WordID at any time if it deems that necessary. Unpaid IDs may expire or be taken by another user. Messages are currently unencrypted — use them accordingly.',
+    'pc.func_p3' => 'The full terms are on the <a href="terms.php">terms page</a>. Those terms apply to this consent.',
+    'pc.consent' => 'I consent to storage of my data as described in the data policy above, and I agree with the functionality policy above, including use of the site as is.',
+    'pc.submit' => 'Submit',
+    'pc.meta' => 'You can leave this page without checking the box. The account will not be enabled for the service until you consent.',
+    'pc.footer' => 'No rights can be derived from use of this site. Service provided as is.',
+
+    // ---- admin
+    'admin.not_allowed' => 'Not allowed.',
+    'admin.dashboard' => 'Dashboard',
+    'admin.all_3wids' => 'All 3WordIDs',
+    'admin.to_home' => 'to 3wordID.com',
+    'admin.search_ph' => 'Search 3WordIDs by words, owner name or user id',
+    'admin.search_btn' => 'Search 3WordIDs',
+    'admin.3wids' => '3WordIDs',
+
+    // ---- common
+    'common.edit' => 'Edit',
+
+    // ---- ul
+    'ul.title' => '3WordID — Users',
+    'ul.sort_newest' => 'Sort newest',
+    'ul.sort_oldest' => 'Sort oldest',
+    'ul.h1' => 'Users',
+    'ul.lede' => 'google_users records. Restricted to admin id {id}.',
+    'ul.this_page' => 'This page',
+    'ul.page' => 'Page',
+    'ul.order' => 'Order',
+    'ul.prev' => 'Previous',
+    'ul.next' => 'Next',
+    'ul.empty' => 'No users returned for this page.',
+    'ul.col_id' => 'Id',
+    'ul.col_name' => 'Name',
+    'ul.col_login' => 'Login via',
+    'ul.col_type' => 'Type',
+    'ul.col_credit' => 'Credit',
+    'ul.col_last' => 'Last login',
+    'ul.col_consent' => 'Consent',
+    'ul.never' => 'never',
+    'ul.type' => 'type',
+    'ul.show_3wids' => 'Show this user\'s 3WordIDs',
+    'ul.no_consent' => 'No consent',
+
+    // ---- u3
+    'u3.not_found' => 'User not found.',
+    'u3.user_n' => 'User #{id}',
+    'u3.title' => '3WordID — 3WordIDs of {name}',
+    'u3.back' => 'Back to user list',
+    'u3.h1' => '3WordIDs of {name}',
+    'u3.edit_user' => 'Edit user',
+    'u3.on' => 'Switched on',
+    'u3.allowed' => 'Allowed',
+    'u3.empty' => 'This user has no 3WordIDs.',
+    'u3.fwd_unused' => '(forward not used)',
+    'u3.no_forward' => 'No forward link',
+
+    // ---- ue
+    'ue.max_label' => 'Extra 3WordIDs allowed (max_3wids)',
+    'ue.max_hint' => 'The user can create this number + 1 3WordIDs.',
+    'ue.type_label' => 'User type (user_type)',
+    'ue.type_hint' => '0 = free, 9 = blocked. Other numbers as you use them.',
+    'ue.credit_label' => 'Credit in € (credit)',
+    'ue.name_label' => 'Name (full_name)',
+    'ue.session' => 'Session expired, please try again.',
+    'ue.err_whole' => '{col} must be a whole number',
+    'ue.err_neg' => 'max_3wids cannot be negative',
+    'ue.err_num' => '{col} must be a number',
+    'ue.not_saved' => 'Not saved: {errors}.',
+    'ue.nothing' => 'Nothing changed.',
+    'ue.saved' => 'User saved.',
+    'ue.failed' => 'Update failed, see the error log.',
+    'ue.title' => '3WordID — Edit user {id}',
+    'ue.all_users' => 'All users',
+    'ue.user_3wids' => '3WordIDs of this user',
+    'ue.admin' => 'Admin',
+    'ue.h1' => 'Edit user {id}',
+    'ue.subhead' => 'Only the fields below can be changed. The other details are shown for reference and are never written back.',
+    'ue.new_password' => 'New password',
+    'ue.keep_password' => 'Leave blank to keep the current password.',
+    'ue.save' => 'Save user',
+    'ue.other' => 'Other details (read-only)',
+    'ue.empty' => '(empty)',
+
+    // ---- aa
+    'aa.title' => '3WordID — All 3WordIDs',
+    'aa.lede' => 'Search by the three words, the owner\'s name, or the owner\'s user id. Restricted to admin id {id}.',
+    'aa.ph' => 'e.g. apple tree house, Frits, or 75',
+    'aa.clear' => 'Clear',
+    'aa.all' => 'All',
+    'aa.empty' => 'No 3WordIDs found.',
+    'aa.owner_title' => 'All 3WordIDs of this user',
+    'aa.user_n' => 'user #{id}',
+
+    // ---- common
+    'common.session_expired_retry' => 'Session expired, please try again.',
+    'common.login_expired' => 'Login expired. Log in again.',
+
+    // ---- edit
+    'edit.saved' => '3WordID saved.',
+
+    // ---- mp
+    'mp.session' => 'Your session expired, please send your message again.',
+    'mp.thanks_to' => 'Thank, you your message to {name} is being processed',
+    'mp.thanks' => 'Thank, you your message is being processed',
+    'mp.wait_read' => 'You can only send new messages when the old one has been read',
+    'mp.create_first' => 'Create a 3WordID first to send a message from',
+
+    // ---- mail
+    'mail.intro' => 'Your 3WordIDs on 3wordid.com:',
+    'mail.none' => '(no 3WordIDs yet)',
+    'mail.link' => 'link:',
+    'mail.notification' => 'notification:',
+    'mail.message_box' => 'message box',
+    'mail.off' => '(off)',
+    'mail.footer1' => 'You asked for this email on your 3WordID list page.',
+    'mail.footer2' => 'We do not keep your email address in readable form.',
+    'mail.subject' => 'Your 3WordIDs',
+
+    // ---- icon
+    'icon.logout' => 'Logout Icon',
+    'icon.login' => 'Login Icon',
+    'icon.link' => 'Link Icon',
+    'icon.edit' => 'Edit Icon',
+    'icon.toggle' => 'Toggle Icon',
+    'icon.message' => 'Message Icon',
+    'icon.delete' => 'Delete Icon',
+    'icon.portrait' => 'User Portrait',
+    'icon.logo' => 'Logo',
+    'icon.logo_3wid' => '3WordID Logo',
 ];

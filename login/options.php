@@ -2,6 +2,7 @@
 require_once 'config.php';
 require_once __DIR__ . '/../php/session_boot.php';
 start_app_session();
+require_once __DIR__ . '/../php/i18n.php'; // t(), current_lang(), lang_switcher()
 
 if (current_user_from_session($conn)) {
     header('Location: ../3wid_list.php');
@@ -22,11 +23,11 @@ if (isset($_GET['message'])) {
 }
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo current_lang(); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Log in — 3WordID</title>
+    <title><?php echo t('login.title'); ?></title>
     <link rel="icon" type="image/x-icon" href="../img/favicon.ico">
     <link href="/css/inter.css" rel="stylesheet">
     <style>
@@ -212,14 +213,14 @@ if (isset($_GET['message'])) {
             3WordID
         </a>
         <div class="header-actions">
-           
+           <?php echo lang_switcher(); ?>
         </div>
     </header>
 
     <main class="wrap">
-        <div class="eyebrow">Manage your three word IDs</div>
-        <h1>Log in</h1>
-        <p class="sub">Choose Google or an email account. Your email address is stored as a one-way hash, not as readable text, so we can't send you emails.</p>
+        <div class="eyebrow"><?php echo t('login.eyebrow'); ?></div>
+        <h1><?php echo t('login.h1'); ?></h1>
+        <p class="sub"><?php echo t('login.sub'); ?></p>
 
         <?php if ($message !== ''): ?>
             <div class="flash"><?php echo $message; ?></div>
@@ -227,20 +228,20 @@ if (isset($_GET['message'])) {
 
         <div class="card">
             <h2>Google</h2>
-            <p>Use your existing Google account.</p>
+            <p><?php echo t('login.google_p'); ?></p>
             <a class="btn btn-primary" href="<?php echo htmlspecialchars($googleUrl, ENT_QUOTES, 'UTF-8'); ?>">
-                Log in with Google
+                <?php echo t('login.google_btn'); ?>
             </a>
         </div>
 
-        <div class="divider">or</div>
+        <div class="divider"><?php echo t('login.or'); ?></div>
 
         <div class="card">
-            <h2>Email login</h2>
-            <p>Register once, then sign in with your password.</p>
+            <h2><?php echo t('login.email_h'); ?></h2>
+            <p><?php echo t('login.email_p'); ?></p>
             <div class="stack">
-                <a class="btn btn-ghost" href="email_login.php">Sign in with email</a>
-                <a class="btn btn-ghost" href="email_register.php">Register with email</a>
+                <a class="btn btn-ghost" href="email_login.php"><?php echo t('login.email_signin'); ?></a>
+                <a class="btn btn-ghost" href="email_register.php"><?php echo t('login.email_register'); ?></a>
             </div>
         </div>
 

@@ -65,14 +65,14 @@ if(!isset($_SESSION['csrf_token'], $_POST['csrf_token']) || $_SESSION['csrf_toke
 		   error_log('aborted insert');
 		   } 
 		
-	   header('location:index.php?message=Thank, you your message is being processed');
+	   header('location:index.php?message=' . rawurlencode(t_plain('mp.thanks')));
 	} catch (Exception $e) {
-		echo "Error: " . $e->getMessage();
+		echo t('common.error', ['msg' => $e->getMessage()]);
 	}	
 
 } else {
 		
-		header('location:' . $main_url . '?message=You can only send new messages when the old one has been read');
+		header('location:' . $main_url . '?message=' . rawurlencode(t_plain('mp.wait_read')));
 }
 
 ?>

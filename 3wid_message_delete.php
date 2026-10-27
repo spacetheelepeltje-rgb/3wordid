@@ -6,7 +6,7 @@
   // Must be logged in
   $data = current_user_from_session($conn);
   if ($data == NULL) {
-    header('Location: login/options.php?message=' . rawurlencode('Please log in.'));
+    header('Location: login/options.php?message=' . rawurlencode(t_plain('common.login_required')));
     exit;
   }
 
@@ -23,7 +23,7 @@ try {
    $token = isset($_GET['action_token']) ? $_GET['action_token'] : '';
    if (!check_action_token($token)) {
        error_log('message delete: invalid action token for message ' . $id . ' user ' . $data['id']);
-       header('location:3wid_list.php?message=' . rawurlencode('Session expired, please try again.'));
+       header('location:3wid_list.php?message=' . rawurlencode(t_plain('common.session_expired_retry')));
        exit;
    }
 
@@ -42,7 +42,7 @@ try {
     exit;
     
 } catch (Exception $e) {
-    echo "Error: " . $e->getMessage();
+    echo t('common.error', ['msg' => $e->getMessage()]);
 }
 
 ?>

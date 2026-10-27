@@ -229,7 +229,7 @@ $more_list = array_values($by_words);
                 ?>
                 <div class="recent-row">
                     <a href="<?php echo htmlspecialchars($db_3wordid_item['threeword'], ENT_QUOTES, 'UTF-8'); ?>"><?php echo htmlspecialchars($db_3wordid_item['threeword'], ENT_QUOTES, 'UTF-8'); ?></a>
-                    <span class="views"><?php echo t('home.views', ['n' => (int)$db_3wordid_item['views']]); ?></span>
+                    <span class="views"><?php echo t_n('home.views', (int)$db_3wordid_item['views']); ?></span>
                 </div>
                 <?php
                 }
@@ -237,7 +237,7 @@ $more_list = array_values($by_words);
                 ?>
                 <div class="recent-row recent-more">
                     <a href="<?php echo htmlspecialchars($db_3wordid_item['threeword'], ENT_QUOTES, 'UTF-8'); ?>"><?php echo htmlspecialchars($db_3wordid_item['threeword'], ENT_QUOTES, 'UTF-8'); ?></a>
-                    <span class="views"><?php echo t('home.views', ['n' => (int)$db_3wordid_item['views']]); ?></span>
+                    <span class="views"><?php echo t_n('home.views', (int)$db_3wordid_item['views']); ?></span>
                 </div>
                 <?php
                 }

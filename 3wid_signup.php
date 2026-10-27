@@ -5,7 +5,7 @@ require_once 'php/functions.php';
 $data = current_user_from_session(get_db_conn());
 
 if ($data == NULL) {
-    header('location:index.php?message=You need to Log in to subscribe');
+    header('location:index.php?message=' . rawurlencode(t_plain('signup.need_login')));
     die('had to go');
 }
 
@@ -16,12 +16,12 @@ error_log(time() . ' ' . __FILE__  . ' ' . $client_ip);
 $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 ?>  
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo current_lang(); ?>">
 <head>
 	<?php echo $google_stats; ?>
     <meta charset="UTF-8"> 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Form Page - 3WordID.com</title>
+    <title><?php echo t('signup.title'); ?></title>
     <link rel="icon" type="image/x-icon" href="img/favicon.ico">
     <link rel="stylesheet" href="css/styles_2.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -34,7 +34,7 @@ $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
     </style>    
 </head>
 <body>
-    <header></header>
+    <header><div style="text-align:right;padding:8px 16px;"><?php echo lang_switcher(); ?></div></header>
     <main>
         <div class="logo">       
             <a href='<?php echo $main_url;?>'>
@@ -43,29 +43,27 @@ $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
         </div>
         
 			<div class="search-container">	
-			<strong style="margin-top: 10px;margin-bottom: 10px;">3WordID.com Subscription</strong><br><br>
+			<strong style="margin-top: 10px;margin-bottom: 10px;"><?php echo t('signup.h'); ?></strong><br><br>
 			<p>
-            Here you can subscribe to 3WordID.com so your chosen IDs do not expire. Cost is ~18 Euro/Year or ~$1.5 per month per 3WordID (Patreon is the 
-            currenty preferred method). We will integrate with more common systems soon and you can always use a direct bank transfer.<br><br>
-            If you are a <a class="reseller-link" href="3wid_reseller.php">reseller</a> you need to enter your code below (You can find the 
-            code on the overview page when you log in). To resell you need to be subscribed yourself.<br><br>
-            The terms as found on the <a href="https://3wordid.com/terms.php">terms page</a> apply.<br><br>
+            <?php echo t_raw('signup.p1'); ?><br><br>
+            <?php echo t_raw('signup.p2'); ?><br><br>
+            <?php echo t_raw('signup.p3'); ?><br><br>
 			</p>
             <form id="3widSignupForm" action="3wid_signup_process.php" method="post">
-                <input type="text" id="email" name="email" class="search-bar" placeholder="Your Google Login email address" style="margin-bottom: 10px;" value="">
-                <input type="text" id="reseller_code" name="reseller_code" class="search-bar" placeholder="Type the reseller code if applicable" style="margin-bottom: 10px;" value="">
-                <textarea name="message" id="message" class="search-bar" placeholder="Remarks" rows="4"></textarea>        
-                <label><input type="checkbox" id="terms" name="terms" style="margin-top: 10px;margin-bottom: 10px;"> I read the <a href="https://3wordid.com/terms.php">terms page</a> and agree with them</label><br> <br>    
+                <input type="text" id="email" name="email" class="search-bar" placeholder="<?php echo t('signup.email_ph'); ?>" style="margin-bottom: 10px;" value="">
+                <input type="text" id="reseller_code" name="reseller_code" class="search-bar" placeholder="<?php echo t('signup.reseller_ph'); ?>" style="margin-bottom: 10px;" value="">
+                <textarea name="message" id="message" class="search-bar" placeholder="<?php echo t('signup.remarks_ph'); ?>" rows="4"></textarea>        
+                <label><input type="checkbox" id="terms" name="terms" style="margin-top: 10px;margin-bottom: 10px;"> <?php echo t_raw('signup.agree'); ?></label><br> <br>    
                 
-                Select payment option<br><br>
+                <?php echo t('signup.select_payment'); ?><br><br>
                 <select class="search-bar" name="payment_method">
 					<option value="Paypall">Paypall</option>    
                     <option value="Patreon">Patreon</option>
-                    <option value="Bank transfer">Bank transfer</option>
-                    <option value="Other">Other</option>
+                    <option value="Bank transfer"><?php echo t('signup.pay_bank'); ?></option>
+                    <option value="Other"><?php echo t('signup.pay_other'); ?></option>
                 </select>   
                 <div class="buttons" style="display: flex; align-items: center;">
-                    <button type="submit" id="submitBtn">Subscribe</button>
+                    <button type="submit" id="submitBtn"><?php echo t('signup.submit'); ?></button>
                     <div style="margin-top: 0;" id="helperText"></div>
                 </div>
                 <input type='hidden' name='csrf_token' value='<?php echo $_SESSION['csrf_token']; ?>'>            
@@ -74,5 +72,6 @@ $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
     </main>
     <?php echo $footer; ?>
 </body>
+<?php echo i18n_js_all(); ?>
 <script src="js/3wid_signup.js"></script>
 </html>
