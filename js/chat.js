@@ -100,4 +100,38 @@
 
     window.addEventListener('load', scrollToEnd);
     scrollToEnd();
+
+    // Tap a profile photo to see it larger (Esc, tap or the close button closes it)
+    document.addEventListener('click', function (e) {
+        var btn = e.target.closest ? e.target.closest('[data-photo]') : null;
+        if (!btn) { return; }
+        e.preventDefault();
+        var img = btn.querySelector('img');
+        if (!img) { return; } // photo failed to load: nothing to show
+        var box = document.createElement('div');
+        box.className = 'photo-box';
+        box.setAttribute('role', 'dialog');
+        box.setAttribute('aria-modal', 'true');
+        box.setAttribute('aria-label', btn.getAttribute('aria-label') || '');
+        var big = document.createElement('img');
+        big.src = btn.getAttribute('data-photo');
+        big.alt = btn.getAttribute('aria-label') || '';
+        var close = document.createElement('button');
+        close.type = 'button';
+        close.className = 'close';
+        close.setAttribute('aria-label', btn.getAttribute('data-close') || 'Close');
+        close.textContent = '\u00d7';
+        box.appendChild(big);
+        box.appendChild(close);
+        function shut() {
+            document.removeEventListener('keydown', onKey);
+            if (box.parentNode) { box.parentNode.removeChild(box); }
+            btn.focus();
+        }
+        function onKey(ev) { if (ev.key === 'Escape') { shut(); } }
+        box.addEventListener('click', shut);
+        document.addEventListener('keydown', onKey);
+        document.body.appendChild(box);
+        close.focus();
+    });
 })();

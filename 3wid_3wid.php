@@ -270,6 +270,12 @@
                     <label><input <?php echo $row["private"]== 1 ?'checked':''; ?> type="checkbox" id="private" name="private"> <?php echo t('edit.private'); ?></label>
                 </div>
 
+                <div class="checks photo-opt">
+                    <label><input <?php echo ((int) ($row["show_photo"] ?? 0) === 1) ? 'checked' : ''; ?> type="checkbox" id="show_photo" name="show_photo"<?php echo ((int) $data['id'] !== (int) $row['user_id']) ? ' disabled' : ''; ?> aria-describedby="show_photo_help"> <?php echo t('edit.show_photo'); ?></label>
+                    <p class="meta" id="show_photo_help" style="margin:2px 0 0 26px;"><?php echo t('edit.show_photo_help'); ?><?php if ((int) $data['id'] === (int) $row['user_id'] && trim((string) ($data['picture'] ?? '')) === '') { echo ' ' . t('edit.show_photo_none'); } ?></p>
+                    <input type="hidden" name="show_photo_form" value="1">
+                </div>
+
                 <div class="form-actions buttons">
                     <button type="submit" class="btn btn-primary"><?php echo t('edit.update'); ?></button>
                     <a class="btn btn-ghost" href="<?php echo htmlspecialchars($back_url); ?>"><?php echo htmlspecialchars($back_label); ?></a>

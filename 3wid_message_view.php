@@ -48,6 +48,9 @@
       $back_url = '3wid_list.php';
       $reply_url = '';
   }
+  // Photo of the other side (sender for the owner, recipient for the sender), when turned on
+  $head_wid = $is_owner ? ($is_visitor ? 0 : (int) ($message_row['3wid_from_id'] ?? 0)) : (int) $message_row['3wid_id'];
+  $photo_ids = $head_wid ? db_3wordid_photo_ids(array($head_wid)) : array();
   $head_name = $is_owner ? ($is_visitor ? t_plain('chat.visitor') : $from_name) : (string) $to_name;
 
 ?>
@@ -65,7 +68,7 @@
 <div class="chat-app">
     <header class="chat-header">
         <a class="back" href="<?php echo chat_e($back_url); ?>" aria-label="<?php echo t('common.back'); ?>"><?php echo chat_icon('back'); ?></a>
-        <?php echo ($is_owner && $is_visitor) ? chat_visitor_avatar() : chat_avatar($head_name); ?>
+        <?php echo ($is_owner && $is_visitor) ? chat_visitor_avatar() : chat_avatar_for($head_name, $head_wid, $photo_ids, '', true); ?>
         <div class="who">
             <div class="name"><?php echo chat_e($head_name); ?></div>
             <div class="sub"><?php echo $is_owner ? t('chat.to_you', ['words' => $to_name]) : t('chat.sent_by_you'); ?></div>

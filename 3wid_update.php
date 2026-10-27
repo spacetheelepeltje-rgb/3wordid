@@ -93,6 +93,13 @@ try {
 	
     db_3wordid_update($id, $clean_notification, $linkthru, $linkthruflag, $emailform,$private);
 
+    // "Show my photo in chats" (opt-in, off by default). Only when the edit form sent it;
+    // does nothing until the show_photo column exists.
+    // Consent is the owner's own choice: the admin cannot switch it for someone else.
+    if (($_POST['show_photo_form'] ?? '') === '1' && db_3wordid_owned_by($id, $data['id'])) {
+        db_3wordid_set_show_photo($id, isset($_POST['show_photo']));
+    }
+
     // The admin edited this from the admin pages: return to the owner's 3WordIDs
     if ((int)$data["id"] === 4 && ($_POST['from'] ?? '') === 'admin') {
         $updated = db_3wordid_get($id);
