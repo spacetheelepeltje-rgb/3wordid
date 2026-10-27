@@ -2,6 +2,7 @@
 
   require_once 'php/functions.php';
   require_once 'login/config.php';
+  require_once 'php/chat.php';
 
   error_log('messageform process page');
 /*
@@ -29,6 +30,12 @@
 	   exit;
     } 
 
+	// Consent is given once at signup (3wid_privacy_consent.php); no message without it
+	if ((int) ($data['privacy_consent'] ?? 0) !== 1) {
+	   header('Location: 3wid_privacy_consent.php');
+	   exit;
+	}
+
 	// The form must come from our own message page (CSRF protection)
 	if (!check_action_token($_POST['action_token'] ?? '')) {
 	   error_log('messageform process: missing or wrong action token for user ' . $data['id']);
@@ -44,11 +51,8 @@
    
    $from_id = (int) $_POST["from_id"];
    
-    if(isset( $_POST["terms"])) {
-			$terms = 1;
-			} else {
-			$terms =0;  
-	}
+   // The form no longer has its own checkbox: the user's privacy consent (checked above) counts
+   $terms = 1;
    
    // message send to a three word id. The user of the ID is known. It has to show up in the ID's message row.
    
@@ -62,6 +66,14 @@
    if(!db_3wordid_owned_by($from_id, $data['id'])) {
 	   error_log('messageform process: user ' . $data['id'] . ' tried to send from 3wid ' . $from_id);
 	   header('location:3wid_list.php?message=' . rawurlencode(t_plain('mp.session')));
+	   exit;
+   }
+
+   // Unknown recipient, or the placeholder used for anonymous visitors (they have no
+   // account, so a reply would never reach them): back to the form with a clear note
+   if (!$threeword_data || chat_is_visitor_wid($threeword_data)) {
+	   $_SESSION['chat_error'] = $threeword_data ? 'chat.err_visitor' : 'chat.err_recipient';
+	   header('location:3wid_messageform.php?threeword_id=' . $from_id);
 	   exit;
    }
 

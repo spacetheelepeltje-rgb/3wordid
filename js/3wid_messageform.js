@@ -112,7 +112,6 @@ $(document).ready(function() {
 
         // Grab form data
         let form = $(this);
-        let terms = $('#terms').prop('checked');
         let threeword = $('#threeword').val();
         let title = $('#title').val();
         let message = $('#message').val();
@@ -135,11 +134,6 @@ $(document).ready(function() {
 			return;
 		}
 
-		if(!terms) {
-			$('#helperText').text(tr('need_terms', 'Please accept the terms by checking the checkbox'));
-			send=0;
-			return;
-		}	
 
         // If you reach here, email is valid
         console.log('send is ' +  send);

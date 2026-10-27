@@ -356,7 +356,7 @@ function db_3wordid_get_message($message_id) {
 	// Create connection
     $conn = get_db_conn();
     
-    $wid_id = (int) $wid_id;
+    $message_id = (int) $message_id;
     
     // Check connection
     if ($conn->connect_error) {
@@ -364,7 +364,7 @@ function db_3wordid_get_message($message_id) {
     }
     
     // Prepare the SQL statement
-    $sql = "SELECT m.id as id, m.3wid_id as 3wid_id, m.from_id as from_id, m.title as title, m.message as message,u.picture as picture FROM 3wordid_messages as m, google_users as u WHERE m.id = ? and m.from_id=u.id";
+    $sql = "SELECT m.id as id, m.3wid_id as 3wid_id, m.3wid_from_id as 3wid_from_id, m.from_id as from_id, m.title as title, m.message as message,u.picture as picture FROM 3wordid_messages as m, google_users as u WHERE m.id = ? and m.from_id=u.id";
     $stmt = $conn->prepare($sql);
     
     error_log('query ' .  $sql);

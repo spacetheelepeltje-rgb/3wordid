@@ -163,10 +163,21 @@ function chat_visitor_avatar() {
 // 3WordID. Anonymous visitors (user 25) share one group: there is no sender to tell apart.
 // Returns [key => ['key', 'name', 'visitor', 'items' (oldest first, with 'sent_at')]],
 // newest conversation first. $dates comes from db_3wordid_message_dates().
+// Anonymous visitors (3wid_messageform_ext_process.php) are stored with this
+// placeholder user and placeholder 3WordID. They have no account: no replies.
+if (!defined('CHAT_VISITOR_USER_ID')) { define('CHAT_VISITOR_USER_ID', 25); }
+if (!defined('CHAT_VISITOR_WID')) { define('CHAT_VISITOR_WID', 178); }
+
+// True when a 3wordid row (from db_3wordid_get_threeword) is the visitor placeholder
+function chat_is_visitor_wid($row) {
+	if (!is_array($row)) { return false; }
+	return (int) ($row['id'] ?? 0) === CHAT_VISITOR_WID || (int) ($row['user_id'] ?? 0) === CHAT_VISITOR_USER_ID;
+}
+
 function chat_conversations($messages, $dates) {
 	$conversations = array();
 	foreach (array_reverse((array) $messages) as $m) { // oldest first
-		$is_visitor = ((int) $m['from_id'] === 25);
+		$is_visitor = ((int) $m['from_id'] === CHAT_VISITOR_USER_ID);
 		$key = $is_visitor ? 'visitors' : ((int) $m['from_id'] . ':' . $m['threeword']);
 		if (!isset($conversations[$key])) {
 			$conversations[$key] = array('key' => $key, 'name' => $is_visitor ? '' : $m['threeword'], 'visitor' => $is_visitor, 'items' => array());

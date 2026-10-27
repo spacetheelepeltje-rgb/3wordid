@@ -162,7 +162,7 @@
         <span class="go" aria-hidden="true"><?php echo chat_icon('reply'); ?></span>
     </a>
     <?php else: ?>
-    <div class="reply-bar"><span class="fake static"><?php echo t('chat.no_reply'); ?></span></div>
+    <div class="reply-bar"><p class="note" role="note"><?php echo t('chat.no_reply'); ?></p></div>
     <?php endif; ?>
 <?php endif; ?>
 </div>

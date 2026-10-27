@@ -133,7 +133,7 @@ return [
     'msg.title_ph' => 'Introduzca un título para el mensaje',
     'msg.message_label' => 'Mensaje',
     'msg.message_ph' => 'Introduzca aquí su mensaje',
-    'msg.hint1' => 'Solo puede enviar un mensaje hasta que reciba una respuesta. La imagen de su cuenta de Google se compartirá con el destinatario. Al marcar la casilla siguiente, consiente en compartir su imagen de usuario de Google y (re)confirma su consentimiento para que almacenemos los datos de identificación que Google nos facilita cuando inicia sesión en este sitio web.',
+    'msg.hint1' => 'Solo puede enviar un mensaje hasta que reciba una respuesta.',
     'msg.consent' => 'Consiento lo anterior',
     'msg.hint2' => 'Su mensaje se muestra al destinatario. Su mensaje y su dirección IP se almacenan y se conservan, también para atender solicitudes legales de las fuerzas del orden. <a href="/terms.php#data">Más información</a>',
     'msg.js_ok_recipient' => 'el destinatario existe',
@@ -490,7 +490,7 @@ Se eliminarán la URL, la notificación y el chat de estas palabras. Esta acció
     'chat.conversations_one' => '{n} conversación',
     'chat.conversations_other' => '{n} conversaciones',
     'chat.to_you' => 'para {words}',
-    'chat.no_reply' => 'No se puede responder a los visitantes que no han iniciado sesión.',
+    'chat.no_reply' => 'Este mensaje lo envió un visitante sin 3WordID, así que no puede responder aquí. Si dejó datos de contacto en el mensaje, utilícelos.',
     'chat.confirm_delete' => '¿Eliminar este mensaje? No se puede deshacer.',
     'chat.received' => 'Mensaje recibido',
     'chat.sent_by_you' => 'Enviado por ti',
@@ -512,4 +512,10 @@ Se eliminarán la URL, la notificación y el chat de estas palabras. Esta acció
     'chat.print_visitor' => 'Visitante',
     'chat.print_label' => '{name}:',
     'chat.print_button' => 'Imprimir',
+
+    // Visitors (no replies)
+    'chat.visitor' => 'Visitante',
+    'chat.err_visitor' => 'No puede responder a visitantes sin 3WordID. Si dejaron datos de contacto en su mensaje, utilícelos.',
+    'chat.err_recipient' => 'No se encontró este 3WordID. Compruebe las tres palabras e inténtelo de nuevo.',
+    'ext.bad_recipient' => 'No se encontró este 3WordID, por lo que su mensaje no se envió.',
 ];

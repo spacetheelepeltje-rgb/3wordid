@@ -147,7 +147,7 @@ return [
     'msg.title_ph' => 'Enter a message title',
     'msg.message_label' => 'Message',
     'msg.message_ph' => 'Enter your message here',
-    'msg.hint1' => 'You can only send one message until you get a reply. Your google login image will be shared with the recipient. By checking the below checkbox you consent in sharing your google user image and (re-)confirm you consent in us storing the identification data google shares with us when you log in to this website.',
+    'msg.hint1' => 'You can only send one message until you get a reply.',
     'msg.consent' => 'I consent with the above',
     'msg.hint2' => 'Your message is shown to the recipient. Your message and IP address are stored and kept, also for lawful requests from law enforcement. <a href="/terms.php#data">Read more</a>',
     'msg.js_ok_recipient' => 'recipient exists',
@@ -582,7 +582,7 @@ The URL, notification, and chat for these words will be removed. This cannot be 
     'chat.conversations_one' => '{n} conversation',
     'chat.conversations_other' => '{n} conversations',
     'chat.to_you' => 'to {words}',
-    'chat.no_reply' => 'Visitors who are not logged in cannot be replied to.',
+    'chat.no_reply' => 'This message was sent by a visitor without a 3WordID, so you can\'t reply here. If they left contact details in the message, use those.',
     'chat.confirm_delete' => 'Delete this message? This cannot be undone.',
     'chat.received' => 'Received message',
     'chat.sent_by_you' => 'Sent by you',
@@ -604,4 +604,10 @@ The URL, notification, and chat for these words will be removed. This cannot be 
     'chat.print_visitor' => 'Visitor',
     'chat.print_label' => '{name}:',
     'chat.print_button' => 'Print',
+
+    // Visitors (no replies)
+    'chat.visitor' => 'Visitor',
+    'chat.err_visitor' => 'You can\'t reply to visitors without a 3WordID. If they left contact details in their message, use those.',
+    'chat.err_recipient' => 'This 3WordID could not be found. Check the three words and try again.',
+    'ext.bad_recipient' => 'This 3WordID could not be found, so your message was not sent.',
 ];

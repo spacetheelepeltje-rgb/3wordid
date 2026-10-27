@@ -14,6 +14,13 @@
       header('location:3wid_list.php');  
       exit;
   }
+
+  // Logged-in users accept the privacy terms once (3wid_privacy_consent.php), so this
+  // form has no consent checkbox of its own. Make sure that consent is really there.
+  if ((int) ($data['privacy_consent'] ?? 0) !== 1) {
+      header('Location: 3wid_privacy_consent.php');
+      exit;
+  }
   
   //error_log('message form user ' . json_encode($data));
  
@@ -42,6 +49,19 @@
  
 
   require_once 'php/chat.php';
+
+  // A note from 3wid_messageform_process.php (unknown recipient / visitor), shown once
+  $error_key = '';
+  if (!empty($_SESSION['chat_error']) && in_array($_SESSION['chat_error'], array('chat.err_visitor', 'chat.err_recipient'), true)) {
+      $error_key = $_SESSION['chat_error'];
+  }
+  unset($_SESSION['chat_error']);
+
+  // Never prefill the visitor placeholder as a recipient: visitors cannot get replies
+  if ($reply_to !== '' && chat_is_visitor_wid(db_3wordid_get_threeword($reply_to))) {
+      $reply_to = '';
+      $error_key = 'chat.err_visitor';
+  }
 
   $reply_to_safe = chat_e($reply_to);
 
@@ -79,6 +99,10 @@
         <div class="pill-wrap"><span class="pill info"><?php echo t('msg.hint1'); ?></span></div>
         <div class="pill-wrap"><span class="pill info"><?php echo t_raw('msg.hint2'); ?></span></div>
 
+        <?php if ($error_key !== ''): ?>
+        <div class="pill-wrap"><span class="pill info" role="alert"><?php echo t($error_key); ?></span></div>
+        <?php endif; ?>
+
         <div class="setup">
             <div class="f">
                 <label for="from_id"><?php echo t('msg.from'); ?></label>
@@ -108,7 +132,6 @@
     </main>
 
     <form class="composer" id="3widForm"<?php echo $sent ? ' data-sent="1"' : ''; ?> action="3wid_messageform_process.php" method="post">
-        <label class="consent"><input type="checkbox" id="terms" name="terms"><span><?php echo t('msg.consent'); ?></span></label>
         <div class="c-row">
             <div class="c-box">
                 <input type="text" name="title" id="title" class="c-subject" maxlength="200" autocomplete="off" placeholder="<?php echo t('chat.subject_ph'); ?>" aria-label="<?php echo t('msg.title_label'); ?>">
@@ -127,7 +150,6 @@
     'need_title'    => 'msg.js_need_title',
     'need_message'  => 'msg.js_need_message',
     'need_3wid'     => 'msg.js_need_3wid',
-    'need_terms'    => 'msg.js_need_terms',
 ]); ?>
 <script src="js/3wid_messageform.js"></script>
 <script src="js/chat.js"></script>
