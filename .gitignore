@@ -21,6 +21,7 @@ service-account*.json
 /old/
 /old_april/
 /old_error/
+errors.php
 
 # Editor / OS files
 .DS_Store
