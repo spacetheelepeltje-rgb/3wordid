@@ -272,3 +272,16 @@ function i18n_js_all(string $prefix = 'js.'): string
 if (PHP_SAPI !== 'cli' && !headers_sent()) {
     header('Vary: Accept-Language', false);
 }
+
+/**
+ * Small copyright line for page footers: "© 2024–2026 3wordID".
+ * The end year follows the server clock, so it updates by itself every January.
+ * The brand name needs no translation. Styling comes from the page's own footer
+ * (muted, small); .site-copyright only adds a little spacing.
+ */
+function site_copyright(int $start_year = 2024): string
+{
+    $year  = (int) date('Y');
+    $years = $year > $start_year ? $start_year . '–' . $year : (string) $start_year;
+    return '<div class="site-copyright" style="margin:4px 0">© ' . $years . ' 3wordID</div>';
+}

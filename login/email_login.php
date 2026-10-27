@@ -122,7 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </main>
 
     <footer>
-        
+        <?php echo site_copyright(); ?>
     </footer>
 </body>
 </html>

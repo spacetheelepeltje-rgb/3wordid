@@ -180,7 +180,7 @@ $loginUrl = '/login/options.php';
     <footer class="site-footer">
         <div><?php echo $footer; ?></div>
         <div>No rights can be derived from use of this site. Service provided as is.</div>
-       
+        <?php echo site_copyright(); ?>
     </footer>
 </body>
 </html>

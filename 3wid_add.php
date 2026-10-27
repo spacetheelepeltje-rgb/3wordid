@@ -316,7 +316,7 @@ if (empty($_SESSION['csrf_token'])) {
     </main>
 
     <div class="site-footer">
-      
+      <?php echo site_copyright(); ?>
     </div>
 
 <?php echo i18n_js_all(); ?>

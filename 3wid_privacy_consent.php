@@ -236,6 +236,7 @@
     <footer class="site-footer">
         <div><?php echo $footer; ?></div>
         <div><?php echo t('pc.footer'); ?></div>
+        <?php echo site_copyright(); ?>
     </footer>
 </body>
 <?php echo i18n_js_all(); ?>
