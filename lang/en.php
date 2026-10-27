@@ -625,4 +625,12 @@ The URL, notification, and chat for these words will be removed. This cannot be 
     'chat.photo_open' => 'View the photo of {name}',
     'chat.photo_close' => 'Close',
     'chat.photo_login_hint' => 'Log in to see who you\'re chatting with',
+
+    // Mail icon on the list page
+    'list.mail_send' => 'Send a message from {words}',
+    'list.mail_chats' => 'Open the chats of {words}',
+    'list.mail_received_one' => '{n} message for {words}: open the chats',
+    'list.mail_received_other' => '{n} messages for {words}: open the chats',
+    'list.mail_unread_one' => '{n} new message for {words}: open the chats',
+    'list.mail_unread_other' => '{n} new messages for {words}: open the chats',
 ];

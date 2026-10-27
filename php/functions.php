@@ -2938,3 +2938,53 @@ function db_3wordid_mark_read($to_wid, $from_wid) {
 	$conn->close();
 	return $ok;
 }
+
+// ---------------------------------------------------------------------------
+// Mail icon on the list page (3wid_list.php)
+// ---------------------------------------------------------------------------
+
+// Message counts for all 3WordIDs of user $user_id, in two grouped queries (not one per row):
+// [3wid id => ['in' => messages received, 'unread' => received and not read yet, 'sent' => messages sent from it]]
+// 'unread' stays 0 when the messages table has no read_at column yet.
+function db_3wordid_mail_summary($user_id) {
+	$user_id = (int) $user_id;
+	if ($user_id < 1) {
+		return array();
+	}
+	$has_read_at = db_3wordid_messages_has_column('read_at');
+	$conn = get_db_conn();
+	if (!$conn || $conn->connect_error) {
+		return array();
+	}
+	$out = array();
+	$unread_sql = $has_read_at ? "SUM(m.read_at IS NULL)" : "0";
+	$stmt = $conn->prepare("SELECT m.3wid_id AS wid, COUNT(*) AS total, " . $unread_sql . " AS unread
+	                        FROM 3wordid_messages AS m JOIN 3wordid AS w ON w.id = m.3wid_id
+	                        WHERE w.user_id = ? GROUP BY m.3wid_id");
+	if ($stmt) {
+		$stmt->bind_param("i", $user_id);
+		$stmt->execute();
+		$result = $stmt->get_result();
+		while ($row = $result->fetch_assoc()) {
+			$out[(int) $row['wid']] = array('in' => (int) $row['total'], 'unread' => (int) $row['unread'], 'sent' => 0);
+		}
+		$stmt->close();
+	}
+	// Sent from one of the user's own 3WordIDs (the other half of a two-way conversation)
+	$stmt = $conn->prepare("SELECT 3wid_from_id AS wid, COUNT(*) AS total FROM 3wordid_messages WHERE from_id = ? GROUP BY 3wid_from_id");
+	if ($stmt) {
+		$stmt->bind_param("i", $user_id);
+		$stmt->execute();
+		$result = $stmt->get_result();
+		while ($row = $result->fetch_assoc()) {
+			$wid = (int) $row['wid'];
+			if (!isset($out[$wid])) {
+				$out[$wid] = array('in' => 0, 'unread' => 0, 'sent' => 0);
+			}
+			$out[$wid]['sent'] = (int) $row['total'];
+		}
+		$stmt->close();
+	}
+	$conn->close();
+	return $out;
+}

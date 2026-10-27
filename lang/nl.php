@@ -625,4 +625,12 @@ De URL, mededeling en chat van deze woorden worden verwijderd. Dit kan niet onge
     'chat.photo_open' => 'Foto van {name} bekijken',
     'chat.photo_close' => 'Sluiten',
     'chat.photo_login_hint' => 'Log in om te zien met wie je chat',
+
+    // Mail icon on the list page
+    'list.mail_send' => 'Stuur een bericht vanaf {words}',
+    'list.mail_chats' => 'Open de chats van {words}',
+    'list.mail_received_one' => '{n} bericht voor {words}: open de chats',
+    'list.mail_received_other' => '{n} berichten voor {words}: open de chats',
+    'list.mail_unread_one' => '{n} nieuw bericht voor {words}: open de chats',
+    'list.mail_unread_other' => '{n} nieuwe berichten voor {words}: open de chats',
 ];

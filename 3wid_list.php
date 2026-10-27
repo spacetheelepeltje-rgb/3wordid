@@ -32,6 +32,9 @@ $max = $data['max_3wids'] + 1;
 
 $db_3wordid_list = db_3wordid_list($id);
 
+// Message counts per 3WordID for the mail icons, in one go (see db_3wordid_mail_summary)
+$mail_summary = db_3wordid_mail_summary($id);
+
 // "Send to my email": POST with the action token, only the logged-in owner's
 // own list, at most once per 5 minutes per session. Hidden until outgoing
 // mail is configured in login/config.php (see email_sending_configured).
@@ -94,7 +97,7 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
     <link rel="icon" type="image/x-icon" href="img/favicon.ico">
     <link href="/css/inter.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <link href="/css/3wid_list.css?v=2" rel="stylesheet">
+    <link href="/css/3wid_list.css?v=3" rel="stylesheet">
 </head>
 <body>
     <header class="site-header">
@@ -170,8 +173,25 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
 
         foreach ($db_3wordid_list as $db_3wordid_item) {
 		
-            $message_count = db_3wordid_count_messages($db_3wordid_item['id']);
-            $msg_state = ($message_count['count'] == 0) ? 'disabled' : '';
+            // Mail icon: always clickable. Green when messages arrived for this 3WordID
+            // (receiving works even without "Link to chat"), with a dot for unread ones.
+            // With conversations it opens the chats, otherwise a new message from this 3WordID.
+            $mail = $mail_summary[(int)$db_3wordid_item['id']] ?? array('in' => 0, 'unread' => 0, 'sent' => 0);
+            if ($mail['in'] > 0 || $mail['sent'] > 0) {
+                $mail_href = '3wid_list_messages.php?wid_id=' . (int)$db_3wordid_item['id'];
+            } else {
+                $mail_href = '3wid_messageform.php?threeword_id=' . (int)$db_3wordid_item['id'];
+            }
+            if ($mail['unread'] > 0) {
+                $mail_label = t_n('list.mail_unread', $mail['unread'], ['words' => $db_3wordid_item['threeword']]);
+            } elseif ($mail['in'] > 0) {
+                $mail_label = t_n('list.mail_received', $mail['in'], ['words' => $db_3wordid_item['threeword']]);
+            } elseif ($mail['sent'] > 0) {
+                $mail_label = t('list.mail_chats', ['words' => $db_3wordid_item['threeword']]);
+            } else {
+                $mail_label = t('list.mail_send', ['words' => $db_3wordid_item['threeword']]);
+            }
+            $mail_class = ($mail['in'] > 0 ? ' has-mail' : '') . ($mail['unread'] > 0 ? ' has-unread' : '');
             //$url = "https://3wordid.com/index.php?threewords=" . urlencode($db_3wordid_item['threeword']);
             $threeword_url = implode('.', explode(' ', $db_3wordid_item['threeword']));
             $url = "https://3wordid.com/" .  $threeword_url;
@@ -223,11 +243,12 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
                             <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
                         </svg>
                     </a>
-                    <a href="3wid_list_messages.php?uid=<?php echo $id; ?>&wid_id=<?php echo $db_3wordid_item['id']; ?>&threeword=<?php echo $db_3wordid_item['threeword']; ?>" class="icon-btn mail-icon <?php echo $msg_state; ?>" title="<?php echo t('list.messages_title', ['n' => $message_count['count']]); ?>">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="<?php echo t('icon.message'); ?>">
+                    <a href="<?php echo $mail_href; ?>" class="icon-btn mail-icon<?php echo $mail_class; ?>" title="<?php echo $mail_label; ?>" aria-label="<?php echo $mail_label; ?>">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                             <path d="M21 4H3a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path>
                             <path d="M1 6l11 7 11-7"></path>
                         </svg>
+                        <?php if ($mail['unread'] > 0) { ?><span class="mail-count" aria-hidden="true"><?php echo $mail['unread'] > 9 ? '9+' : (int)$mail['unread']; ?></span><?php } ?>
                     </a>
                     <a href="3wid_delete.php?id=<?php echo (int)$db_3wordid_item['id']; ?>&action_token=<?php echo $action_token; ?>"
 					class="icon-btn trash-icon"

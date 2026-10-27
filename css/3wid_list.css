@@ -223,6 +223,26 @@ h1 { margin: 0; font-size: 32px; letter-spacing: -0.04em; line-height: 1.15; }
 .icon-btn:hover, .copy-button:hover { background: #f7f6f3; border-color: #cfcabf; }
 .icon-btn:focus-visible, .copy-button:focus-visible, .btn:focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
 .icon-btn.disabled, .mail-icon.disabled { opacity: .35; pointer-events: none; }
+/* mail icon: always black and clickable; green when messages arrived, with an unread count */
+.mail-icon { color: #111; }
+.mail-icon.has-mail { color: var(--ok); background: #e8f6ee; border-color: #9fd3b6; }
+.mail-icon.has-mail:hover { background: #d9f0e3; border-color: var(--ok); }
+.mail-count {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--danger);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+  box-shadow: 0 0 0 2px #fff;
+}
 .icon-btn.enabled { color: var(--ok); }
 .icon-btn.disabled-toggle { color: var(--muted); }
 .trash-icon:hover { color: var(--danger); border-color: #e8c4c4; }
