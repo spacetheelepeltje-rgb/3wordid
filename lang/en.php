@@ -299,7 +299,7 @@ The URL, notification, and chat for these words will be removed. This cannot be 
 
     // ---- notif
     'notif.home' => 'To Homepage',
-    'notif.lede' => 'Notification attached to this 3WordID:',
+    'notif.lede' => 'Message attached to this 3WordID:',
 
     // ---- lm
     'lm.title' => 'Messages — 3WordID',
