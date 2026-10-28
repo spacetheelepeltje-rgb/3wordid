@@ -215,24 +215,57 @@ function lang_head_tags(): string
     return $out;
 }
 
-/** Small "EN | NL | FR | ES" switch. Includes its own tiny style so it works on every page. */
+/**
+ * Language menu: a small "EN ▾" button that opens the four languages (a <details>, so it
+ * works without JavaScript and with the keyboard). Includes its own style and a tiny
+ * script (close on a click outside or Esc), so it works on every page. Same look and
+ * behaviour as the menu in the chat top bar (php/chat.php chat_lang_menu).
+ */
 function lang_switcher(): string
 {
+    static $assets_done = false;
+    $names = ['en' => 'English', 'nl' => 'Nederlands', 'fr' => 'Français', 'es' => 'Español'];
     $current = current_lang();
-    $out = '<style>.lang-switch{display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px;white-space:nowrap;font-size:13px;font-weight:600;margin:0 8px;color:#8a93a6}'
-        . '.lang-switch a{color:#5b6478;text-decoration:none;padding:2px 4px;border-radius:4px}'
-        . '.lang-switch a:hover{color:#0f1c3f}.lang-switch a[aria-current="true"]{color:#0f1c3f;text-decoration:underline}</style>';
-    $out .= '<span class="lang-switch" role="group" aria-label="' . t('lang.switch_label') . '">';
-    $first = true;
-    foreach (i18n_languages() as $code) {
-        if (!$first) {
-            $out .= '<span aria-hidden="true">|</span>';
-        }
-        $first = false;
-        $out .= '<a href="' . htmlspecialchars(lang_url($code), ENT_QUOTES, 'UTF-8') . '" hreflang="' . $code . '" lang="' . $code . '"'
-            . ($code === $current ? ' aria-current="true"' : '') . '>' . htmlspecialchars(i18n_language_label($code), ENT_QUOTES, 'UTF-8') . '</a>';
+    $label = t_plain('lang.switch_label');
+    $out = '';
+    if (!$assets_done) {
+        $assets_done = true;
+        $out .= '<style>'
+            . '.lang-switch{position:relative;display:inline-block;vertical-align:middle;margin:0 8px;font-family:inherit;line-height:1.2;text-align:left}'
+            . '.lang-switch>summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:5px;height:36px;padding:0 10px;border:1px solid #e6e3dc;border-radius:999px;background:#fff;color:#0f1c3f;font-size:13px;font-weight:700;white-space:nowrap;user-select:none;-webkit-user-select:none}'
+            . '.lang-switch>summary::-webkit-details-marker{display:none}'
+            . '.lang-switch>summary::marker{content:""}'
+            . '.lang-switch>summary::after{content:"";border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid currentColor;opacity:.75}'
+            . '.lang-switch[open]>summary::after{transform:rotate(180deg)}'
+            . '.lang-switch>summary:hover{border-color:#cfcabf;background:#f7f6f3}'
+            . '.lang-switch>summary:focus-visible{outline:2px solid #0f1c3f;outline-offset:2px}'
+            . '.lang-switch>summary svg{flex:0 0 auto}'
+            . '.lang-switch ul{position:absolute;right:0;top:calc(100% + 6px);margin:0;padding:6px 0;list-style:none;min-width:150px;background:#fff;border:1px solid #e6e3dc;border-radius:12px;box-shadow:0 10px 30px rgba(15,28,63,.18);z-index:1000}'
+            . '.lang-switch.lang-left ul{right:auto;left:0}'
+            . '.lang-switch li{margin:0;padding:0}'
+            . '.lang-switch ul a{display:block;padding:9px 16px;color:#0f1c3f;font-size:14px;font-weight:500;text-decoration:none;white-space:nowrap}'
+            . '.lang-switch ul a:hover,.lang-switch ul a:focus-visible{background:#f3f1ec;outline:none}'
+            . '.lang-switch ul a[aria-current="true"]{font-weight:700}'
+            . '.lang-switch ul a[aria-current="true"]::after{content:" \2713";color:#4a6fb5}'
+            . '@media (max-width:480px){.lang-switch{margin:0 4px}.lang-switch>summary{padding:0 9px;gap:3px}.lang-switch>summary>span{display:none}}'
+            . '</style>'
+            . '<script>(function(){'
+            . 'function all(){return document.querySelectorAll("details.lang-switch");}'
+            . 'document.addEventListener("click",function(e){all().forEach(function(d){if(d.open&&!d.contains(e.target)){d.open=false;}});});'
+            . 'document.addEventListener("keydown",function(e){if(e.key==="Escape"){all().forEach(function(d){if(d.open){d.open=false;var s=d.querySelector("summary");if(s){s.focus();}}});}});'
+            . 'document.addEventListener("toggle",function(e){var d=e.target;if(!d.classList||!d.classList.contains("lang-switch")||!d.open){return;}'
+            . 'd.classList.remove("lang-left");var u=d.querySelector("ul");if(u&&u.getBoundingClientRect().left<4){d.classList.add("lang-left");}},true);'
+            . '})();</script>';
     }
-    return $out . '</span>';
+    $out .= '<details class="lang-switch"><summary title="' . htmlspecialchars($label, ENT_QUOTES, 'UTF-8') . '" aria-label="'
+        . htmlspecialchars($label . ': ' . ($names[$current] ?? $current), ENT_QUOTES, 'UTF-8') . '">'
+        . '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>'
+        . '<span>' . htmlspecialchars(i18n_language_label($current), ENT_QUOTES, 'UTF-8') . '</span></summary><ul role="list">';
+    foreach (i18n_languages() as $code) {
+        $out .= '<li><a href="' . htmlspecialchars(lang_url($code), ENT_QUOTES, 'UTF-8') . '" hreflang="' . $code . '" lang="' . $code . '"'
+            . ($code === $current ? ' aria-current="true"' : '') . '>' . htmlspecialchars($names[$code] ?? i18n_language_label($code), ENT_QUOTES, 'UTF-8') . '</a></li>';
+    }
+    return $out . '</ul></details>';
 }
 
 /**

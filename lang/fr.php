@@ -529,12 +529,16 @@ L’URL, la notification et le chat de ces mots seront supprimés. Cette action 
     'chat.photo_login_hint' => 'Connectez-vous pour voir avec qui vous discutez',
 
     // Mail icon on the list page
-    'list.mail_send' => 'Envoyer un message depuis {words}',
-    'list.mail_chats' => 'Ouvrir les discussions de {words}',
-    'list.mail_received_one' => '{n} message pour {words} : ouvrir les discussions',
-    'list.mail_received_other' => '{n} messages pour {words} : ouvrir les discussions',
+    'list.mail_none' => 'Pas encore de messages pour {words} : envoyer un message depuis ce 3WordID',
+    'list.mail_none_chats' => 'Aucun message reçu pour {words} : ouvrir les discussions',
+    'list.mail_read_one' => '{n} message pour {words}, tout est lu : ouvrir les discussions',
+    'list.mail_read_other' => '{n} messages pour {words}, tout est lu : ouvrir les discussions',
     'list.mail_unread_one' => '{n} nouveau message pour {words} : ouvrir les discussions',
     'list.mail_unread_other' => '{n} nouveaux messages pour {words} : ouvrir les discussions',
+    'list.mail_chat' => '{words} est lié au chat, pas de nouveaux messages : ouvrir les discussions',
+    'list.mail_chat_new' => '{words} est lié au chat, pas encore de messages : envoyer un message depuis ce 3WordID',
+    'list.mail_chat_unread_one' => '{words} est lié au chat, {n} nouveau message : ouvrir les discussions',
+    'list.mail_chat_unread_other' => '{words} est lié au chat, {n} nouveaux messages : ouvrir les discussions',
 
     // Top bar of the chat pages
     'tb.my_ids' => 'Mes 3WordID',

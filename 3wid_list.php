@@ -97,7 +97,7 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
     <link rel="icon" type="image/x-icon" href="img/favicon.ico">
     <link href="/css/inter.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <link href="/css/3wid_list.css?v=3" rel="stylesheet">
+    <link href="/css/3wid_list.css?v=4" rel="stylesheet">
 </head>
 <body>
     <header class="site-header">
@@ -113,14 +113,13 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
             <a href="https://wa.me/31644311561?text=From 3WordID.com : "
    target="_blank"
    rel="noopener noreferrer"
-   class="btn btn-primary" style='background:#25D366;'>
+   class="btn btn-primary wa-btn" style='background:#25D366;'>
   <?php echo t('nav.whatsapp_admin'); ?>
 </a>
 
  
 
             <?php echo lang_switcher(); ?>
-            <a class="btn btn-primary" href="3wid_add.php" title="<?php echo $title; ?>" <?php echo $pointer; ?>><?php echo $create_label; ?></a>
             
            
             
@@ -154,7 +153,8 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
         </section>
 
         <div class="toolbar">
-            <a class="btn btn-ghost <?php echo $state; ?>" <?php echo $style; ?> href="3wid_messageform.php" title="<?php echo t('list.compose_title'); ?>"><?php echo t('list.compose'); ?></a>
+            <a class="btn btn-primary btn-create" href="3wid_add.php" title="<?php echo $title; ?>" <?php echo $pointer; ?>><?php echo $create_label; ?></a>
+            <a class="btn btn-ghost btn-compose <?php echo $state; ?>" <?php echo $style; ?> href="3wid_messageform.php" title="<?php echo t('list.compose_title'); ?>"><?php echo t('list.compose'); ?></a>
             <?php if ($can_email_list && $count_rows > 0) { ?>
             <form method="post" action="3wid_list.php" style="margin:0">
                 <input type="hidden" name="action_token" value="<?php echo htmlspecialchars($action_token, ENT_QUOTES, 'UTF-8'); ?>">
@@ -173,8 +173,10 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
 
         foreach ($db_3wordid_list as $db_3wordid_item) {
 		
-            // Mail icon: always clickable. Green when messages arrived for this 3WordID
-            // (receiving works even without "Link to chat"), with a dot for unread ones.
+            // Mail icon: always clickable, four looks:
+            //   grey  = not linked to chat, never received a message
+            //   black = not linked to chat, has received messages (dot = unread ones)
+            //   green = linked to chat ("Link to chat" = emailform 1), dot = unread ones
             // With conversations it opens the chats, otherwise a new message from this 3WordID.
             $mail = $mail_summary[(int)$db_3wordid_item['id']] ?? array('in' => 0, 'unread' => 0, 'sent' => 0);
             if ($mail['in'] > 0 || $mail['sent'] > 0) {
@@ -182,16 +184,19 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
             } else {
                 $mail_href = '3wid_messageform.php?threeword_id=' . (int)$db_3wordid_item['id'];
             }
-            if ($mail['unread'] > 0) {
-                $mail_label = t_n('list.mail_unread', $mail['unread'], ['words' => $db_3wordid_item['threeword']]);
+            $mail_words = ['words' => $db_3wordid_item['threeword']];
+            $linked_to_chat = ((int)($db_3wordid_item['emailform'] ?? 0) === 1);
+            if ($linked_to_chat) {
+                $mail_state = 'mail-chat';
+                $mail_label = $mail['unread'] > 0 ? t_n('list.mail_chat_unread', $mail['unread'], $mail_words) : (($mail['in'] > 0 || $mail['sent'] > 0) ? t('list.mail_chat', $mail_words) : t('list.mail_chat_new', $mail_words));
             } elseif ($mail['in'] > 0) {
-                $mail_label = t_n('list.mail_received', $mail['in'], ['words' => $db_3wordid_item['threeword']]);
-            } elseif ($mail['sent'] > 0) {
-                $mail_label = t('list.mail_chats', ['words' => $db_3wordid_item['threeword']]);
+                $mail_state = 'mail-has';
+                $mail_label = $mail['unread'] > 0 ? t_n('list.mail_unread', $mail['unread'], $mail_words) : t_n('list.mail_read', $mail['in'], $mail_words);
             } else {
-                $mail_label = t('list.mail_send', ['words' => $db_3wordid_item['threeword']]);
+                $mail_state = 'mail-none';
+                $mail_label = $mail['sent'] > 0 ? t('list.mail_none_chats', $mail_words) : t('list.mail_none', $mail_words);
             }
-            $mail_class = ($mail['in'] > 0 ? ' has-mail' : '') . ($mail['unread'] > 0 ? ' has-unread' : '');
+            $mail_class = ' ' . $mail_state . ($mail['unread'] > 0 ? ' has-unread' : '');
             //$url = "https://3wordid.com/index.php?threewords=" . urlencode($db_3wordid_item['threeword']);
             $threeword_url = implode('.', explode(' ', $db_3wordid_item['threeword']));
             $url = "https://3wordid.com/" .  $threeword_url;
@@ -214,23 +219,6 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
                 </div>
 
                 <div class="icon-row">
-                    <a href="<?php echo $db_3wordid_item['linkthru']; ?>" class="icon-btn link-icon <?php if ($db_3wordid_item['linkthruflag'] != 1) { echo "disabled"; } ?>" title="<?php echo t('list.visit_title', ['url' => $db_3wordid_item['linkthru']]); ?>">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="<?php echo t('icon.link'); ?>">
-                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-                        </svg>
-                    </a>
-                    <button class="copy-button" onclick="copyToClipboard(this)" aria-label="<?php echo t('list.copy_aria'); ?>">
-                        <svg class="xcopy-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
-                            <path d="M15 2H9a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1z"/>
-                        </svg>
-                        <span class="tooltip"><?php echo t('list.copy_for', ['words' => $db_3wordid_item['threeword']]); ?></span>
-                    </button>
-                    <span class="hidden-url"><?php echo htmlspecialchars("https://3wordid.com/" . $threeword_url); ?></span>
-                </div>
-
-                <div class="icon-row">
                     <a href="3wid_3wid.php?id=<?php echo (int)$db_3wordid_item['id']; ?>" class="icon-btn edit-icon" title="<?php echo t('list.edit_title'); ?>">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="<?php echo t('icon.edit'); ?>">
                             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
@@ -243,12 +231,20 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
                             <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
                         </svg>
                     </a>
+                    <button type="button" class="copy-button" onclick="copyToClipboard(this)" aria-label="<?php echo t('list.copy_aria'); ?>">
+                        <svg class="xcopy-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+                            <path d="M15 2H9a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1z"/>
+                        </svg>
+                        <span class="tooltip"><?php echo t('list.copy_for', ['words' => $db_3wordid_item['threeword']]); ?></span>
+                    </button>
+                    <span class="hidden-url"><?php echo htmlspecialchars("https://3wordid.com/" . $threeword_url); ?></span>
                     <a href="<?php echo $mail_href; ?>" class="icon-btn mail-icon<?php echo $mail_class; ?>" title="<?php echo $mail_label; ?>" aria-label="<?php echo $mail_label; ?>">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                             <path d="M21 4H3a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path>
                             <path d="M1 6l11 7 11-7"></path>
                         </svg>
-                        <?php if ($mail['unread'] > 0) { ?><span class="mail-count" aria-hidden="true"><?php echo $mail['unread'] > 9 ? '9+' : (int)$mail['unread']; ?></span><?php } ?>
+                        <?php if ($mail['unread'] > 0) { ?><span class="mail-dot" aria-hidden="true"></span><?php } ?>
                     </a>
                     <a href="3wid_delete.php?id=<?php echo (int)$db_3wordid_item['id']; ?>&action_token=<?php echo $action_token; ?>"
 					class="icon-btn trash-icon"

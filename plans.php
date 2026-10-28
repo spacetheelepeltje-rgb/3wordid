@@ -109,6 +109,10 @@ $loginUrl = '/login/options.php';
         @media (max-width: 800px) {
             .legal-card { padding: 20px 16px 4px; }
         }
+        /* phones: no WhatsApp button in the header (it took too much room) */
+        @media (max-width: 720px) {
+            .site-header .wa-btn { display: none; }
+        }
     </style>
 </head>
 <body>
@@ -126,7 +130,7 @@ $loginUrl = '/login/options.php';
 			<a href="https://wa.me/31644311561?text=From 3WordID.com : "
    target="_blank"
    rel="noopener noreferrer"
-   class="btn btn-primary" style='background:#25D366;'>
+   class="btn btn-primary wa-btn" style='background:#25D366;'>
   Chat on WhatsApp
 </a>
 <a href="<?php echo $loginUrl; ?>" class="btn btn-primary">Log in/Create ID</a>

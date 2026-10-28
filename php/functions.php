@@ -1340,7 +1340,7 @@ function db_3wordid_list($user_id) {
 	
 	//$query = "SELECT JSON_ARRAYAGG(JSON_OBJECT(id,threeword,linkthru,linkthruflag)) as json_result FROM 3wordid WHERE user_id= ?";
 	
-	$query = "SELECT id,threeword,linkthru,linkthruflag,notification,enabled,views,creation_date FROM 3wordid WHERE user_id=? ORDER BY threeword ASC";
+	$query = "SELECT id,threeword,linkthru,linkthruflag,emailform,notification,enabled,views,creation_date FROM 3wordid WHERE user_id=? ORDER BY threeword ASC";
 
 	$stmt = $conn->prepare($query);
 
