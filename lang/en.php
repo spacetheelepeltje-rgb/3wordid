@@ -386,6 +386,8 @@ The URL, notification, and chat for these words will be removed. This cannot be 
     'reg.exists' => 'That account already exists. Sign in instead.',
     'reg.google' => 'This email already uses Google. Continue with Google.',
     'reg.failed' => 'Could not create the account. Confirm the password_hash column exists.',
+    'bot.hp_label' => 'Leave this field empty',
+    'bot.rejected' => 'Something went wrong. Please wait a moment and try again.',
     'reg.title' => 'Create account — 3WordID',
     'reg.h1' => 'Create account',
     'reg.sub' => 'Email and password. The address is hashed before it is saved. Unused accounts will be deactivated after 3 months.',

@@ -605,6 +605,79 @@ function db_3wordid_message_rate_after_visitor() {
 	}
 }
 
+// --- Human check for public forms: honeypot field + signed timestamp ------------------------
+// Usage in a form page:
+//   inside the <form>:          echo botcheck_fields('register');
+//   when the form is posted:    if (botcheck_failed('register')) { show t_plain('bot.rejected') }
+// botcheck_failed() logs the reason with the IP (app_log) and returns it; '' means passed.
+// The visitor only sees the generic message, never the reason.
+// Optional settings in login/config.php:
+//   define('BOTCHECK_SECRET', 'long random string');  // default: derived from the database settings
+//   define('BOTCHECK_MIN_SECONDS', 2);                 // faster than this = a script (default 2)
+//   define('BOTCHECK_MAX_SECONDS', 7200);              // form older than this = expired (default 2 hours)
+function botcheck_secret() {
+	if (defined('BOTCHECK_SECRET') && (string) BOTCHECK_SECRET !== '') {
+		return (string) BOTCHECK_SECRET;
+	}
+	return hash('sha256', (defined('WRITEPASSWORD') ? WRITEPASSWORD : '') . '|' . (defined('DATABASE') ? DATABASE : '') . '|3wid-botcheck');
+}
+
+function botcheck_sign($form, $time) {
+	return substr(hash_hmac('sha256', $form . '|' . (int) $time, botcheck_secret()), 0, 40);
+}
+
+// Hidden fields for the form. The honeypot is moved off-screen (not display:none, which some
+// bots skip), can't be reached with Tab, isn't autofilled and is hidden from screen readers;
+// its label still says to leave it empty, just in case.
+function botcheck_fields($form) {
+	$time = time();
+	$token = $time . '.' . botcheck_sign($form, $time);
+	return '<style>.hp-field{position:absolute!important;left:-10000px!important;top:auto!important;width:1px!important;height:1px!important;overflow:hidden!important}</style>'
+		. '<div class="hp-field" aria-hidden="true">'
+		. '<label for="hp-website">' . t('bot.hp_label') . '</label>'
+		. '<input type="text" id="hp-website" name="website" value="" tabindex="-1" autocomplete="off">'
+		. '</div>'
+		. '<input type="hidden" name="form_ts" value="' . htmlspecialchars($token, ENT_QUOTES, 'UTF-8') . '">';
+}
+
+// Why the posted form looks automated ('' = looks human). Reads $_POST.
+function botcheck_reason($form, $post = null, $now = null) {
+	$post = $post ?? $_POST;
+	$now = $now ?? time();
+	if (trim((string) ($post['website'] ?? '')) !== '') {
+		return 'honeypot';
+	}
+	$token = (string) ($post['form_ts'] ?? '');
+	if (!preg_match('/^(\d{1,12})\.([0-9a-f]{40})$/', $token, $m)) {
+		return 'no_token';
+	}
+	if (!hash_equals(botcheck_sign($form, (int) $m[1]), $m[2])) {
+		return 'bad_signature';
+	}
+	$age = $now - (int) $m[1];
+	$min = defined('BOTCHECK_MIN_SECONDS') ? max(0, (int) BOTCHECK_MIN_SECONDS) : 2;
+	$max = defined('BOTCHECK_MAX_SECONDS') ? max(60, (int) BOTCHECK_MAX_SECONDS) : 7200;
+	if ($age < $min) {
+		return 'too_fast';
+	}
+	if ($age > $max) {
+		return 'expired';
+	}
+	return '';
+}
+
+// Checks the posted form; on failure logs the attempt with the IP and returns the reason.
+function botcheck_failed($form) {
+	$reason = botcheck_reason($form);
+	if ($reason !== '') {
+		$token = (string) ($_POST['form_ts'] ?? '');
+		$age = preg_match('/^(\d{1,12})\./', $token, $m) ? (time() - (int) $m[1]) . 's' : '-';
+		app_log('botcheck rejected form=' . $form . ' reason=' . $reason . ' age=' . $age
+			. ' ua=' . substr(preg_replace('/[^\x20-\x7E]/', '', (string) ($_SERVER['HTTP_USER_AGENT'] ?? '')), 0, 150), 'warn', true);
+	}
+	return $reason;
+}
+
 function db_3wordid_hasThreeAlphabeticNumeric($string) {
     // Match exactly three alphanumeric parts separated by spaces
     $pattern = '/^[a-zA-Z0-9]+\s+[a-zA-Z0-9]+\s+[a-zA-Z0-9]+$/';

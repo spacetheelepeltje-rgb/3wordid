@@ -54,7 +54,8 @@
     RewriteRule (^|/)\.(?!well-known(/|$)) - [F,L]
 
     # Libraries, include files, logs and backups: only used by PHP itself
-    RewriteRule ^(vendor|login/vendor|php|logging|backups|old|old_april|old_error)(/|$) - [F,L]
+    # (tools: command-line scripts such as the nightly account cleanup; sql: database changes)
+    RewriteRule ^(vendor|login/vendor|php|logging|logs|tools|sql|backups|old|old_april|old_error)(/|$) - [F,L]
 
     # Credentials
     RewriteRule ^login/config\.php$ - [F,L]

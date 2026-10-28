@@ -386,6 +386,8 @@ De URL, mededeling en chat van deze woorden worden verwijderd. Dit kan niet onge
     'reg.exists' => 'Dat account bestaat al. Log in.',
     'reg.google' => 'Dit e-mailadres gebruikt al Google. Ga verder met Google.',
     'reg.failed' => 'Het account kon niet worden aangemaakt. Controleer of de kolom password_hash bestaat.',
+    'bot.hp_label' => 'Laat dit veld leeg',
+    'bot.rejected' => 'Er ging iets mis. Wacht even en probeer het opnieuw.',
     'reg.title' => 'Account maken — 3WordID',
     'reg.h1' => 'Account maken',
     'reg.sub' => 'E-mail en wachtwoord. Het adres wordt gehasht voordat het wordt opgeslagen. Ongebruikte accounts worden na 3 maanden gedeactiveerd.',
