@@ -155,6 +155,7 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
         <div class="toolbar">
             <a class="btn btn-primary btn-create" href="3wid_add.php" title="<?php echo $title; ?>" <?php echo $pointer; ?>><?php echo $create_label; ?></a>
             <a class="btn btn-ghost btn-compose <?php echo $state; ?>" <?php echo $style; ?> href="3wid_messageform.php" title="<?php echo t('list.compose_title'); ?>"><?php echo t('list.compose'); ?></a>
+            <a class="btn btn-ghost btn-embed" href="3wid_embed.php" title="<?php echo t('list.embed_title'); ?>"><?php echo t('list.embed'); ?></a>
             <?php if ($can_email_list && $count_rows > 0) { ?>
             <form method="post" action="3wid_list.php" style="margin:0">
                 <input type="hidden" name="action_token" value="<?php echo htmlspecialchars($action_token, ENT_QUOTES, 'UTF-8'); ?>">
