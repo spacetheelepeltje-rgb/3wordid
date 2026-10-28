@@ -83,10 +83,14 @@
   unset($_SESSION['chat_conv_sent']);
   // A note from the process script (recipient gone, etc.), once
   $conv_error = '';
-  if ($open !== null && !empty($_SESSION['chat_error']) && in_array($_SESSION['chat_error'], array('chat.err_visitor', 'chat.err_recipient', 'chat.err_inactive', 'chat.err_empty'), true)) {
+  if ($open !== null && !empty($_SESSION['chat_error']) && in_array($_SESSION['chat_error'], array('chat.err_visitor', 'chat.err_recipient', 'chat.err_inactive', 'chat.err_empty', 'chat.err_rate_pair', 'chat.err_rate_recipient'), true)) {
       $conv_error = $_SESSION['chat_error'];
       unset($_SESSION['chat_error']);
   }
+
+  // What was typed when a message was held back (rate limit), put back in the box once
+  $draft = (string) ($_SESSION['chat_draft'] ?? '');
+  unset($_SESSION['chat_draft']);
 
   $base_url = '3wid_list_messages.php?wid_id=' . (int) $threeword_id;
   $threeword_safe = chat_e($threeword);
@@ -201,7 +205,7 @@
         <input type="hidden" name="return" value="conv">
         <div class="c-row">
             <div class="c-box">
-                <textarea name="message" id="message" class="c-text" rows="1" required maxlength="5000" placeholder="<?php echo t('lm.reply', ['name' => $open['name']]); ?>" aria-label="<?php echo t('msg.message_label'); ?>"></textarea>
+                <textarea name="message" id="message" class="c-text" rows="1" required maxlength="5000" placeholder="<?php echo t('lm.reply', ['name' => $open['name']]); ?>" aria-label="<?php echo t('msg.message_label'); ?>"><?php echo chat_e($draft); ?></textarea>
             </div>
             <button type="submit" id="submitBtn" class="send" aria-label="<?php echo t('common.send'); ?>" title="<?php echo t('common.send'); ?>"><?php echo chat_icon('send'); ?></button>
         </div>

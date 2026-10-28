@@ -52,6 +52,19 @@
 	   exit;
    }
 
+   // Spam protection for visitors (limits in php/functions.php): back to the form with a note
+   $visitor_key = '';
+   if ($threeword_data) {
+	   $visitor_key = msg_visitor_key();
+	   $rate_error = db_3wordid_message_rate_error((int) $threeword_data['id'], 0, $visitor_key);
+	   if ($rate_error !== '') {
+		   $_SESSION['chat_error'] = $rate_error;
+		   $_SESSION['chat_draft'] = $message;
+		   header('location:3wid_messageform_ext.php?threeword=' . rawurlencode($threeword_data['threeword']));
+		   exit;
+	   }
+   }
+
    if($threeword_data) { // valid recipient
 		
 	try {
@@ -63,7 +76,8 @@
        //  ($from_id,$to_3wordid,$to_user_id,$title,$message, $terms)
 	   // Call the function
 	   //               db_3wordid_messageform_insert($from_id,$to_3wordid,$from_3wid_id,$to_user_id,$title,$message, $terms)  
-	   $insert_result = db_3wordid_messageform_insert(CHAT_VISITOR_USER_ID,$threeword_data['id'],CHAT_VISITOR_WID,$threeword_data['user_id'],$title,$message, 0);
+	   $insert_result = db_3wordid_messageform_insert(CHAT_VISITOR_USER_ID,$threeword_data['id'],CHAT_VISITOR_WID,$threeword_data['user_id'],$title,$message, 0, $visitor_key);
+	   db_3wordid_message_rate_after_visitor();
 	   
 	   //db_3wordid_update_google_csrf($data['id'],$_SESSION["csrf_token"]);
 	   //db_3wordid_set_csrf_token($data['id'],$_SESSION["csrf_token"]);

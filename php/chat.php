@@ -270,7 +270,7 @@ function chat_avatar_for($name, $wid_id, $photo_ids, $extra_class = '', $zoom = 
 
 // Version of css/chat.css and js/chat.js: raise it when they change, so browsers
 // load the new files without a hard refresh (Ctrl+F5).
-if (!defined('CHAT_ASSET_VERSION')) { define('CHAT_ASSET_VERSION', '5'); }
+if (!defined('CHAT_ASSET_VERSION')) { define('CHAT_ASSET_VERSION', '6'); }
 
 function chat_asset($path) {
 	return chat_e($path . '?v=' . CHAT_ASSET_VERSION);
@@ -284,6 +284,8 @@ function chat_tb_icon($name) {
 			return '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.2" fill="currentColor"/><circle cx="4.5" cy="12" r="1.2" fill="currentColor"/><circle cx="4.5" cy="18" r="1.2" fill="currentColor"/></svg>';
 		case 'globe':
 			return '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>';
+		case 'home':
+			return '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg>';
 		case 'login':
 			return '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="M10 17l5-5-5-5M15 12H3"/></svg>';
 	}
@@ -309,13 +311,20 @@ function chat_lang_menu() {
 	return $out . '</ul></details>';
 }
 
-// Where "back" goes when there is nothing in between: the list of your 3WordIDs
-// when logged in, the homepage when not. Returns [url, visible label, accessible label].
+// The top-left button. Logged in: back to the list of your 3WordIDs. Not logged in: a
+// "Login" button to the login page (the homepage is the home icon on the right, see
+// chat_home_button). Returns [url, visible label, accessible label, optional icon].
+// ($main_url is no longer used; kept so older calls keep working.)
 function chat_back_home($logged_in, $main_url = 'index.php') {
 	if ($logged_in) {
 		return array('3wid_list.php', t('tb.my_ids'), t('tb.back_my_ids'));
 	}
-	return array($main_url !== '' ? $main_url : 'index.php', t('tb.home'), t('tb.back_home'));
+	return array('/login/options.php', t('nav.login'), t('nav.login'), 'login');
+}
+
+// Home icon for the right side of the bar (visitors who are not logged in)
+function chat_home_button() {
+	return chat_tb_button('index.php', 'home', t_plain('tb.back_home'));
 }
 
 // The bar itself. All values are HTML (already escaped):
@@ -329,8 +338,11 @@ function chat_back_home($logged_in, $main_url = 'index.php') {
 function chat_topbar($o) {
 	$back = $o['back'];
 	$h = '<header class="chat-topbar"><div class="tb-inner">';
-	$h .= '<a class="tb-back" href="' . chat_e($back[0]) . '" aria-label="' . $back[2] . '" title="' . $back[2] . '">'
-		. chat_icon('back') . '<span class="tb-back-label">' . $back[1] . '</span></a>';
+	// An optional 4th value is the icon instead of the back arrow; 'login' also keeps the
+	// "Login" text visible on phones (it is a button, not a way back)
+	$back_icon = $back[3] ?? '';
+	$h .= '<a class="tb-back' . ($back_icon === 'login' ? ' tb-back-login' : '') . '" href="' . chat_e($back[0]) . '" aria-label="' . $back[2] . '" title="' . $back[2] . '">'
+		. ($back_icon !== '' ? chat_tb_icon($back_icon) : chat_icon('back')) . '<span class="tb-back-label">' . $back[1] . '</span></a>';
 	$h .= '<div class="tb-who">' . ($o['avatar'] ?? '');
 	$h .= '<div class="tb-text"><div class="tb-name"' . (!empty($o['name_id']) ? ' id="' . chat_e($o['name_id']) . '"' : '') . '>' . $o['name'] . '</div>';
 	if (isset($o['sub']) && $o['sub'] !== '') {

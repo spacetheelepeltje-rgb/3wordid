@@ -320,6 +320,16 @@ if (empty($_SESSION['csrf_token'])) {
     </div>
 
 <?php echo i18n_js_all(); ?>
+<script>
+    // "Use forward URL" and "Link to chat" exclude each other: ticking one unticks the other
+    (function () {
+        var fwd = document.getElementById('linkthruflag');
+        var chat = document.getElementById('emailform');
+        if (!fwd || !chat) { return; }
+        fwd.addEventListener('change', function () { if (fwd.checked) { chat.checked = false; } });
+        chat.addEventListener('change', function () { if (chat.checked) { fwd.checked = false; } });
+    })();
+</script>
 <script src="js/3wid_add.js"></script>
 <script>
     function handleGoogleLogin() {

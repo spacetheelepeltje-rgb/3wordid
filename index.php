@@ -152,7 +152,6 @@ $more_list = array_values($by_words);
 
     <main>
         <section class="hero">
-            <div class="eyebrow"><?php echo t_raw('home.eyebrow'); ?></div>
             <h1><?php echo t_raw('home.h1'); ?></h1>
             <p class="subhead"><?php echo t('home.subhead'); ?></p>
             <div class="helper-note" id="helperText"><?php echo $helpertext; ?></div>
@@ -168,16 +167,10 @@ $more_list = array_values($by_words);
                     <input id="threewords" name="threewords" type="text" class="search-bar" placeholder="<?php echo t('common.placeholder_words'); ?>" value="<?= htmlspecialchars($threewords); ?>" autocomplete="off">
                     <button type="submit" id="submitBtn"><?php echo t('home.lookup'); ?></button>
                 </div>
-                <div class="example-row"><?php echo t('home.try_label'); ?> <button type="button" id="tryExample" class="example-btn" data-words="davinci mona lisa"><?php echo t('home.try_btn'); ?></button></div>
+                <div class="example-row"><?php echo t('home.try_label'); ?> <button type="button" id="tryExample" class="example-btn" data-words="private anonymous message"><?php echo t('home.try_btn'); ?></button></div>
                 <button type="button" id="createBtn" class="create-link" data-share-url="<?php echo $loginUrl; ?>"><?php echo t('home.create'); ?></button>
                 <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
             </form>
-        </section>
-
-        <section class="trust" aria-label="<?php echo t('home.trust_aria'); ?>">
-            <div class="trust-item"><?php echo t_raw('home.trust1'); ?></div>
-            <div class="trust-item"><?php echo t_raw('home.trust2'); ?></div>
-            <div class="trust-item"><?php echo t_raw('home.trust3'); ?></div>
         </section>
 
         <section class="how" id="how-it-works">
@@ -203,6 +196,11 @@ $more_list = array_values($by_words);
 
         <section class="cards" id="use-cases">
             <article class="card">
+                <div class="card-kicker"><?php echo t('home.card3_kicker'); ?></div>
+                <h3><?php echo t('home.card3_title'); ?></h3>
+                <p><?php echo t('home.card3_text'); ?></p>
+            </article>
+            <article class="card">
                 <div class="card-kicker"><?php echo t('home.card1_kicker'); ?></div>
                 <h3><?php echo t('home.card1_title'); ?></h3>
                 <p><?php echo t('home.card1_text'); ?></p>
@@ -213,11 +211,6 @@ $more_list = array_values($by_words);
                 <h3><?php echo t('home.card2_title'); ?></h3>
                 <p><?php echo t('home.card2_text'); ?></p>
                 <div class="card-example"><?php echo t('home.example'); ?> <code>our delicious menu</code></div>
-            </article>
-            <article class="card">
-                <div class="card-kicker"><?php echo t('home.card3_kicker'); ?></div>
-                <h3><?php echo t('home.card3_title'); ?></h3>
-                <p><?php echo t('home.card3_text'); ?></p>
             </article>
         </section>
 

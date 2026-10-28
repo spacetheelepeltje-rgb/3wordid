@@ -89,12 +89,24 @@
    } elseif ($message === '') {
 	   $error = 'chat.err_empty';
    }
+   if ($error === '') {
+	   // Spam protection: too many messages in a short time (limits in php/functions.php)
+	   $error = db_3wordid_message_rate_error((int) $threeword_data['id'], $from_id);
+	   if ($error !== '') {
+		   // Keep what was typed, so nothing is lost while waiting
+		   $_SESSION['chat_draft'] = $message;
+	   }
+   }
    $conv_url = ($threeword_data && !chat_is_visitor_wid($threeword_data))
 	   ? '3wid_list_messages.php?wid_id=' . $from_id . '&with=' . rawurlencode('w' . (int) $threeword_data['id'])
 	   : '3wid_list_messages.php?wid_id=' . $from_id;
    if ($error !== '') {
 	   $_SESSION['chat_error'] = $error;
-	   header('location:' . ($to_conversation ? $conv_url : '3wid_messageform.php?threeword_id=' . $from_id));
+	   $form_url = '3wid_messageform.php?threeword_id=' . $from_id;
+	   if (strpos($error, 'chat.err_rate') === 0) {
+		   $form_url .= '&threeword=' . rawurlencode($threeword_data['threeword']); // stay with the same recipient
+	   }
+	   header('location:' . ($to_conversation ? $conv_url : $form_url));
 	   exit;
    }
 

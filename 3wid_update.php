@@ -78,6 +78,9 @@ if ($data == NULL) {
 		$linkthruflag = 0;  
    }
    
+   // "Use forward URL" and "Link to chat" exclude each other: keep the one just switched on
+   [$linkthruflag, $emailform] = wid_exclusive_link_flags($linkthruflag, $emailform, db_3wordid_get($id) ?: null);
+
    if (filter_var($linkthru, FILTER_VALIDATE_URL)) {
 		//echo("$url is a valid URL");
 		} else {

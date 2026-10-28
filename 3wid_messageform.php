@@ -52,10 +52,14 @@
 
   // A note from 3wid_messageform_process.php (unknown recipient / visitor), shown once
   $error_key = '';
-  if (!empty($_SESSION['chat_error']) && in_array($_SESSION['chat_error'], array('chat.err_visitor', 'chat.err_recipient', 'chat.err_inactive', 'chat.err_empty'), true)) {
+  if (!empty($_SESSION['chat_error']) && in_array($_SESSION['chat_error'], array('chat.err_visitor', 'chat.err_recipient', 'chat.err_inactive', 'chat.err_empty', 'chat.err_rate_pair', 'chat.err_rate_recipient'), true)) {
       $error_key = $_SESSION['chat_error'];
   }
   unset($_SESSION['chat_error']);
+
+  // What was typed when a message was held back (rate limit), put back in the box once
+  $draft = (string) ($_SESSION['chat_draft'] ?? '');
+  unset($_SESSION['chat_draft']);
 
   // Never prefill the visitor placeholder as a recipient: visitors cannot get replies
   $reply_row = $reply_to !== '' ? db_3wordid_get_threeword($reply_to) : null;
@@ -158,7 +162,7 @@
     <form class="composer" id="3widForm"<?php echo $sent ? ' data-sent="1"' : ''; ?> action="3wid_messageform_process.php" method="post">
         <div class="c-row">
             <div class="c-box">
-                <textarea name="message" id="message" class="c-text" rows="1" placeholder="<?php echo t('chat.type_message'); ?>" aria-label="<?php echo t('msg.message_label'); ?>"></textarea>
+                <textarea name="message" id="message" class="c-text" rows="1" placeholder="<?php echo t('chat.type_message'); ?>" aria-label="<?php echo t('msg.message_label'); ?>"><?php echo chat_e($draft); ?></textarea>
             </div>
             <button type="submit" id="submitBtn" class="send" aria-label="<?php echo t('common.send'); ?>" title="<?php echo t('common.send'); ?>"><?php echo chat_icon('send'); ?></button>
         </div>

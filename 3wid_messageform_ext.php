@@ -62,6 +62,17 @@
       }
       unset($_SESSION['chat_sent']);
   }
+
+  // Held back by the spam limit (3wid_messageform_ext_process.php): a note, and the typed text back, once
+  $error_key = '';
+  if (!empty($_SESSION['chat_error']) && in_array($_SESSION['chat_error'], array('chat.err_rate_visitor', 'chat.err_rate_recipient'), true)) {
+      $error_key = $_SESSION['chat_error'];
+  }
+  unset($_SESSION['chat_error']);
+
+  // What was typed when a message was held back (rate limit), put back in the box once
+  $draft = (string) ($_SESSION['chat_draft'] ?? '');
+  unset($_SESSION['chat_draft']);
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo current_lang(); ?>">
@@ -82,8 +93,8 @@
       'avatar'  => chat_avatar_for($reply_to, $wid_id, $photo_ids, '', true),
       'name'    => $reply_to_safe,
       'sub'     => t('tb.anonymous'),
-      // Logged in: the list button to My 3WordIDs; visitors: a login button
-      'actions' => $viewer ? chat_tb_button('3wid_list.php', 'list', t_plain('tb.my_ids')) : '<a class="tb-btn tb-login" href="' . chat_e($loginUrl) . '" title="' . t('nav.login') . '" aria-label="' . t('nav.login') . '">' . chat_tb_icon('login') . '<span class="tb-btn-label">' . t('nav.login') . '</span></a>',
+      // Logged in: the list button to My 3WordIDs; visitors: "Login" top left, a home icon here
+      'actions' => $viewer ? chat_tb_button('3wid_list.php', 'list', t_plain('tb.my_ids')) : chat_home_button(),
   ));
 ?>
 <div class="chat-app">
@@ -114,6 +125,10 @@
         <div class="pill-wrap"><span class="pill ok"><?php echo t('mp.thanks_to', ['name' => $sent['to']]); ?></span></div>
         <?php endif; ?>
 
+        <?php if ($error_key !== ''): ?>
+        <div class="pill-wrap"><span class="pill info" role="alert"><?php echo t($error_key); ?></span></div>
+        <?php endif; ?>
+
         <footer class="chat-footer"><?php echo $footer; ?></footer>
     </main>
 
@@ -124,7 +139,7 @@
         <p class="c-note c-status" id="helperText" role="status" aria-live="polite"></p>
         <div class="c-row">
             <div class="c-box">
-                <textarea name="message" id="message" class="c-text" rows="1" placeholder="<?php echo t('chat.type_message'); ?>" aria-label="<?php echo t('msg.message_label'); ?>"></textarea>
+                <textarea name="message" id="message" class="c-text" rows="1" placeholder="<?php echo t('chat.type_message'); ?>" aria-label="<?php echo t('msg.message_label'); ?>"><?php echo chat_e($draft); ?></textarea>
             </div>
             <button type="submit" id="submitBtn" class="send" aria-label="<?php echo t('common.send'); ?>" title="<?php echo t('common.send'); ?>"><?php echo chat_icon('send'); ?></button>
         </div>
