@@ -1981,6 +1981,34 @@ function user_is_paying($user): bool
 }
 
 /**
+ * Lookup for the search lock (3wid_exists.php): does this exact 3WordID exist, and is its
+ * owner a paying account? Returns null when not found, else ['paying' => bool].
+ * Switched-off 3WordIDs count as existing. Nothing else about the 3WordID or owner leaves here.
+ */
+function db_3wordid_exists_status(string $threeword): ?array
+{
+    if (!db_3wordid_hasThreeAlphabeticNumeric($threeword)) {
+        return null;
+    }
+    $conn = get_db_conn();
+    $stmt = $conn->prepare(
+        'SELECT u.user_type FROM 3wordid w LEFT JOIN google_users u ON u.id = w.user_id'
+        . ' WHERE w.threeword = ? LIMIT 1'
+    );
+    if ($stmt === false) {
+        return null;
+    }
+    $stmt->bind_param('s', $threeword);
+    $stmt->execute();
+    $row = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+    if (!$row) {
+        return null;
+    }
+    return ['paying' => user_is_paying(['user_type' => $row['user_type']])];
+}
+
+/**
  * Why a 3WordID typed in the add form is not accepted, as a lang key (null = fine).
  * Same checks as db_3wid_validate_type(), but with a reason the form can show.
  */

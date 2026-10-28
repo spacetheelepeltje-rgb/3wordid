@@ -183,6 +183,7 @@ $loginUrl = '/login/options.php';
                 <p><?php echo t_raw('terms.s5_p1'); ?></p>
                 <p><?php echo t_raw('terms.s5_p2'); ?></p>
                 <p><?php echo t_raw('terms.s5_p3'); ?></p>
+                <p><?php echo t('terms.s5_p4'); ?></p>
             </section>
 
             <section>

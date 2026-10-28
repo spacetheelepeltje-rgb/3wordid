@@ -29,31 +29,43 @@ function tr(key, fallback) {
     return (window.T3 && window.T3[key]) || fallback;
 }
 
+// state: 'found' (green: the 3WordID exists), 'gold' (exists and owned by a paying account)
+// or anything else (closed lock). Switched-off 3WordIDs also count as found: the search goes
+// on and the visitor lands on the "not active at the moment" page.
 function setSearchLock(state) {
     var lock = document.getElementById('searchLock');
     var shackle = document.getElementById('lockShackle');
     var input = document.getElementById('threewords');
     if (!lock || !shackle) return;
 
-    lock.classList.remove('is-found', 'is-disabled');
+    lock.classList.remove('is-found', 'is-gold');
+    lock.removeAttribute('title');
+    lock.removeAttribute('aria-label');
+    lock.removeAttribute('role');
+    lock.setAttribute('aria-hidden', 'true');
 
-    if (state === 'found') {
+    if (state === 'found' || state === 'gold') {
+        var label = state === 'gold' ? tr('paying', 'Owned by a paying account') : tr('exists', '3wid exists');
         shackle.setAttribute('d', 'M7 11V7a5 5 0 0 1 9.9-1');
-        lock.classList.add('is-found');
-        if (input) input.style.color = 'green';
-    } else if (state === 'disabled') {
-        shackle.setAttribute('d', 'M7 11V7a5 5 0 0 1 10 0v4');
-        lock.classList.add('is-disabled');
-        if (input) input.style.color = 'orange';
+        lock.classList.add(state === 'gold' ? 'is-gold' : 'is-found');
+        lock.setAttribute('title', label);
+        lock.setAttribute('aria-label', label);
+        lock.setAttribute('role', 'img');
+        lock.removeAttribute('aria-hidden');
+        if (input) input.style.color = state === 'gold' ? '#B8860B' : 'green';
     } else {
         shackle.setAttribute('d', 'M7 11V7a5 5 0 0 1 10 0v4');
         if (input) input.style.color = '';
     }
 }
 
+var existsRequest = 0; // only the newest answer may change the lock
+
  $(document).ready(function() {
 
     $('#threewords').on('keyup', function() {
+
+              var mine = ++existsRequest; // any older answer is now out of date
 
               threewords = $('#threewords').val();
               
@@ -79,21 +91,19 @@ function setSearchLock(state) {
                       $.ajax({
                         type: 'POST',
                         url: '3wid_exists.php',
+                        dataType: 'json',
                         data: {
-                            'threewords': threewords
+                            'threewords': threewords,
+                            'format': 'json'
                         },
                         success: function(response) {
-                            if(response =='exists') {
+                            if (mine !== existsRequest) return; // an older answer
+                            if (response && response.exists) {
                                 $("#helperText").text(tr('exists', "3wid exists"));
-                                setSearchLock('found');
+                                setSearchLock(response.paying ? 'gold' : 'found');
                             } else {
-                                if(response =='disabled') {
-                                    $("#helperText").text(tr('disabled', "3wid disabled"));
-                                    setSearchLock('disabled');
-                                } else {
-                                    $('#helperText').text(tr('missing', "3wid does not exist log in to create"));
-                                    setSearchLock('closed');
-                                }
+                                $('#helperText').text(tr('missing', "3wid does not exist log in to create"));
+                                setSearchLock('closed');
                             }
                         },
                         error: function(xhr, status, error) {

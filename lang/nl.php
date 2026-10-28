@@ -76,8 +76,8 @@ return [
     'home.faq3_q' => 'Wat wordt er opgeslagen?',
     'home.faq3_a' => 'Je e-mailadres wordt alleen opgeslagen als eenrichtings-hash, niet als leesbare tekst. Berichten die via een chat worden verstuurd en de IP-adressen waarvan ze komen, worden vastgelegd en bewaard, zodat de dienst verantwoording kan afleggen en rechtmatige verzoeken kan beantwoorden. Accounts worden gedeactiveerd, nooit verwijderd, en hun gegevens en logs blijven bewaard. De details staan in de <a href="terms.php">voorwaarden</a>.',
     'home.js_exists' => '3wid bestaat',
-    'home.js_disabled' => '3wid is uitgeschakeld',
     'home.js_missing' => '3wid bestaat niet, log in om hem te maken',
+    'home.js_paying' => 'Van een betaald account',
 
     // ---- terms
     'terms.title' => 'Algemene voorwaarden — 3WordID',
@@ -104,6 +104,7 @@ return [
     'terms.s5_p1' => 'Gratis of onbetaalde 3WordID’s kunnen vervallen, worden verwijderd of door een andere gebruiker worden overgenomen. Onbetaalde ID’s kunnen na ongeveer twee weken vervallen, of eerder als de Beheerder dat besluit.',
     'terms.s5_p2' => 'Met een betaald account of betaald tegoed koop je alleen een beperkte, herroepbare kans om 3WordID’s te behouden of aan te maken, zolang de Beheerder die mogelijkheid blijft bieden. De woorden zelf koop je daarmee niet.',
     'terms.s5_p3' => '<strong>Betaalde accounts gaan voor op gratis accounts</strong> wanneer beide dezelfde 3WordID willen reserveren. Als een gratis of niet-betalende gebruiker een 3WordID heeft en een betalende gebruiker dezelfde 3WordID aanvraagt, mag de Beheerder die aan de betalende gebruiker toewijzen, met of zonder bericht aan de gratis gebruiker. Tussen betalende gebruikers beslist de Beheerder naar eigen goeddunken over de toewijzing.',
+    'terms.s5_p4' => 'In het zoekvak betekent een groen slot dat de 3WordID bestaat. Een gouden slot betekent dat deze van een betaald account is.',
     'terms.s6_h' => '6. Lokalisatie',
     'terms.s6_p1' => '3WordID’s kunnen worden gelokaliseerd. Dezelfde drie woorden kunnen later per land, stad, taal of andere locatie naar iets anders verwijzen. Een wereldwijde match vandaag is geen belofte van een wereldwijde match morgen. Lokalisatie kan bestaande ID’s splitsen, verbergen, hernoemen of vervangen.',
     'terms.s7_h' => '7. Beëindiging op elk moment',
