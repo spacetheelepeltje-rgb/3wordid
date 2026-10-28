@@ -45,7 +45,8 @@
 	  
    $message = trim((string) ($_POST["message"] ?? ''));
  
-   $threeword = (string) ($_POST["threeword"] ?? '');
+   // Same form as stored ("Red  Blue Dog" finds "red blue dog")
+   $threeword = chat_normalize_words($_POST["threeword"] ?? '');
    
    
    $from_id = (int) ($_POST["from_id"] ?? 0);
@@ -79,15 +80,14 @@
    // account, so a reply would never reach them): back to the form with a clear note
    // Also: a switched-off 3WordID, or an empty message.
    // There is no "one message until a reply" limit here: members can chat back and forth.
-   $error = '';
-   if (!$threeword_data) {
-	   $error = 'chat.err_recipient';
-   } elseif (chat_is_visitor_wid($threeword_data)) {
-	   $error = 'chat.err_visitor';
-   } elseif (isset($threeword_data['enabled']) && (int) $threeword_data['enabled'] !== 1) {
-	   $error = 'chat.err_inactive';
-   } elseif ($message === '') {
+   // (same rule as the live check in 3wid_recipient_check.php: chat_recipient_error())
+   $error = chat_recipient_error($threeword_data);
+   if ($error === '' && $message === '') {
 	   $error = 'chat.err_empty';
+   }
+   if ($error === 'chat.err_recipient' || $error === 'chat.err_inactive') {
+	   // Keep what was typed, so a typo in the three words doesn't lose the message
+	   $_SESSION['chat_draft'] = $message;
    }
    if ($error === '') {
 	   // Spam protection: too many messages in a short time (limits in php/functions.php)
@@ -105,6 +105,8 @@
 	   $form_url = '3wid_messageform.php?threeword_id=' . $from_id;
 	   if (strpos($error, 'chat.err_rate') === 0) {
 		   $form_url .= '&threeword=' . rawurlencode($threeword_data['threeword']); // stay with the same recipient
+	   } elseif (($error === 'chat.err_recipient' || $error === 'chat.err_inactive') && $threeword !== '') {
+		   $form_url .= '&threeword=' . rawurlencode(chat_substr($threeword, 0, 80)); // put the words back to correct them
 	   }
 	   header('location:' . ($to_conversation ? $conv_url : $form_url));
 	   exit;

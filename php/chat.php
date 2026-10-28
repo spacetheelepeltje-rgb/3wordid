@@ -187,6 +187,23 @@ function chat_is_visitor_wid($row) {
 	return (int) ($row['id'] ?? 0) === CHAT_VISITOR_WID || (int) ($row['user_id'] ?? 0) === CHAT_VISITOR_USER_ID;
 }
 
+// Three words as typed in the recipient field, the way they are stored: trimmed,
+// single spaces, lower case ("Red  Blue Dog " -> "red blue dog").
+function chat_normalize_words($words) {
+	return chat_lower(trim(preg_replace('/\s+/u', ' ', (string) $words)));
+}
+
+// Can a logged-in member send a message to this 3WordID row (from db_3wordid_get_threeword)?
+// '' = yes, else the lang key why not. A real recipient: the 3WordID exists (deleted ones
+// are moved to 3wordid_deleted, so they are not found), is switched on, and is not the
+// placeholder used for anonymous visitors.
+function chat_recipient_error($row) {
+	if (!is_array($row) || empty($row['id'])) { return 'chat.err_recipient'; }
+	if (chat_is_visitor_wid($row)) { return 'chat.err_visitor'; }
+	if (isset($row['enabled']) && (int) $row['enabled'] !== 1) { return 'chat.err_inactive'; }
+	return '';
+}
+
 // Group messages into conversations, one per partner 3WordID, in BOTH directions:
 // $incoming = db_3wordid_list_messages() rows (sent to my 3WordID), $sent =
 // db_3wordid_list_sent() rows (sent from my 3WordID). Anonymous visitors (user 25)
@@ -270,7 +287,7 @@ function chat_avatar_for($name, $wid_id, $photo_ids, $extra_class = '', $zoom = 
 
 // Version of css/chat.css and js/chat.js: raise it when they change, so browsers
 // load the new files without a hard refresh (Ctrl+F5).
-if (!defined('CHAT_ASSET_VERSION')) { define('CHAT_ASSET_VERSION', '6'); }
+if (!defined('CHAT_ASSET_VERSION')) { define('CHAT_ASSET_VERSION', '7'); }
 
 function chat_asset($path) {
 	return chat_e($path . '?v=' . CHAT_ASSET_VERSION);
