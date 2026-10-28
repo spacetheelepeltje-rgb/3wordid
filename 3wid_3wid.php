@@ -265,7 +265,7 @@
                 <input type="text" name="linkthru" id="linkthru" class="search-bar" placeholder="<?php echo t('edit.linkthru_ph'); ?>" value="<?= htmlspecialchars((string)$row["linkthru"]); ?>">
 
                 <div class="checks">
-                    <label><input <?php echo $row["linkthruflag"]== 1 ?'checked':''; ?> type="checkbox" id="linkthruflag" name="linkthruflag"> <?php echo t('add.use_forward'); ?></label>
+                    <label><input <?php echo ($row["linkthruflag"] == 1 && $row["emailform"] != 1) ? 'checked' : ''; ?> type="checkbox" id="linkthruflag" name="linkthruflag"> <?php echo t('add.use_forward'); ?></label>
                     <label><input <?php echo $row["emailform"]== 1 ?'checked':''; ?> type="checkbox" id="emailform" name="emailform"> <?php echo t('edit.link_form'); ?></label>
                     <label><input <?php echo $row["private"]== 1 ?'checked':''; ?> type="checkbox" id="private" name="private"> <?php echo t('edit.private'); ?></label>
                 </div>
@@ -297,6 +297,16 @@
     </footer>
 </body>
 <?php echo i18n_js_all(); ?>
+<script>
+    // "Use forward URL" and "Link to chat" exclude each other: ticking one unticks the other
+    (function () {
+        var fwd = document.getElementById('linkthruflag');
+        var chat = document.getElementById('emailform');
+        if (!fwd || !chat) { return; }
+        fwd.addEventListener('change', function () { if (fwd.checked) { chat.checked = false; } });
+        chat.addEventListener('change', function () { if (chat.checked) { fwd.checked = false; } });
+    })();
+</script>
 <script src="js/3wid_3wid.js"></script>
 <script>
     function handleGoogleLogin() {

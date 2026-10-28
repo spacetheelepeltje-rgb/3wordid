@@ -443,7 +443,9 @@ $mysqli->close();
 	
 }
 
-function db_3wordid_messageform_insert($from_id,$to_3wordid,$from_3wid_id,$to_user_id,$title,$message, $terms) {
+// $sender_key: only for anonymous visitors, the hashed IP from msg_visitor_key() (used for the
+// rate limit; stored only when the sender_key column exists, see sql/2026-10-28_message_rate_limit.sql).
+function db_3wordid_messageform_insert($from_id,$to_3wordid,$from_3wid_id,$to_user_id,$title,$message, $terms, $sender_key = '') {
 	
     $conn = get_db_conn();
 
@@ -454,7 +456,11 @@ function db_3wordid_messageform_insert($from_id,$to_3wordid,$from_3wid_id,$to_us
     }
 
     // Prepare the SQL INSERT statement
-    $sql = "INSERT INTO 3wordid_messages (from_id, 3wid_id,3wid_from_id,to_id, title, message, terms) 
+    $with_key = ($sender_key !== '' && db_3wordid_messages_has_column('sender_key'));
+    $sql = $with_key
+        ? "INSERT INTO 3wordid_messages (from_id, 3wid_id,3wid_from_id,to_id, title, message, terms, sender_key) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+        : "INSERT INTO 3wordid_messages (from_id, 3wid_id,3wid_from_id,to_id, title, message, terms) 
             VALUES (?, ?, ?, ?, ?, ?, ?)";
 
     
@@ -468,7 +474,11 @@ function db_3wordid_messageform_insert($from_id,$to_3wordid,$from_3wid_id,$to_us
     }
 
     // Bind parameters to prevent SQL injection
-    $stmt->bind_param("iiiissi", $from_id, $to_3wordid,$from_3wid_id,$to_user_id, $title, $message, $terms);
+    if ($with_key) {
+        $stmt->bind_param("iiiissis", $from_id, $to_3wordid,$from_3wid_id,$to_user_id, $title, $message, $terms, $sender_key);
+    } else {
+        $stmt->bind_param("iiiissi", $from_id, $to_3wordid,$from_3wid_id,$to_user_id, $title, $message, $terms);
+    }
 
     // Execute the statement
     if ($stmt->execute()) {
@@ -481,6 +491,118 @@ function db_3wordid_messageform_insert($from_id,$to_3wordid,$from_3wid_id,$to_us
         $conn->close();
         return false; // Failure
     }
+}
+
+// ---- Message rate limits (spam protection) ----
+// Defaults below; override any of them in login/config.php, for example
+//   define('MSG_LIMIT_PAIR_PER_HOUR', 30);
+// 0 switches that limit off. Each check is one COUNT on an index, capped with LIMIT, so the
+// cost stays tiny however busy a 3WordID gets.
+//   MSG_LIMIT_PAIR_PER_HOUR      one sender 3WordID to one recipient 3WordID, per hour   (20)
+//   MSG_LIMIT_RECIPIENT_PER_DAY  everything one 3WordID receives, per 24 hours          (200)
+//   MSG_LIMIT_VISITOR_PER_HOUR   one anonymous visitor (hashed IP), all recipients, per hour (10)
+function msg_limit($name, $default) {
+	return defined($name) ? max(0, (int) constant($name)) : (int) $default;
+}
+
+// The visitor's IP, never stored as is: a keyed hash (HMAC-SHA256, first 32 hex characters).
+// IPv6 addresses count per /64 (one home or phone gets a whole /64, so the last part changes
+// freely). Uses REMOTE_ADDR only: forwarded-for headers are easy to fake.
+// Key: MSG_RATE_SALT from login/config.php when defined, otherwise derived from the database
+// settings, so the hash can't be turned back into an IP without access to the server.
+function msg_visitor_key() {
+	$ip = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
+	if ($ip === '') {
+		return '';
+	}
+	if (strpos($ip, ':') !== false) {
+		$bin = @inet_pton($ip);
+		if ($bin !== false && strlen($bin) === 16) {
+			$ip = bin2hex(substr($bin, 0, 8)) . '::/64';
+		}
+	}
+	$salt = defined('MSG_RATE_SALT') ? (string) MSG_RATE_SALT
+		: ((defined('WRITEPASSWORD') ? WRITEPASSWORD : '') . '|' . (defined('DATABASE') ? DATABASE : '') . '|3wid-rate');
+	return substr(hash_hmac('sha256', $ip, $salt), 0, 32);
+}
+
+// How many messages match, counting no further than $cap (enough to compare with a limit).
+// $where uses only indexed columns plus creation_date. Returns 0 when the query fails.
+function db_3wordid_message_count_recent($where, $types, $params, $cap) {
+	$conn = get_db_conn();
+	if (!$conn || $conn->connect_error) {
+		return 0;
+	}
+	$stmt = $conn->prepare("SELECT COUNT(*) AS n FROM (SELECT 1 FROM 3wordid_messages WHERE " . $where . " LIMIT " . ((int) $cap + 1) . ") t");
+	$n = 0;
+	if ($stmt) {
+		$stmt->bind_param($types, ...$params);
+		if ($stmt->execute()) {
+			$row = $stmt->get_result()->fetch_assoc();
+			$n = (int) ($row['n'] ?? 0);
+		}
+		$stmt->close();
+	}
+	$conn->close();
+	return $n;
+}
+
+// Check the limits before a message is stored. Returns '' when the message may be sent,
+// otherwise the language key of the note to show.
+// $from_wid: the sender's own 3WordID (members), or 0 for an anonymous visitor with
+// $visitor_key = msg_visitor_key().
+// Needs the creation_date column (sql/2026-10-27_two_way_chat.sql); without it nothing is limited.
+function db_3wordid_message_rate_error($to_wid, $from_wid, $visitor_key = '') {
+	$to_wid = (int) $to_wid;
+	$from_wid = (int) $from_wid;
+	if (!db_3wordid_messages_has_column('creation_date')) {
+		return '';
+	}
+
+	if ($from_wid === 0) {
+		// Anonymous visitor: per hashed IP, over all recipients
+		$max = msg_limit('MSG_LIMIT_VISITOR_PER_HOUR', 10);
+		if ($max > 0 && $visitor_key !== '') {
+			if (db_3wordid_messages_has_column('sender_key')) {
+				$n = db_3wordid_message_count_recent('sender_key = ? AND creation_date > NOW() - INTERVAL 1 HOUR', 's', array($visitor_key), $max);
+			} else {
+				// Column not added yet: count in the visitor's session instead (weaker, but something)
+				$recent = array_filter((array) ($_SESSION['msg_visitor_times'] ?? array()), function ($ts) { return (int) $ts > time() - 3600; });
+				$_SESSION['msg_visitor_times'] = array_values($recent);
+				$n = count($recent);
+			}
+			if ($n >= $max) {
+				return 'chat.err_rate_visitor';
+			}
+		}
+	} else {
+		// Member: one sender 3WordID to one recipient
+		$max = msg_limit('MSG_LIMIT_PAIR_PER_HOUR', 20);
+		if ($max > 0 && db_3wordid_message_count_recent('3wid_id = ? AND 3wid_from_id = ? AND creation_date > NOW() - INTERVAL 1 HOUR', 'ii', array($to_wid, $from_wid), $max) >= $max) {
+			return 'chat.err_rate_pair';
+		}
+	}
+
+	// Everybody: everything one 3WordID receives in 24 hours
+	$max = msg_limit('MSG_LIMIT_RECIPIENT_PER_DAY', 200);
+	if ($max > 0 && db_3wordid_message_count_recent('3wid_id = ? AND creation_date > NOW() - INTERVAL 1 DAY', 'i', array($to_wid), $max) >= $max) {
+		return 'chat.err_rate_recipient';
+	}
+	return '';
+}
+
+// After a visitor message: remember it for the session fallback, and forget hashed IPs older
+// than 2 days (only the last hour is ever checked, so they are not kept longer than needed).
+function db_3wordid_message_rate_after_visitor() {
+	if (!db_3wordid_messages_has_column('sender_key')) {
+		$_SESSION['msg_visitor_times'][] = time();
+		return;
+	}
+	$conn = get_db_conn();
+	if ($conn && !$conn->connect_error) {
+		$conn->query("UPDATE 3wordid_messages SET sender_key = NULL WHERE sender_key IS NOT NULL AND creation_date < NOW() - INTERVAL 2 DAY");
+		$conn->close();
+	}
 }
 
 function db_3wordid_hasThreeAlphabeticNumeric($string) {
@@ -2048,6 +2170,27 @@ function db_3wordid_update_views($id) {
 	$conn->close();	
 	
 }	
+/**
+ * "Use forward URL" (linkthruflag) and "Link to chat" (emailform) exclude each other.
+ * The form's script already unticks the other box; this is the server-side guard for when both
+ * still arrive (no JavaScript, an old cached page, a hand-made request).
+ * Rule: keep the box that was just switched on. When both were already on (or for a new
+ * 3WordID), chat wins, which is also what 3wid_forward.php does today when both are set.
+ * Returns [linkthruflag, emailform].
+ */
+function wid_exclusive_link_flags(int $linkthruflag, int $emailform, ?array $old = null): array
+{
+    if ($linkthruflag !== 1 || $emailform !== 1) {
+        return [$linkthruflag === 1 ? 1 : 0, $emailform === 1 ? 1 : 0];
+    }
+    $was_fwd  = $old !== null && (int) ($old['linkthruflag'] ?? 0) === 1;
+    $was_chat = $old !== null && (int) ($old['emailform'] ?? 0) === 1;
+    if ($was_chat && !$was_fwd) {
+        return [1, 0]; // forward was just ticked
+    }
+    return [0, 1];     // chat was just ticked, or both/neither before: chat wins
+}
+
 function db_3wordid_update($id, $notification, $linkthru, $linkthruflag, $emailform,$private) {
     // Validation
     // ID must be integer

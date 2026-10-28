@@ -127,6 +127,8 @@ body.chat-body { display: flex; flex-direction: column; height: 100vh; height: 1
 }
 .chat-topbar .tb-login { padding: 0 12px; border: 1px solid rgba(255, 255, 255, .35); font-size: 13px; font-weight: 600; white-space: nowrap; margin-right: 2px; }
 .chat-topbar .tb-login svg { width: 18px; height: 18px; }
+.chat-topbar .tb-back-login { gap: 6px; padding: 0 14px 0 10px; }
+.chat-topbar .tb-back-login svg { width: 18px; height: 18px; }
 
 /* language menu: current code, the others drop down */
 .tb-lang { position: relative; flex: 0 0 auto; }
@@ -168,6 +170,9 @@ body.chat-body { display: flex; flex-direction: column; height: 100vh; height: 1
 @media (max-width: 560px) {
     .chat-topbar .tb-back { padding: 0; width: 40px; justify-content: center; }
     .chat-topbar .tb-back-label, .chat-topbar .tb-btn-label { display: none; }
+    /* "Login" (visitors) keeps its text: it is the main button for them */
+    .chat-topbar .tb-back-login { width: auto; padding: 0 12px 0 8px; }
+    .chat-topbar .tb-back-login .tb-back-label { display: inline; }
     .chat-topbar .tb-login { padding: 0; width: 40px; border-color: rgba(255, 255, 255, .35); }
     .chat-topbar .tb-login svg { width: 20px; height: 20px; }
     .chat-topbar .tb-who { margin-left: 0; gap: 8px; }

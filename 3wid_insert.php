@@ -66,6 +66,9 @@ try {
    
 
 
+   // "Use forward URL" and "Link to chat" exclude each other (chat wins for a new 3WordID)
+   [$linkthruflag, $emailform] = wid_exclusive_link_flags($linkthruflag, $emailform);
+
    // Call the function
    $new_id = db_3wordid_insert($user_id,$threeword, $clean_notification, $linkthru, $linkthruflag,$emailform,$private);
     
