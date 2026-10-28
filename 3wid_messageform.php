@@ -91,18 +91,38 @@
 </head>
 <body class="chat-body">
 <?php
-  // Sender shown in the bar: the selected 3WordID, else the first one
+  // Sender: the selected 3WordID, else the first one. It is shown in the bar as
+  // "Chatting as <words>"; with more than one 3WordID the words are a small menu there
+  // (no separate "Send from" field in the form, that took a lot of room on phones).
+  $from_id = (int) $user_threeword_rows[0]['id'];
   $from_words = $user_threeword_rows[0]['threeword'];
   foreach ($user_threeword_rows as $select_row) {
-      if ((string) $select_row['id'] === (string) $wid_id) { $from_words = $select_row['threeword']; }
+      if ((string) $select_row['id'] === (string) $wid_id) { $from_id = (int) $select_row['id']; $from_words = $select_row['threeword']; }
   }
+  if (count($user_threeword_rows) > 1) {
+      $from_html = '<select name="from_id" id="from_id" form="3widForm" class="tb-from" aria-label="' . t('msg.from') . '">';
+      foreach ($user_threeword_rows as $select_row) {
+          $from_html .= '<option value="' . (int) $select_row['id'] . '"' . ((int) $select_row['id'] === $from_id ? ' selected' : '') . '>' . chat_e($select_row['threeword']) . '</option>';
+      }
+      $from_html .= '</select>';
+  } else {
+      $from_html = chat_e($from_words);
+  }
+  // "Chatting as" in its own span: on a narrow screen that text is shortened, not the menu
+  $sub_parts = explode('%%FROM%%', t('tb.chatting_as', ['words' => '%%FROM%%']), 2);
+  $sub = ($sub_parts[0] !== '' ? '<span class="tb-sub-pre">' . $sub_parts[0] . '</span>' : '') . $from_html
+       . (isset($sub_parts[1]) && $sub_parts[1] !== '' ? '<span class="tb-sub-pre">' . $sub_parts[1] . '</span>' : '');
+
+  // Started from "Compose message" (no recipient yet): no pencil icon in the bar,
+  // you are already writing a new message. The list button is always there.
   echo chat_topbar(array(
       'back'      => chat_back_home(true),
-      'avatar'    => $reply_to !== '' ? chat_avatar_for($reply_to, $reply_wid, $photo_ids, '', true) : '<span class="avatar new" aria-hidden="true">' . chat_icon('compose') . '</span>',
+      'avatar'    => $reply_to !== '' ? chat_avatar_for($reply_to, $reply_wid, $photo_ids, '', true) : '',
       'name'      => $reply_to !== '' ? $reply_to_safe : t('chat.new_message'),
       'name_id'   => 'tbName',
-      'sub'       => t('tb.chatting_as', ['words' => $from_words]),
-      'sub_attrs' => 'id="tbSub" data-tpl="' . t('tb.chatting_as', ['words' => '{words}']) . '"',
+      'sub'       => $sub,
+      'sub_attrs' => 'class="tb-sub tb-sub-from"',
+      'actions'   => chat_tb_button('3wid_list.php', 'list', t_plain('tb.my_ids')),
   ));
 ?>
 <div class="chat-app">
@@ -116,14 +136,6 @@
         <?php endif; ?>
 
         <div class="setup">
-            <div class="f">
-                <label for="from_id"><?php echo t('msg.from'); ?></label>
-                <select name="from_id" id="from_id" form="3widForm">
-                    <?php foreach ($user_threeword_rows as $select_row): ?>
-                    <option value="<?php echo (int) $select_row['id']; ?>" data-words="<?php echo chat_e($select_row['threeword']); ?>"<?php echo ((string) $select_row['id'] === (string) $wid_id) ? ' selected' : ''; ?>><?php echo t('msg.send_from', ['words' => $select_row['threeword']]); ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
             <div class="f">
                 <label for="threeword"><?php echo t('msg.recipient'); ?></label>
                 <input type="text" name="threeword" id="threeword" form="3widForm" autocomplete="off" autocapitalize="none" placeholder="<?php echo t('common.placeholder_words'); ?>" value="<?php echo $reply_to_safe; ?>">
@@ -151,6 +163,7 @@
             </div>
             <button type="submit" id="submitBtn" class="send" aria-label="<?php echo t('common.send'); ?>" title="<?php echo t('common.send'); ?>"><?php echo chat_icon('send'); ?></button>
         </div>
+        <?php if (count($user_threeword_rows) === 1): ?><input type="hidden" name="from_id" value="<?php echo $from_id; ?>"><?php endif; ?>
         <input type="hidden" name="action_token" value="<?php echo htmlspecialchars(get_action_token(), ENT_QUOTES, 'UTF-8'); ?>">
     </form>
 </div>
@@ -168,21 +181,12 @@
     // Check the recipient right away when it is prefilled (reply)
     if ($('#threeword').val().trim() !== '') { $('#threeword').trigger('keyup'); }
 
-    // Keep the top bar in step with the form: recipient name and "Chatting as"
+    // Keep the name in the top bar in step with the recipient field
     (function () {
-        var name = document.getElementById('tbName'), sub = document.getElementById('tbSub');
-        var to = document.getElementById('threeword'), from = document.getElementById('from_id');
+        var name = document.getElementById('tbName'), to = document.getElementById('threeword');
         var empty = name ? name.textContent : '';
-        function words(v) { return v.replace(/\s+/g, ' ').trim(); }
-        function syncName() { if (name && to) { name.textContent = words(to.value) || empty; } }
-        function syncSub() {
-            if (!sub || !from || from.selectedIndex < 0) { return; }
-            var opt = from.options[from.selectedIndex];
-            var w = opt.getAttribute('data-words') || opt.text;
-            sub.textContent = (sub.getAttribute('data-tpl') || '{words}').replace('{words}', w);
-        }
+        function syncName() { if (name && to) { name.textContent = to.value.replace(/\s+/g, ' ').trim() || empty; } }
         if (to) { to.addEventListener('input', syncName); syncName(); }
-        if (from) { from.addEventListener('change', syncSub); syncSub(); }
     })();
 </script>
 </body>
