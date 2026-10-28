@@ -24,6 +24,14 @@ function validateURL(url) {
 
 $(document).ready(function() {
 
+    // "(optional)" next to the Message label when forward or chat is chosen
+    function updateNoteOptional() {
+        var required = !document.getElementById('linkthruflag').checked && !document.getElementById('emailform').checked;
+        $('#notificationOpt').prop('hidden', required);
+    }
+    $('#linkthruflag, #emailform').on('change', updateNoteOptional);
+    updateNoteOptional();
+
     // Attach event listener to the form
     $('#3widForm').on('submit', function(event) {
 		
@@ -44,11 +52,10 @@ $(document).ready(function() {
         
         let linkthru = $('#linkthru').val();
         let linkthruflag = document.getElementById('linkthruflag').checked
-        let email = $('#email').val();
-        let emailform = false; //document.getElementById('emailform').checked
+        // "Link to chat": the Message field is not required then
+        let emailform = document.getElementById('emailform').checked;
         let notification = $('#notification').val();
         
-        console.log('email is ' + email);
         console.log('emailform is ' + emailform);
         console.log('linkthruflag is ' + linkthruflag);
         console.log('linkthru is ' + linkthru);
@@ -64,20 +71,14 @@ $(document).ready(function() {
 
 		}
 			
-		if(emailform==true) {
-			if(!validateEmail(email)) {
-				$('#helperText').text(tr('bad_email', 'Please provide a valid email'));
-				 send=0;
-			}
-		}
-
-		if(linkthruflag == false  && emailform==false && notification == '') {
-			$('#helperText').text(tr('need_notification', 'Please at least enter text in the notification box'));
+		if(linkthruflag == false  && emailform==false && notification.trim() === '') {
+			$('#helperText').text(tr('need_notification', 'Please fill in the Message field'));
+			$('#notification').trigger('focus');
 			send=0;
 		}
 
         // Log form data for debugging
-        console.log('Form data:', { threeword, email, linkthru, emailform });
+        console.log('Form data:', { threeword, linkthru, emailform });
 
 
         // If you reach here, email is valid

@@ -81,6 +81,24 @@ if ($data == NULL) {
    // "Use forward URL" and "Link to chat" exclude each other: keep the one just switched on
    [$linkthruflag, $emailform] = wid_exclusive_link_flags($linkthruflag, $emailform, db_3wordid_get($id) ?: null);
 
+   // The Message field is required only when the 3WordID shows it (no forward, no chat)
+   $note_error = wid_note_error($clean_notification, $linkthruflag, $emailform);
+   if ($note_error !== null) {
+       $_SESSION['edit_form_error'] = [
+           'id' => $id,
+           'error' => t_plain($note_error),
+           // what was sent, so the form shows that again instead of the saved values
+           'notification' => $notification,
+           'linkthru' => (string) $linkthru,
+           'linkthruflag' => $linkthruflag,
+           'emailform' => $emailform,
+           'private' => $private,
+       ];
+       $from = (($_POST['from'] ?? '') === 'admin') ? '&from=admin' : '';
+       header('Location: 3wid_3wid.php?id=' . $id . $from);
+       exit;
+   }
+
    if (filter_var($linkthru, FILTER_VALIDATE_URL)) {
 		//echo("$url is a valid URL");
 		} else {

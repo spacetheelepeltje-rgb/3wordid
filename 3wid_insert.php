@@ -26,16 +26,7 @@ try {
 		error_log('not enough credit for more 3wordids');
    }
 
-   $threeword = db_3wid_validate_type($threeword,$data["user_type"]);// db_3wid_validate($threeword);
-   
-   if(!$threeword) {
-	   //error_log($threeword);
-	   header('location:3wid_list.php'); 
-	   exit;
-   }
-   
-   
-   $notification = $_POST["notification"];
+   $notification = (string) ($_POST["notification"] ?? '');
    
    $pconfig = HTMLPurifier_Config::createDefault();
    $pconfig->set('HTML.Allowed', 'p,br,a[href],strong,em,ul,ol,li,div,span,h1,h2,h3,h4,h5,h6');
@@ -68,6 +59,26 @@ try {
 
    // "Use forward URL" and "Link to chat" exclude each other (chat wins for a new 3WordID)
    [$linkthruflag, $emailform] = wid_exclusive_link_flags($linkthruflag, $emailform);
+
+   // Not accepted: back to the form with the reason, and with what was typed
+   $paying = user_is_paying($data);
+   $error = wid_threeword_error((string) $threeword, $paying)
+         ?? wid_note_error($clean_notification, $linkthruflag, $emailform);
+   $valid_threeword = $error === null ? db_3wid_validate_type($threeword, $paying ? 1 : 0) : false;
+   if (!$valid_threeword) {
+       $_SESSION['add_form'] = [
+           'error' => t_plain($error ?? 'js.max_three'),
+           'threeword' => preg_match('/^.{0,80}/su', (string) $threeword, $m) ? $m[0] : '',
+           'notification' => $notification,
+           'linkthru' => (string) $linkthru,
+           'linkthruflag' => $linkthruflag,
+           'emailform' => $emailform,
+           'private' => $private,
+       ];
+       header('location:3wid_add.php');
+       exit;
+   }
+   $threeword = $valid_threeword;
 
    // Call the function
    $new_id = db_3wordid_insert($user_id,$threeword, $clean_notification, $linkthru, $linkthruflag,$emailform,$private);
