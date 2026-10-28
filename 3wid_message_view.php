@@ -72,7 +72,7 @@
       'avatar'  => ($is_owner && $is_visitor) ? chat_visitor_avatar() : chat_avatar_for($head_name, $head_wid, $photo_ids, '', true),
       'name'    => chat_e($head_name),
       'sub'     => $is_owner ? t('chat.to_you', ['words' => $to_name]) : t('chat.sent_by_you'),
-      'actions' => $back_url === '3wid_list.php' ? '' : chat_tb_button('3wid_list.php', 'list', t_plain('tb.my_ids')),
+      'actions' => chat_tb_button('3wid_list.php', 'list', t_plain('tb.my_ids')),
   ));
 ?>
 <div class="chat-app">

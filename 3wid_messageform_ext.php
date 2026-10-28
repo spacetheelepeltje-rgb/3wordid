@@ -82,7 +82,8 @@
       'avatar'  => chat_avatar_for($reply_to, $wid_id, $photo_ids, '', true),
       'name'    => $reply_to_safe,
       'sub'     => t('tb.anonymous'),
-      'actions' => $viewer ? '' : '<a class="tb-btn tb-login" href="' . chat_e($loginUrl) . '" title="' . t('nav.login') . '" aria-label="' . t('nav.login') . '">' . chat_tb_icon('login') . '<span class="tb-btn-label">' . t('nav.login') . '</span></a>',
+      // Logged in: the list button to My 3WordIDs; visitors: a login button
+      'actions' => $viewer ? chat_tb_button('3wid_list.php', 'list', t_plain('tb.my_ids')) : '<a class="tb-btn tb-login" href="' . chat_e($loginUrl) . '" title="' . t('nav.login') . '" aria-label="' . t('nav.login') . '">' . chat_tb_icon('login') . '<span class="tb-btn-label">' . t('nav.login') . '</span></a>',
   ));
 ?>
 <div class="chat-app">

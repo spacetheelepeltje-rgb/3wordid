@@ -90,8 +90,30 @@ body.chat-body { display: flex; flex-direction: column; height: 100vh; height: 1
 .chat-topbar .tb-name { font-size: 16px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .chat-topbar .tb-sub { font-size: 12.5px; color: rgba(255, 255, 255, .78); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .chat-topbar .avatar { width: 40px; height: 40px; }
-.avatar.new { background: rgba(255, 255, 255, .16); color: #fff; }
-.avatar.new svg { width: 20px; height: 20px; }
+/* sender menu in "Chatting as …" (only when you have more than one 3WordID) */
+/* the sub line as a row: "Chatting as" gives way first, the menu stays readable */
+.chat-topbar .tb-sub-from { display: flex; align-items: center; gap: 4px; overflow: visible; }
+.chat-topbar .tb-sub-pre { flex: 0 100 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.chat-topbar .tb-from {
+    font: inherit;
+    font-weight: 600;
+    color: #fff;
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 100%;
+    text-overflow: ellipsis;
+    margin: 0;
+    padding: 1px 18px 1px 6px;
+    border: 1px solid rgba(255, 255, 255, .3);
+    border-radius: 8px;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    background: rgba(255, 255, 255, .1) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0h8L4 5z' fill='%23fff'/%3E%3C/svg%3E") no-repeat right 6px center;
+}
+.chat-topbar .tb-from:hover { background-color: rgba(255, 255, 255, .2); }
+.chat-topbar .tb-from:focus-visible { outline: none; box-shadow: 0 0 0 2px #FCD34D; }
+.chat-topbar .tb-from option { color: var(--navy); background: #fff; }
 .chat-topbar .tb-actions { flex: 0 0 auto; display: flex; align-items: center; gap: 2px; }
 .chat-topbar .tb-btn {
     flex: 0 0 auto;
