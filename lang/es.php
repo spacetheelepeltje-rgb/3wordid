@@ -263,7 +263,7 @@ Se eliminarán la URL, la notificación y el chat de estas palabras. Esta acció
     'msgview.answer' => 'Responder a este mensaje',
     'msgview.delete' => 'Eliminar este mensaje',
     'notif.home' => 'A la página de inicio',
-    'notif.lede' => 'Notificación asociada a este 3WordID:',
+    'notif.lede' => 'Mensaje asociado a este 3WordID:',
     'lm.title' => 'Mensajes — 3WordID',
     'lm.eyebrow' => 'Bandeja de entrada',
     'lm.h1' => 'Mensajes para «{name}»',
