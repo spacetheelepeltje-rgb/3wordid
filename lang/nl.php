@@ -621,12 +621,16 @@ De URL, mededeling en chat van deze woorden worden verwijderd. Dit kan niet onge
     'chat.photo_login_hint' => 'Log in om te zien met wie je chat',
 
     // Mail icon on the list page
-    'list.mail_send' => 'Stuur een bericht vanaf {words}',
-    'list.mail_chats' => 'Open de chats van {words}',
-    'list.mail_received_one' => '{n} bericht voor {words}: open de chats',
-    'list.mail_received_other' => '{n} berichten voor {words}: open de chats',
+    'list.mail_none' => 'Nog geen berichten voor {words}: stuur een bericht vanaf deze 3WordID',
+    'list.mail_none_chats' => 'Geen berichten ontvangen voor {words}: open de chats',
+    'list.mail_read_one' => '{n} bericht voor {words}, alles gelezen: open de chats',
+    'list.mail_read_other' => '{n} berichten voor {words}, alles gelezen: open de chats',
     'list.mail_unread_one' => '{n} nieuw bericht voor {words}: open de chats',
     'list.mail_unread_other' => '{n} nieuwe berichten voor {words}: open de chats',
+    'list.mail_chat' => '{words} is gekoppeld aan chat, geen nieuwe berichten: open de chats',
+    'list.mail_chat_new' => '{words} is gekoppeld aan chat, nog geen berichten: stuur een bericht vanaf deze 3WordID',
+    'list.mail_chat_unread_one' => '{words} is gekoppeld aan chat, {n} nieuw bericht: open de chats',
+    'list.mail_chat_unread_other' => '{words} is gekoppeld aan chat, {n} nieuwe berichten: open de chats',
 
     // Top bar of the chat pages
     'tb.my_ids' => 'Mijn 3WordID’s',

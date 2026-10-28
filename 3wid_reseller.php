@@ -24,6 +24,7 @@
       max-width: 600px;
       width: 100%;
     }
+    div.top-right#userPortrait { display: flex; align-items: center; gap: 6px; width: auto; height: auto; border-radius: 0; }
     </style>
 </head>
 <body>

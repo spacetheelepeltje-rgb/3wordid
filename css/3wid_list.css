@@ -113,9 +113,8 @@ a { color: var(--navy); }
   border-radius: 10px;
 }
 .logout-icon:hover { background: #efece6; }
-/* the language switch brings its own small <style>; these selectors are more specific */
+/* the language menu (lang_switcher) brings its own small <style> */
 .site-header .lang-switch { margin: 0 4px; }
-.site-header .lang-switch a { display: inline-block; padding: 6px 4px; }
 
 /* ---------- page ---------- */
 .wrap { max-width: 1100px; margin: 0 auto; padding: 28px 24px 64px; }
@@ -172,7 +171,7 @@ h1 { margin: 0; font-size: 32px; letter-spacing: -0.04em; line-height: 1.15; }
 }
 .id-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 12px 28px;
   align-items: center;
   padding: 16px 18px;
@@ -223,24 +222,21 @@ h1 { margin: 0; font-size: 32px; letter-spacing: -0.04em; line-height: 1.15; }
 .icon-btn:hover, .copy-button:hover { background: #f7f6f3; border-color: #cfcabf; }
 .icon-btn:focus-visible, .copy-button:focus-visible, .btn:focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
 .icon-btn.disabled, .mail-icon.disabled { opacity: .35; pointer-events: none; }
-/* mail icon: always black and clickable; green when messages arrived, with an unread count */
-.mail-icon { color: #111; }
-.mail-icon.has-mail { color: var(--ok); background: #e8f6ee; border-color: #9fd3b6; }
-.mail-icon.has-mail:hover { background: #d9f0e3; border-color: var(--ok); }
-.mail-count {
+/* mail icon, always clickable. grey = not linked to chat and nothing received,
+   black = not linked to chat but messages received, green = linked to chat;
+   a dot on top = unread messages */
+.mail-icon.mail-none { color: var(--muted); }
+.mail-icon.mail-has { color: #111; }
+.mail-icon.mail-chat { color: var(--ok); background: #e8f6ee; border-color: #9fd3b6; }
+.mail-icon.mail-chat:hover { background: #d9f0e3; border-color: var(--ok); }
+.mail-dot {
   position: absolute;
-  top: -6px;
-  right: -6px;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 5px;
-  border-radius: 999px;
-  background: var(--danger);
-  color: #fff;
-  font-size: 11px;
-  font-weight: 700;
-  line-height: 18px;
-  text-align: center;
+  top: -4px;
+  right: -4px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #d93025;
   box-shadow: 0 0 0 2px #fff;
 }
 .icon-btn.enabled { color: var(--ok); }
@@ -301,10 +297,10 @@ h1 { margin: 0; font-size: 32px; letter-spacing: -0.04em; line-height: 1.15; }
     padding: 10px 16px;
   }
   /* the action buttons become direct items of the header so they can be reordered:
-     row 1 = logo, Create, logout; row 2 = plans, WhatsApp, language switch */
+     row 1 = logo, logout; row 2 = plans, WhatsApp (not on phones), language menu.
+     "Create 3WordID" is in the toolbar above the list. */
   .header-actions { display: contents; }
   .brand { order: 1; margin-right: auto; }
-  .header-actions > .btn-primary[href="3wid_add.php"] { order: 2; }
   .logout-icon { order: 3; }
   .site-header::after { content: ""; order: 4; flex-basis: 100%; height: 0; }
   .nav-links { order: 5; }
@@ -317,7 +313,8 @@ h1 { margin: 0; font-size: 32px; letter-spacing: -0.04em; line-height: 1.15; }
   .site-header { position: static; }
   .site-header .btn { padding: 8px 12px; font-size: 13px; }
   .nav-links a { font-size: 13px; }
-  .site-header .lang-switch { gap: 3px; }
+  /* phones: no WhatsApp button in the header (it took too much room) */
+  .site-header .wa-btn { display: none; }
   .wrap { padding: 20px 14px 48px; }
   .page-head { margin-bottom: 14px; }
   h1 { font-size: 26px; }
@@ -328,6 +325,8 @@ h1 { margin: 0; font-size: 32px; letter-spacing: -0.04em; line-height: 1.15; }
   .stat strong { font-size: 20px; margin-top: 2px; }
 
   .toolbar .btn, .toolbar form { flex: 1 1 100%; }
+  /* Create and Compose share one line, Create on the left */
+  .toolbar .btn-create, .toolbar .btn-compose { flex: 1 1 0; min-width: 0; white-space: normal; text-align: center; }
   .toolbar form .btn { width: 100%; }
   .toolbar .btn { min-height: 44px; }
 
@@ -345,8 +344,7 @@ h1 { margin: 0; font-size: 32px; letter-spacing: -0.04em; line-height: 1.15; }
   .id-row > div:first-child { grid-column: 1 / -1; }
   .id-name { font-size: 19px; letter-spacing: -0.02em; line-height: 1.25; }
   .id-meta { font-size: 13px; margin-top: 6px; }
-  .id-row > .icon-row { flex-wrap: nowrap; gap: 6px; }
-  .id-row > .icon-row + .icon-row { justify-content: flex-end; padding-left: 10px; border-left: 1px solid #f0eee8; }
+  .id-row > .icon-row { grid-column: 1 / -1; flex-wrap: nowrap; gap: 8px; }
   .icon-btn, .copy-button { width: 44px; height: 44px; border-radius: 12px; }
 
   .foot-card { padding: 14px 16px; }
@@ -362,12 +360,11 @@ h1 { margin: 0; font-size: 32px; letter-spacing: -0.04em; line-height: 1.15; }
 /* very narrow phones (e.g. 320px): let the two icon groups stack */
 @media (max-width: 359px) {
   .id-row { grid-template-columns: 1fr; }
-  .id-row > .icon-row + .icon-row { justify-content: flex-start; padding-left: 0; border-left: 0; }
+  .id-row > .icon-row { gap: 6px; }
   .site-header .lang-switch { margin-left: 0; }
   .site-header { padding: 10px 12px; gap: 8px 6px; }
   .brand { font-size: 17px; gap: 8px; }
   .site-header .btn { padding: 8px 10px; }
-  .header-actions > .btn-primary[href="3wid_add.php"] { white-space: normal; text-align: center; flex: 1 1 0; min-width: 0; max-width: 140px; }
   .logout-icon { width: 40px; flex: 0 0 auto; }
   .stat { padding: 10px; }
   .stat span { font-size: 9px; letter-spacing: 0; }

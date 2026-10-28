@@ -529,12 +529,16 @@ Se eliminarán la URL, la notificación y el chat de estas palabras. Esta acció
     'chat.photo_login_hint' => 'Inicie sesión para ver con quién está chateando',
 
     // Mail icon on the list page
-    'list.mail_send' => 'Enviar un mensaje desde {words}',
-    'list.mail_chats' => 'Abrir los chats de {words}',
-    'list.mail_received_one' => '{n} mensaje para {words}: abrir los chats',
-    'list.mail_received_other' => '{n} mensajes para {words}: abrir los chats',
+    'list.mail_none' => 'Aún no hay mensajes para {words}: enviar un mensaje desde este 3WordID',
+    'list.mail_none_chats' => 'No se han recibido mensajes para {words}: abrir los chats',
+    'list.mail_read_one' => '{n} mensaje para {words}, todo leído: abrir los chats',
+    'list.mail_read_other' => '{n} mensajes para {words}, todo leído: abrir los chats',
     'list.mail_unread_one' => '{n} mensaje nuevo para {words}: abrir los chats',
     'list.mail_unread_other' => '{n} mensajes nuevos para {words}: abrir los chats',
+    'list.mail_chat' => '{words} está vinculado al chat, sin mensajes nuevos: abrir los chats',
+    'list.mail_chat_new' => '{words} está vinculado al chat, aún sin mensajes: enviar un mensaje desde este 3WordID',
+    'list.mail_chat_unread_one' => '{words} está vinculado al chat, {n} mensaje nuevo: abrir los chats',
+    'list.mail_chat_unread_other' => '{words} está vinculado al chat, {n} mensajes nuevos: abrir los chats',
 
     // Top bar of the chat pages
     'tb.my_ids' => 'Mis 3WordID',

@@ -621,12 +621,16 @@ The URL, notification, and chat for these words will be removed. This cannot be 
     'chat.photo_login_hint' => 'Log in to see who you\'re chatting with',
 
     // Mail icon on the list page
-    'list.mail_send' => 'Send a message from {words}',
-    'list.mail_chats' => 'Open the chats of {words}',
-    'list.mail_received_one' => '{n} message for {words}: open the chats',
-    'list.mail_received_other' => '{n} messages for {words}: open the chats',
+    'list.mail_none' => 'No messages for {words} yet: send a message from it',
+    'list.mail_none_chats' => 'No messages received for {words}: open the chats',
+    'list.mail_read_one' => '{n} message for {words}, all read: open the chats',
+    'list.mail_read_other' => '{n} messages for {words}, all read: open the chats',
     'list.mail_unread_one' => '{n} new message for {words}: open the chats',
     'list.mail_unread_other' => '{n} new messages for {words}: open the chats',
+    'list.mail_chat' => '{words} is linked to chat, no new messages: open the chats',
+    'list.mail_chat_new' => '{words} is linked to chat, no messages yet: send a message from it',
+    'list.mail_chat_unread_one' => '{words} is linked to chat, {n} new message: open the chats',
+    'list.mail_chat_unread_other' => '{words} is linked to chat, {n} new messages: open the chats',
 
     // Top bar of the chat pages
     'tb.my_ids' => 'My 3WordIDs',
