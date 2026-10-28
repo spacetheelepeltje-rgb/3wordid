@@ -3,6 +3,7 @@ require_once 'config.php';
 require_once __DIR__ . '/../php/session_boot.php';
 start_app_session();
 require_once __DIR__ . '/../php/i18n.php'; // t(), current_lang(), lang_switcher()
+require_once __DIR__ . '/../php/functions.php'; // botcheck_fields(), botcheck_failed(), app_log()
 
 if (current_user_from_session($conn)) {
     header('Location: ../3wid_list.php');
@@ -24,6 +25,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!hash_equals($_SESSION['csrf_token'], $posted_csrf)) {
         $error = t_plain('common.session_expired');
+    } elseif (botcheck_failed('register') !== '') {
+        // Honeypot filled in, sent too fast, or an old/forged form: logged with the IP, the reason is not shown.
+        $error = t_plain('bot.rejected');
     } elseif (!filter_var($email_value, FILTER_VALIDATE_EMAIL)) {
         $error = t_plain('reg.bad_email');
     } elseif (strlen($password) < 10) {
@@ -148,6 +152,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <input id="password_confirm" name="password_confirm" type="password" required minlength="10" placeholder="<?php echo t('reg.repeat_ph'); ?>">
 
             <!-- Placeholder: email verification is not sent. Enable later if you start mailing. -->
+            <?php echo botcheck_fields('register'); ?>
             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8'); ?>">
             <button class="btn" type="submit"><?php echo t('reg.submit'); ?></button>
         </form>

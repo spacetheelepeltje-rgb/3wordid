@@ -320,6 +320,8 @@ Se eliminarán la URL, la notificación y el chat de estas palabras. Esta acció
     'reg.exists' => 'Esa cuenta ya existe. Inicie sesión en su lugar.',
     'reg.google' => 'Este correo electrónico ya usa Google. Continúe con Google.',
     'reg.failed' => 'No se pudo crear la cuenta. Confirme que existe la columna password_hash.',
+    'bot.hp_label' => 'Deje este campo vacío',
+    'bot.rejected' => 'Algo salió mal. Espere un momento e inténtelo de nuevo.',
     'reg.title' => 'Crear cuenta — 3WordID',
     'reg.h1' => 'Crear cuenta',
     'reg.sub' => 'Correo electrónico y contraseña. La dirección se convierte en un hash antes de guardarse. Las cuentas sin uso se desactivarán a los 3 meses.',

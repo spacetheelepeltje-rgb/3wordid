@@ -6,6 +6,8 @@
  * Existing table column used: google_users.token
  */
 
+require_once __DIR__ . '/log.php'; // app_log(): daily log files
+
 function start_app_session(): void
 {
     if (session_status() === PHP_SESSION_ACTIVE) {

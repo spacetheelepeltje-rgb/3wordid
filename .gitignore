@@ -17,6 +17,7 @@ service-account*.json
 # Logs, backups and old copies that live only on the server
 *.log
 /logging/
+/logs/
 /backups/
 /old/
 /old_april/
