@@ -121,9 +121,9 @@ $more_list = array_values($by_words);
             color: #16a34a;
             background: #ecfdf3;
         }
-        .lock.is-disabled {
-            color: #d97706;
-            background: #fff7ed;
+        .lock.is-gold {
+            color: #B8860B;
+            background: #fdf6e3;
         }
     </style>
 </head>
@@ -264,12 +264,12 @@ $more_list = array_values($by_words);
 </body>
 <?php echo i18n_js([
     'exists'    => 'home.js_exists',
-    'disabled'  => 'home.js_disabled',
+    'paying'    => 'home.js_paying',
     'missing'   => 'home.js_missing',
     'see_more'  => 'home.see_more',
     'show_less' => 'home.show_less',
 ]); ?>
-<script src="js/3wid_index_2.js"></script>
+<script src="js/3wid_index_2.js?v=2"></script>
 <script>
     function handleGoogleLogin() {
         //window.location.href = '<?php echo $loginUrl; ?>';

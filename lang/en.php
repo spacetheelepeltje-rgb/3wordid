@@ -76,8 +76,8 @@ return [
     'home.faq3_q' => 'What\'s stored?',
     'home.faq3_a' => 'Your email address is stored only as a one-way hash, not as readable text. Messages sent through a chat and the IP addresses they come from are logged and retained, so the service can be held accountable and lawful requests can be answered. Accounts are deactivated, never deleted, and their data and logs are kept. Details are in the <a href="terms.php">terms</a>.',
     'home.js_exists' => '3wid exists',
-    'home.js_disabled' => '3wid disabled',
     'home.js_missing' => '3wid does not exist log in to create',
+    'home.js_paying' => 'Owned by a paying account',
 
     // ---- terms
     'terms.title' => 'Terms and Conditions — 3WordID',
@@ -104,6 +104,7 @@ return [
     'terms.s5_p1' => 'Free or unpaid 3WordIDs may expire, be deleted, or be taken by another user. Unpaid IDs may expire after about two weeks, or sooner if the Operator so decides.',
     'terms.s5_p2' => 'A paid account or paid credit only buys a limited, revocable chance to keep or create 3WordIDs while the Operator continues to offer that option. It does not buy the words themselves.',
     'terms.s5_p3' => '<strong>Paid accounts overrule free accounts</strong> when both try to reserve the same 3WordID. If a free or unpaid user holds a 3WordID and a paid user requests that same 3WordID, the Operator may assign it to the paid user, with or without notice to the free user. Among paid users, the Operator decides allocation in its sole discretion.',
+    'terms.s5_p4' => 'In the search box, a green lock means the 3WordID exists. A gold lock means it belongs to a paying account.',
     'terms.s6_h' => '6. Localization',
     'terms.s6_p1' => '3WordIDs may be made localized. The same three words may later resolve differently by country, city, language, or other locale. A global match today is not a promise of a global match tomorrow. Localization may split, hide, rename, or replace existing IDs.',
     'terms.s7_h' => '7. Termination at any time',
