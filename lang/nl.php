@@ -256,6 +256,11 @@ De URL, mededeling en chat van deze woorden worden verwijderd. Dit kan niet onge
     'add.use_forward' => 'Doorverwijs-URL gebruiken',
     'add.link_form' => 'Link naar chat (vergeet niet hem te activeren)',
     'add.private' => 'Houd 3WordID privé (wordt nergens gepubliceerd)',
+    'add.use_msglink' => 'Mededeling met link',
+    'add.link_url' => 'Link-URL',
+    'add.link_title' => 'Linktitel',
+    'add.link_title_ph' => 'Tekst voor de link, bijv. “Bekijk ons menu”',
+    'js.need_link_title' => 'Vul het veld Linktitel in',
     'add.subscribe_hint' => 'Je kunt een abonnement nemen om te zorgen dat je 3WordID niet door een andere gebruiker wordt overgenomen of verwijderd. Hij verloopt na twee weken. Een abonnement kun je afsluiten via <a href=\'https://3wordid.com/3wid_signup.php\'>het aanmeldformulier</a>.',
     'add.create' => 'Maken',
 

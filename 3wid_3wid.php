@@ -43,7 +43,7 @@
   if (isset($_SESSION['edit_form_error']) && is_array($_SESSION['edit_form_error'])) {
       if ((int) ($_SESSION['edit_form_error']['id'] ?? 0) === (int) $row['id']) {
           $form_error = (string) ($_SESSION['edit_form_error']['error'] ?? '');
-          foreach (['notification', 'linkthru', 'linkthruflag', 'emailform', 'private'] as $k) {
+          foreach (['notification', 'linkthru', 'linkthruflag', 'emailform', 'private', 'link_title', 'msglinkflag'] as $k) {
               if (array_key_exists($k, $_SESSION['edit_form_error'])) {
                   $row[$k] = $_SESSION['edit_form_error'][$k];
               }
@@ -51,6 +51,12 @@
       }
       unset($_SESSION['edit_form_error']);
   }
+
+  // "Message with link" (only offered once the link_title column exists)
+  $has_link_title = db_3wordid_has_link_title();
+  $is_msglink = $has_link_title && (array_key_exists('msglinkflag', $row)
+      ? ((int) $row['msglinkflag'] === 1 && (int) $row['linkthruflag'] !== 1 && (int) $row['emailform'] !== 1)
+      : wid_is_msglink($row));
 
   // CSRF token for the update form
   $action_token = get_action_token();
@@ -223,6 +229,7 @@
       }
       label.field .opt { font-weight: 500; color: var(--muted); }
       label.field .opt[hidden] { display: none; }
+      .link-title-field[hidden] { display: none; }
       .form-error {
         background: #FDF2F2;
         border: 1px solid #F3C7C7;
@@ -290,11 +297,21 @@
                 <label class="field" for="notification"><?php echo t('add.notification'); ?> <span class="opt" id="notificationOpt" hidden><?php echo t('add.optional'); ?></span></label>
                 <textarea name="notification" id="notification" class="search-bar" placeholder="<?php echo t('add.notification_ph'); ?>" rows="4"><?= htmlspecialchars((string)$row["notification"]); ?></textarea>
 
-                <label class="field" for="linkthru" style="margin-top:16px;"><?php echo t('add.linkthru'); ?></label>
+                <label class="field" for="linkthru" id="linkthruLabel" style="margin-top:16px;" data-forward="<?php echo t('add.linkthru'); ?>" data-msglink="<?php echo t('add.link_url'); ?>"><?php echo $is_msglink ? t('add.link_url') : t('add.linkthru'); ?></label>
                 <input type="text" name="linkthru" id="linkthru" class="search-bar" placeholder="<?php echo t('edit.linkthru_ph'); ?>" value="<?= htmlspecialchars((string)$row["linkthru"]); ?>">
+
+                <?php if ($has_link_title) { ?>
+                <div class="link-title-field" id="linkTitleField"<?php echo $is_msglink ? '' : ' hidden'; ?>>
+                    <label class="field" for="link_title" style="margin-top:16px;"><?php echo t('add.link_title'); ?></label>
+                    <input type="text" name="link_title" id="link_title" class="search-bar" maxlength="255" placeholder="<?php echo t('add.link_title_ph'); ?>" value="<?= htmlspecialchars((string) ($row["link_title"] ?? '')); ?>">
+                </div>
+                <?php } ?>
 
                 <div class="checks">
                     <label><input <?php echo ($row["linkthruflag"] == 1 && $row["emailform"] != 1) ? 'checked' : ''; ?> type="checkbox" id="linkthruflag" name="linkthruflag"> <?php echo t('add.use_forward'); ?></label>
+                    <?php if ($has_link_title) { ?>
+                    <label><input <?php echo $is_msglink ? 'checked' : ''; ?> type="checkbox" id="msglinkflag" name="msglinkflag"> <?php echo t('add.use_msglink'); ?></label>
+                    <?php } ?>
                     <label><input <?php echo $row["emailform"]== 1 ?'checked':''; ?> type="checkbox" id="emailform" name="emailform"> <?php echo t('edit.link_form'); ?></label>
                     <label><input <?php echo $row["private"]== 1 ?'checked':''; ?> type="checkbox" id="private" name="private"> <?php echo t('edit.private'); ?></label>
                 </div>
@@ -327,13 +344,18 @@
 </body>
 <?php echo i18n_js_all(); ?>
 <script>
-    // "Use forward URL" and "Link to chat" exclude each other: ticking one unticks the other
+    // "Use forward URL", "Message with link" and "Link to chat" exclude each other:
+    // ticking one unticks the others
     (function () {
-        var fwd = document.getElementById('linkthruflag');
-        var chat = document.getElementById('emailform');
-        if (!fwd || !chat) { return; }
-        fwd.addEventListener('change', function () { if (fwd.checked) { chat.checked = false; } });
-        chat.addEventListener('change', function () { if (chat.checked) { fwd.checked = false; } });
+        var boxes = ['linkthruflag', 'msglinkflag', 'emailform']
+            .map(function (id) { return document.getElementById(id); })
+            .filter(function (el) { return el; });
+        boxes.forEach(function (box) {
+            box.addEventListener('change', function () {
+                if (!box.checked) { return; }
+                boxes.forEach(function (other) { if (other !== box) { other.checked = false; } });
+            });
+        });
     })();
 </script>
 <script src="js/3wid_3wid.js"></script>

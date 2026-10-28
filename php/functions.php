@@ -1623,7 +1623,12 @@ function db_3wordid_backup($id) {
     $conn = get_db_conn();
 
     // Prepare the DELETE query
-    $query = "INSERT INTO 3wordid_deleted (SELECT * FROM 3wordid WHERE id = ?)";
+    // Copy only the columns both tables have, so a new 3wordid column (like link_title)
+    // that is not yet in 3wordid_deleted does not break deleting.
+    $cols = db_backup_common_columns($conn, '3wordid', '3wordid_deleted');
+    $query = $cols
+        ? "INSERT INTO 3wordid_deleted (" . $cols . ") SELECT " . $cols . " FROM 3wordid WHERE id = ?"
+        : "INSERT INTO 3wordid_deleted (SELECT * FROM 3wordid WHERE id = ?)";
 
 	error_log('query ' . $query);
     // Prepare the statement
@@ -2310,6 +2315,129 @@ function wid_exclusive_link_flags(int $linkthruflag, int $emailform, ?array $old
         return [1, 0]; // forward was just ticked
     }
     return [0, 1];     // chat was just ticked, or both/neither before: chat wins
+}
+
+// ---------------------------------------------------------------------------
+// "Message with link": the 3WordID shows its message, with a clickable link below it.
+// The link uses the existing linkthru column (with linkthruflag 0, so no forward);
+// the link text is in the column 3wordid.link_title. A 3WordID is "message with link"
+// when forward and chat are both off and link_title is filled in.
+// The code works before the column exists: the option is then not offered.
+//   ALTER TABLE 3wordid ADD COLUMN link_title VARCHAR(255) NULL DEFAULT NULL;
+//   ALTER TABLE 3wordid_deleted ADD COLUMN link_title VARCHAR(255) NULL DEFAULT NULL;
+// ---------------------------------------------------------------------------
+
+function db_3wordid_has_link_title() {
+	static $has = null;
+	if ($has !== null) {
+		return $has;
+	}
+	$has = false;
+	$conn = get_db_conn();
+	if ($conn && !$conn->connect_error) {
+		$result = $conn->query("SHOW COLUMNS FROM 3wordid LIKE 'link_title'");
+		if ($result) {
+			$has = ($result->num_rows > 0);
+			$result->free();
+		}
+		$conn->close();
+	}
+	return $has;
+}
+
+// Save the link title ('' = no "message with link"). Call only after the owner check.
+function db_3wordid_set_link_title($wid_id, $title) {
+	$wid_id = (int) $wid_id;
+	if ($wid_id < 1 || !db_3wordid_has_link_title()) {
+		return false;
+	}
+	$title = wid_clean_link_title((string) $title);
+	$value = $title === '' ? null : $title;
+	$conn = get_db_conn();
+	if (!$conn || $conn->connect_error) {
+		return false;
+	}
+	$stmt = $conn->prepare("UPDATE 3wordid SET link_title = ? WHERE id = ?");
+	if ($stmt === false) {
+		$conn->close();
+		return false;
+	}
+	$stmt->bind_param("si", $value, $wid_id);
+	$ok = $stmt->execute();
+	$stmt->close();
+	$conn->close();
+	return $ok;
+}
+
+// Plain text, one line, at most 255 characters.
+function wid_clean_link_title(string $title): string
+{
+	$title = trim(preg_replace('/\s+/u', ' ', strip_tags($title)) ?? '');
+	return preg_match('/^.{0,255}/su', $title, $m) ? $m[0] : '';
+}
+
+// Same normalising as db_3wordid_insert()/db_3wordid_update(): add https:// when there is
+// no protocol, http becomes https. Returns the URL, or null when it is empty or invalid.
+function wid_normalize_url(string $url): ?string
+{
+	$url = trim($url);
+	if ($url === '') {
+		return null;
+	}
+	if (!preg_match('#^https?://#i', $url)) {
+		$url = 'https://' . $url;
+	}
+	$url = preg_replace('#^http://#i', 'https://', $url);
+	if (!filter_var($url, FILTER_VALIDATE_URL) || !preg_match('#^https://#i', $url)) {
+		return null;
+	}
+	return $url;
+}
+
+// Is this 3WordID row a "message with link"?
+function wid_is_msglink(array $row): bool
+{
+	return (int) ($row['linkthruflag'] ?? 0) !== 1
+		&& (int) ($row['emailform'] ?? 0) !== 1
+		&& trim((string) ($row['link_title'] ?? '')) !== '';
+}
+
+// The link for the visitor page, or null when it should not be shown.
+// Only http(s) links; returns ['href' => ..., 'title' => ..., 'external' => bool], not escaped.
+function wid_visitor_link(array $row): ?array
+{
+	if (!wid_is_msglink($row)) {
+		return null;
+	}
+	$href = (string) ($row['linkthru'] ?? '');
+	$scheme = strtolower((string) parse_url($href, PHP_URL_SCHEME));
+	if (!in_array($scheme, ['http', 'https'], true) || !filter_var($href, FILTER_VALIDATE_URL)) {
+		return null;
+	}
+	$host = strtolower((string) parse_url($href, PHP_URL_HOST));
+	$external = !preg_match('/(^|\.)3wordid\.com$/', $host);
+	return ['href' => $href, 'title' => wid_clean_link_title((string) $row['link_title']), 'external' => $external];
+}
+
+/**
+ * Checks for the URL and the link title, as a lang key (null = fine).
+ * Forward URL and "Message with link" need a valid URL (not a 3WordID link);
+ * "Message with link" also needs a link title. ($msglink is already 0 when forward or chat is on.)
+ */
+function wid_link_error(int $linkthruflag, int $msglink, string $linkthru, string $title): ?string
+{
+	if ($linkthruflag === 1 || $msglink === 1) {
+		if (wid_normalize_url($linkthru) === null) {
+			return 'js.bad_url';
+		}
+		if (stripos($linkthru, '3wordid.com') !== false) {
+			return 'js.add_no_forward';
+		}
+	}
+	if ($msglink === 1 && wid_clean_link_title($title) === '') {
+		return 'js.need_link_title';
+	}
+	return null;
 }
 
 function db_3wordid_update($id, $notification, $linkthru, $linkthruflag, $emailform,$private) {
@@ -3108,8 +3236,14 @@ function db_3wordid_photo_source($wid_id) {
 // Column list (backticked) shared by 3wordid_messages and 3wordid_messages_deleted,
 // in the order of the messages table. Empty string when it cannot be read.
 function db_message_backup_columns($conn) {
+	return db_backup_common_columns($conn, '3wordid_messages', '3wordid_messages_deleted');
+}
+
+// Columns two tables have in common, quoted and comma-separated ('' when unknown).
+// Used to copy a row to its *_deleted table even when one table got a new column first.
+function db_backup_common_columns($conn, $from_table, $to_table) {
 	$names = array();
-	foreach (array('3wordid_messages', '3wordid_messages_deleted') as $i => $table) {
+	foreach (array($from_table, $to_table) as $i => $table) {
 		$result = $conn->query("SHOW COLUMNS FROM " . $table);
 		if (!$result) {
 			return '';

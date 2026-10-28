@@ -135,6 +135,24 @@
         white-space: pre-wrap;
       }
       .buttons { margin-top: 18px; }
+      .msg-link-wrap { margin-top: 18px; padding-top: 16px; border-top: 1px solid #ECEAE4; }
+      .msg-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        max-width: 100%;
+        background: var(--navy);
+        color: #fff;
+        border-radius: 10px;
+        padding: 11px 16px;
+        font-size: 15px;
+        font-weight: 600;
+        text-decoration: none;
+        overflow-wrap: anywhere;
+      }
+      .msg-link:hover, .msg-link:focus { background: var(--navy-2); color: #fff; }
+      .msg-link svg { flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; }
+      .msg-link-url { margin: 8px 0 0; color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
       .site-footer {
         border-top: 1px solid var(--line);
         padding: 18px 28px 28px;
@@ -162,6 +180,18 @@
 
         <div class="panel search-container">
             <div id="textbox"><?php echo $word_row["notification"]; ?></div>
+            <?php
+            // "Message with link": the link below the message (only http/https, escaped)
+            $visitor_link = wid_visitor_link($word_row);
+            if ($visitor_link !== null) {
+                $rel = $visitor_link['external'] ? ' target="_blank" rel="noopener noreferrer nofollow"' : '';
+            ?>
+            <div class="msg-link-wrap">
+                <a class="msg-link" href="<?php echo htmlspecialchars($visitor_link['href'], ENT_QUOTES, 'UTF-8'); ?>"<?php echo $rel; ?>><?php echo htmlspecialchars($visitor_link['title'], ENT_QUOTES, 'UTF-8'); ?>
+                    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg></a>
+                <p class="msg-link-url"><?php echo htmlspecialchars((string) parse_url($visitor_link['href'], PHP_URL_HOST), ENT_QUOTES, 'UTF-8'); ?></p>
+            </div>
+            <?php } ?>
         </div>
 
         <!--<div class="buttons">
