@@ -46,6 +46,11 @@
 		header('location:' . $main_url);
 		die('sent do mainurl');   
    }
+
+   if((int)$word_row['enabled'] !== 1) {
+		header('location:3wid_inactive.php?threewords=' . rawurlencode($word_row['threeword']));
+		die('switched off');
+   }
    
    db_3wordid_update_views($word_row['id']);
    

@@ -19,6 +19,12 @@
       exit;
   }
 
+  // Switched off by its owner: the "not active at the moment" page (without the words)
+  if ((int) ($word_row['enabled'] ?? 0) !== 1) {
+      header("location:3wid_inactive.php");
+      exit;
+  }
+
 ?>  
 <!DOCTYPE html>
 <html lang="<?php echo current_lang(); ?>">

@@ -32,6 +32,12 @@
 
   $row = db_3wordid_get_threeword($reply_to);
 
+  // Switched off by its owner: no chat, the "not active at the moment" page instead
+  if (is_array($row) && !empty($row['id']) && (int) ($row['enabled'] ?? 0) !== 1) {
+      header('location:3wid_inactive.php?threewords=' . rawurlencode($row['threeword']));
+      exit;
+  }
+
   //$user_threeword_rows = db_3wid_get_3wids($data["id"]);
 
   //if($user_threeword_rows == NULL) {
