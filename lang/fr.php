@@ -164,7 +164,7 @@ return [
     'list.compose_title' => 'Vous devez créer un 3WordID pour envoyer des messages à des 3WordID',
     'list.send_email' => 'Envoyer à mon e-mail',
     'list.send_email_title' => 'Recevoir par e-mail la liste de vos 3WordID',
-    'list.none' => 'Aucun 3WordID pour le moment. Coin supérieur droit.',
+    'list.none' => 'Aucun 3WordID pour le moment.',
     'list.one_only' => 'Les utilisateurs non abonnés ne peuvent créer qu’un seul 3WID',
     'list.create_title' => 'Créer un Three Word ID ({n} restant(s))',
     'list.create' => 'Créer un 3WordID',

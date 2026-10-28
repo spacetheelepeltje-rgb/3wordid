@@ -186,7 +186,7 @@ return [
     'list.compose_title' => 'You need to create a 3WordID to send messages to 3WordIDs',
     'list.send_email' => 'Send to my email',
     'list.send_email_title' => 'Email yourself a list of your 3WordIDs',
-    'list.none' => 'No 3WordIDs yet. Top right corner.',
+    'list.none' => 'No 3WordIDs yet.',
     'list.one_only' => 'Unsubscribed users can create only one 3WID',
     'list.create_title' => 'Create Three Word ID ({n} remaining)',
     'list.create' => 'Create 3WordID',

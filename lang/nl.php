@@ -186,7 +186,7 @@ return [
     'list.compose_title' => 'Je moet eerst een 3WordID maken om berichten naar 3WordID’s te kunnen sturen',
     'list.send_email' => 'Stuur naar mijn e-mail',
     'list.send_email_title' => 'Mail jezelf een lijst met je 3WordID’s',
-    'list.none' => 'Nog geen 3WordID’s. Rechtsboven.',
+    'list.none' => 'Nog geen 3WordID’s.',
     'list.one_only' => 'Gebruikers zonder abonnement kunnen maar één 3WID maken',
     'list.create_title' => 'Maak een 3WordID ({n} resterend)',
     'list.create' => '3WordID maken',
