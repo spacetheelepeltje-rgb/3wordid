@@ -3,20 +3,21 @@
  * 3WordID: remove stale empty accounts. Command line only (cron), never from the web.
  *
  * Rule: accounts older than 30 days that have no 3WordID.
- *   - Truly empty (no 3WordIDs, no deleted 3WordIDs, no messages sent or received, no reseller
- *     row, nothing in any other table with a user_id column, no credit): deleted completely.
+ *   - Truly empty (no 3WordIDs, no deleted or waiting 3WordIDs, no messages sent or received,
+ *     no reseller row, nothing in any other table with a user_id column, credit still at the
+ *     starting amount, no payment details on the account): deleted completely.
  *   - Otherwise (something still points at the account): first copied into
  *     google_users_deleted (named columns + deleted_at + delete_reason), then deleted.
  * Never touched: the admin (user id 4, and anyone with is_admin = 1), blocked users
- * (user_type 9, so their block stays), accounts with credit, and accounts that logged in
- * during the last 30 days.
+ * (user_type 9, so their block stays), accounts with more credit than the starting amount
+ * (google_users.credit defaults to 1), and accounts that logged in during the last 30 days.
  *
  * Usage:
  *   php tools/cleanup_empty_accounts.php              dry run: only lists what it would do
  *   php tools/cleanup_empty_accounts.php --apply      really deletes / backs up
  *   options: --days=30 (minimum 30), --limit=500 (max accounts deleted per run), --quiet (summary only)
  *
- * Needs sql/2026-10-28_users_deleted.sql (creation date column + backup table).
+ * Needs sql/2026-10-28_users_deleted.sql (backup table). Account age: google_users.created_at.
  * Each run writes one summary line to the daily log (php/log.php, LOG_DIR).
  */
 
@@ -28,7 +29,10 @@ if (PHP_SAPI !== 'cli') {
 const CLEANUP_ADMIN_ID = 4;
 const CLEANUP_BLOCKED_TYPE = 9;
 const CLEANUP_BACKUP_TABLE = 'google_users_deleted';
+// Payment details kept on google_users itself: any of these filled in = not truly empty.
+const CLEANUP_PAYMENT_COLUMNS = ['payment_status', 'payment_method', 'paypal_email', 'reseller_code', 'code'];
 // Columns that are never copied into the backup (login secrets): stored as '' instead.
+// (The backup table has no unique index on token, see the SQL file.)
 const CLEANUP_SECRET_COLUMNS = ['token', 'session_id', 'csrf_token', 'password_hash'];
 // Account creation date: the first of these columns that exists (older names first, so a
 // column with real history wins over created_at added by the SQL file).
@@ -47,6 +51,8 @@ interface CleanupDb
     public function rollback(): void;
     /** Column names of a table, [] when the table does not exist. */
     public function columns(string $table): array;
+    /** Default value of a column (null when none or unknown). */
+    public function columnDefault(string $table, string $column): ?string;
     /** All tables that have this column. */
     public function tablesWithColumn(string $column): array;
     /** ' FOR UPDATE' where supported. */
@@ -105,6 +111,13 @@ class CleanupMysqli implements CleanupDb
         return $this->colCache[$table];
     }
 
+    public function columnDefault(string $table, string $column): ?string
+    {
+        $rows = $this->rows('SELECT COLUMN_DEFAULT AS d FROM information_schema.COLUMNS
+                             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?', [$table, $column]);
+        return isset($rows[0]['d']) ? trim((string) $rows[0]['d'], "'") : null;
+    }
+
     public function tablesWithColumn(string $column): array
     {
         $rows = $this->rows('SELECT DISTINCT c.TABLE_NAME AS t FROM information_schema.COLUMNS c
@@ -136,7 +149,9 @@ function cleanup_linked_columns(CleanupDb $db): array
         ['3wordid_messages', 'to_id'],
         ['3wordid_messages_deleted', 'from_id'],
         ['3wordid_messages_deleted', 'to_id'],
+        ['3wordid_waiting', 'user_id'],
         ['3wordid_resellers', 'user_id'],
+        ['3wordid_resellers', 'created_user'],
     ];
     foreach ($db->tablesWithColumn('user_id') as $t) {
         if (stripos($t, 'google_users') !== 0) {
@@ -174,12 +189,12 @@ function cleanup_plan(CleanupDb $db, int $days, int $limit, int $now): array
         }
     }
     if ($date_col === '') {
-        throw new RuntimeException('google_users has no account creation date column; run sql/2026-10-28_users_deleted.sql first (adds created_at)');
+        throw new RuntimeException('google_users has no account creation date column (created_at expected)');
     }
 
     $cutoff = date('Y-m-d H:i:s', $now - $days * 86400);
     $extra = [];
-    foreach (['credit', 'user_type', 'is_admin', 'last_login'] as $c) {
+    foreach (array_merge(['credit', 'user_type', 'is_admin', 'last_login'], CLEANUP_PAYMENT_COLUMNS) as $c) {
         if (in_array($c, $ucols, true)) {
             $extra[] = 'u.' . cleanup_q($c);
         }
@@ -192,6 +207,9 @@ function cleanup_plan(CleanupDb $db, int $days, int $limit, int $now): array
     $candidates = $db->rows($sql, [CLEANUP_ADMIN_ID, $cutoff]);
 
     $linked = cleanup_linked_columns($db);
+    // Every account starts with some credit (column default, 1 on the live database): that
+    // amount doesn't count as money on the account.
+    $start_credit = (float) ($db->columnDefault('google_users', 'credit') ?? 0);
     $plan = [];
     $actionable = 0;
     foreach ($candidates as $u) {
@@ -204,7 +222,7 @@ function cleanup_plan(CleanupDb $db, int $days, int $limit, int $now): array
             $plan[] = [$id, 'skip', 'blocked user (block is kept)'];
             continue;
         }
-        if ((float) ($u['credit'] ?? 0) > 0) {
+        if (isset($u['credit']) && (float) $u['credit'] > $start_credit + 0.001) {
             $plan[] = [$id, 'skip', 'has credit ' . $u['credit']];
             continue;
         }
@@ -213,6 +231,14 @@ function cleanup_plan(CleanupDb $db, int $days, int $limit, int $now): array
             continue;
         }
         $found = [];
+        if (isset($u['credit']) && abs((float) $u['credit'] - $start_credit) > 0.001) {
+            $found[] = 'credit=' . $u['credit'];
+        }
+        foreach (CLEANUP_PAYMENT_COLUMNS as $c) {
+            if (isset($u[$c]) && trim((string) $u[$c]) !== '') {
+                $found[] = 'google_users.' . $c;
+            }
+        }
         foreach ($linked as [$t, $c]) {
             $n = (int) ($db->rows('SELECT COUNT(*) AS n FROM ' . cleanup_q($t) . ' WHERE ' . cleanup_q($c) . ' = ?', [$id])[0]['n'] ?? 0);
             if ($n > 0) {
