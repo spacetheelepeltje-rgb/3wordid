@@ -413,6 +413,12 @@ button.avatar.photo { cursor: zoom-in; }
 .setup .f-status { font-size: 12px; color: var(--slate); padding: 0 0 8px 82px; }
 .setup .f-status:empty, .composer .c-status:empty { display: none; }
 .setup .f:has(+ .f-status:empty) { border-bottom: 0; }
+/* live recipient check (js/3wid_messageform.js): green only for a 3WordID that exists */
+.setup input[type=text].rcpt-ok { color: #0B7A4B; }
+.setup input[type=text].rcpt-bad { color: #B42318; }
+.setup .f-status.rcpt-ok { color: #0B7A4B; font-weight: 600; }
+.setup .f-status.rcpt-bad { color: #B42318; font-weight: 600; }
+.setup .f-status.rcpt-checking { color: var(--slate); font-style: italic; }
 .setup label { flex: 0 0 72px; font-size: 12px; font-weight: 600; color: var(--slate); }
 .setup select, .setup input[type=text] {
     text-align: left;

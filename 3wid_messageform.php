@@ -177,12 +177,14 @@
     'clicked'       => 'msg.js_clicked',
     'need_message'  => 'msg.js_need_message',
     'need_3wid'     => 'msg.js_need_3wid',
+    'checking'      => 'msg.js_checking',
+    'check_later'   => 'msg.js_check_later',
 ]); ?>
 <script src="<?php echo chat_asset('js/3wid_messageform.js'); ?>"></script>
 <script src="<?php echo chat_asset('js/chat.js'); ?>"></script>
 <script>
-    // Check the recipient right away when it is prefilled (reply)
-    if ($('#threeword').val().trim() !== '') { $('#threeword').trigger('keyup'); }
+    // Check the recipient right away (prefilled for a reply); Send waits for that check
+    checkRecipient();
 
     // Keep the name in the top bar in step with the recipient field
     (function () {
