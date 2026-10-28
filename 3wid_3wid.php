@@ -38,6 +38,20 @@
 
   $threeword_url = implode('.', explode(' ', $row["threeword"]));
 
+  // Sent back by 3wid_update.php (e.g. empty Message field): show why, once
+  $form_error = '';
+  if (isset($_SESSION['edit_form_error']) && is_array($_SESSION['edit_form_error'])) {
+      if ((int) ($_SESSION['edit_form_error']['id'] ?? 0) === (int) $row['id']) {
+          $form_error = (string) ($_SESSION['edit_form_error']['error'] ?? '');
+          foreach (['notification', 'linkthru', 'linkthruflag', 'emailform', 'private'] as $k) {
+              if (array_key_exists($k, $_SESSION['edit_form_error'])) {
+                  $row[$k] = $_SESSION['edit_form_error'][$k];
+              }
+          }
+      }
+      unset($_SESSION['edit_form_error']);
+  }
+
   // CSRF token for the update form
   $action_token = get_action_token();
 
@@ -207,6 +221,18 @@
         color: var(--navy);
         font-size: 14px;
       }
+      label.field .opt { font-weight: 500; color: var(--muted); }
+      label.field .opt[hidden] { display: none; }
+      .form-error {
+        background: #FDF2F2;
+        border: 1px solid #F3C7C7;
+        color: #9B1C1C;
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-size: 14px;
+        font-weight: 600;
+        margin: 0 0 16px;
+      }
       .form-actions {
         display: flex;
         align-items: center;
@@ -258,7 +284,10 @@
                     <a class="btn btn-ghost" href="3wid_gen_qr_threeword.php?csrf_token=<?php echo $_SESSION['csrf_token'];?>&threeword=<?= $row["threeword"]; ?>" title='so https://www.3wordid.com/index.php?threeword=<?= $row["threeword"]; ?>'><?php echo t('edit.qr_readable'); ?></a>
                 </div>
 
-                <label class="field" for="notification"><?php echo t('edit.message'); ?></label>
+                <?php if (!empty($form_error)) { ?>
+                <p class="form-error" role="alert"><?php echo htmlspecialchars($form_error); ?></p>
+                <?php } ?>
+                <label class="field" for="notification"><?php echo t('add.notification'); ?> <span class="opt" id="notificationOpt" hidden><?php echo t('add.optional'); ?></span></label>
                 <textarea name="notification" id="notification" class="search-bar" placeholder="<?php echo t('add.notification_ph'); ?>" rows="4"><?= htmlspecialchars((string)$row["notification"]); ?></textarea>
 
                 <label class="field" for="linkthru" style="margin-top:16px;"><?php echo t('add.linkthru'); ?></label>
@@ -317,12 +346,15 @@
         }
     }
 
-    document.querySelector('.login-icon').addEventListener('click', function(e) {
-        e.preventDefault();
-        handleGoogleLogin();
-        setTimeout(() => {
-            window.location.href = '/login/options.php';
-        }, 1000);
-    });
+    var loginIcon = document.querySelector('.login-icon');
+    if (loginIcon) {
+        loginIcon.addEventListener('click', function(e) {
+            e.preventDefault();
+            handleGoogleLogin();
+            setTimeout(() => {
+                window.location.href = '/login/options.php';
+            }, 1000);
+        });
+    }
 </script>
 </html>

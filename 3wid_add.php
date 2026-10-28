@@ -20,7 +20,16 @@ if (empty($_SESSION['csrf_token'])) {
     //header('location:' . $main_url);
  }
  
- error_log('max_3wids' . $data['max_3wids']);
+ // Only paying users may use digits in a 3WordID (see user_is_paying())
+ $paying = user_is_paying($data);
+
+ // Sent back by 3wid_insert.php: show why, and keep what was typed
+ $old = (isset($_SESSION['add_form']) && is_array($_SESSION['add_form'])) ? $_SESSION['add_form'] : [];
+ unset($_SESSION['add_form']);
+ $old_checked = function ($key, $default = false) use ($old) {
+     $on = array_key_exists($key, $old) ? (int) $old[$key] === 1 : $default;
+     return $on ? ' checked' : '';
+ };
 
 ?>  
 <!DOCTYPE html>
@@ -238,6 +247,34 @@ if (empty($_SESSION['csrf_token'])) {
         font-size: 13px;
         color: var(--muted);
       }
+      .field-hint {
+        font-size: 13px;
+        color: var(--muted);
+        margin: 6px 0 0;
+        line-height: 1.5;
+      }
+      .field-hint a { color: var(--navy); text-decoration: underline; text-underline-offset: 2px; }
+      .field-error {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--danger);
+        margin: 6px 0 0;
+        line-height: 1.5;
+      }
+      .field-error a { color: var(--danger); text-decoration: underline; text-underline-offset: 2px; }
+      .field-error[hidden], .lbl .opt[hidden] { display: none; }
+      input[aria-invalid="true"], textarea[aria-invalid="true"] { border-color: var(--danger); }
+      .lbl .opt { font-weight: 500; color: var(--muted); }
+      .form-error {
+        background: #FDF2F2;
+        border: 1px solid #F3C7C7;
+        color: var(--danger);
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-size: 14px;
+        font-weight: 600;
+        margin: 0 0 16px;
+      }
 
       .site-footer {
         max-width: 1100px;
@@ -274,26 +311,34 @@ if (empty($_SESSION['csrf_token'])) {
       <p class="subhead"><?php echo t('add.subhead'); ?></p>
 
       <div class="panel">
-        <form id="3widForm" action="3wid_insert.php" method="post">
+        <form id="3widForm" action="3wid_insert.php" method="post" data-paying="<?php echo $paying ? '1' : '0'; ?>">
+          <?php if (!empty($old['error'])) { ?>
+          <p class="form-error" role="alert"><?php echo htmlspecialchars((string) $old['error']); ?></p>
+          <?php } ?>
           <div class="field">
             <label class="lbl" for="threeword"><?php echo t('add.threeword'); ?></label>
-            <input type="text" id="threeword" name="threeword" class="search-bar" placeholder="<?php echo t('common.placeholder_words'); ?>" value="">
+            <input type="text" id="threeword" name="threeword" class="search-bar" placeholder="<?php echo t('common.placeholder_words'); ?>" value="<?php echo htmlspecialchars((string) ($old['threeword'] ?? '')); ?>" aria-describedby="threewordHint threewordError" autocomplete="off">
+            <?php if (!$paying) { ?>
+            <p class="field-hint" id="threewordHint"><?php echo t_raw('add.digits_paid'); ?></p>
+            <?php } ?>
+            <p class="field-error" id="threewordError" role="alert" hidden></p>
           </div>
 
           <div class="field">
-            <label class="lbl" for="notification"><?php echo t('add.notification'); ?></label>
-            <textarea name="notification" id="notification" class="search-bar" placeholder="<?php echo t('add.notification_ph'); ?>" rows="4"></textarea>
+            <label class="lbl" for="notification"><?php echo t('add.notification'); ?> <span class="opt" id="notificationOpt" hidden><?php echo t('add.optional'); ?></span></label>
+            <textarea name="notification" id="notification" class="search-bar" placeholder="<?php echo t('add.notification_ph'); ?>" rows="4" aria-describedby="notificationError"><?php echo htmlspecialchars((string) ($old['notification'] ?? '')); ?></textarea>
+            <p class="field-error" id="notificationError" role="alert" hidden></p>
           </div>
 
           <div class="field">
             <label class="lbl" for="linkthru"><?php echo t('add.linkthru'); ?></label>
-            <input type="text" name="linkthru" id="linkthru" class="search-bar" placeholder="<?php echo t('add.linkthru_ph'); ?>" value="">
+            <input type="text" name="linkthru" id="linkthru" class="search-bar" placeholder="<?php echo t('add.linkthru_ph'); ?>" value="<?php echo htmlspecialchars((string) ($old['linkthru'] ?? '')); ?>">
           </div>
 
           <div class="checks">
-            <label><input type="checkbox" id="linkthruflag" name="linkthruflag"> <?php echo t('add.use_forward'); ?></label>
-            <label><input type="checkbox" id="emailform" name="emailform"> <?php echo t('add.link_form'); ?></label>
-            <label><input type="checkbox" id="private" name="private" checked> <?php echo t('add.private'); ?></label>
+            <label><input type="checkbox" id="linkthruflag" name="linkthruflag"<?php echo $old_checked('linkthruflag'); ?>> <?php echo t('add.use_forward'); ?></label>
+            <label><input type="checkbox" id="emailform" name="emailform"<?php echo $old_checked('emailform'); ?>> <?php echo t('add.link_form'); ?></label>
+            <label><input type="checkbox" id="private" name="private"<?php echo $old_checked('private', true); ?>> <?php echo t('add.private'); ?></label>
           </div>
 
           <div class="hint">
@@ -308,7 +353,6 @@ if (empty($_SESSION['csrf_token'])) {
             <div id="helperText"></div>
           </div>
 
-          <input type='hidden' id='subscribed' value='<?= $data["user_type"]; ?>'>
           <input type='hidden' name='csrf_token' value='<?php echo $_SESSION['csrf_token']; ?>'>
           <input type='hidden' name='user_id' value='<?= $data["id"]; ?>'>
         </form>

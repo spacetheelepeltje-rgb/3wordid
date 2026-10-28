@@ -1965,6 +1965,54 @@ function db_3wordid_insert($user_id, $threeword, $notification, $linkthru, $link
     }
 }	
 
+/**
+ * Paying user = user_type above 0 (0 or empty = free, 9 = blocked and can't log in).
+ * Same rule as db_3wid_validate_type(): only paying users may use digits in a 3WordID.
+ */
+function user_is_paying($user): bool
+{
+    $type = (int) (is_array($user) ? ($user['user_type'] ?? 0) : 0);
+    return $type > 0 && $type !== 9;
+}
+
+/**
+ * Why a 3WordID typed in the add form is not accepted, as a lang key (null = fine).
+ * Same checks as db_3wid_validate_type(), but with a reason the form can show.
+ */
+function wid_threeword_error(string $threeword, bool $paying): ?string
+{
+    $threeword = trim($threeword);
+    if ($threeword === '') {
+        return 'js.add_need_3wid';
+    }
+    $parts = preg_split('/\s+/', $threeword);
+    if (count($parts) !== 3) {
+        return 'js.max_three';
+    }
+    foreach ($parts as $part) {
+        if (!$paying && preg_match('/[0-9]/', $part)) {
+            return 'js.add_err_digits';
+        }
+        if (!preg_match($paying ? '/^[a-zA-Z0-9]+$/' : '/^[a-zA-Z]+$/', $part)) {
+            return $paying ? 'js.add_err_chars_paid' : 'js.add_err_chars';
+        }
+    }
+    return null;
+}
+
+/**
+ * The Message field is required only when the 3WordID shows it (no forward URL and no chat).
+ * $clean_note is the purified HTML. Returns a lang key or null.
+ */
+function wid_note_error(string $clean_note, int $linkthruflag, int $emailform): ?string
+{
+    if ($linkthruflag === 1 || $emailform === 1) {
+        return null;
+    }
+    $text = trim(html_entity_decode(strip_tags($clean_note), ENT_QUOTES, 'UTF-8'));
+    return $text === '' ? 'js.need_notification' : null;
+}
+
 function db_3wid_validate_type($threeword,$user_type){
 	
 	$threeword = trim(strtolower($threeword));

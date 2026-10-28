@@ -3,275 +3,153 @@ var tr = window.tr || function (key, fallback) {
     return (window.T3 && window.T3[key]) || fallback;
 };
 
+// Add form (3wid_add.php). The server (3wid_insert.php) does the same checks.
+//  - Free users: letters only. Paying users: letters and digits.
+//  - The Message field is only required when the 3WordID shows it, so not for
+//    "Use forward URL" or "Link to chat".
 
-console.log('loading script');
-
-const emailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-const threeword_regex = /^[a-zA-Z]+$/;
-const threeword_regex_subscribed = /^[a-zA-Z0-9]+$/;
-
-
-function validateEmail(email) {
-	return emailRegex.test(String(email).toLowerCase());
+function isPaying() {
+    return $('#3widForm').attr('data-paying') === '1';
 }
 
-function containsDigitsOrSpecialCharacters(str) {
-    return /\d/.test(str) || /[^a-zA-Z]/.test(str);
-}	
-
-function containsNonAlphanumeric(str) {
-    return /[^a-zA-Z0-9]/.test(str);
-}
-
-function containsNonAlphabetic(str) {
-    return /[^a-zA-Z]/.test(str);
-}
-
- function containsDigitsOrSpecialCharactersSubscribed(str) {
-    return /\d/.test(str) || /[^a-zA-Z0-9]/.test(str);
-}	
-
-function validateURL(url) {
-	return true;
-	}
-	
-function isOnlyAlphanumeric(word) {
-    return word.match(/^[a-zA-Z0-9]+$/) !== null;
-}	
-
-function isOnlyAlpha(word) {
-    return word.match(/^[a-zA-Z]+$/) !== null;
-}	
-
-function validate_threeword(threewords) {
-
-		console.log('validate 0');
-		
-        if (threewords.trim() === '' ) { 
-            return false;
+// Why the typed 3WordID can't be used ('' = fine so far). Incomplete input
+// (fewer than three words) is not an error while typing.
+function threewordProblem(threewords, complete) {
+    var value = threewords.trim();
+    if (value === '') {
+        return complete ? tr('add_need_3wid', 'Please provide a 3WordID') : '';
+    }
+    var words = value.split(/\s+/);
+    var paying = isPaying();
+    for (var i = 0; i < words.length; i++) {
+        if (!paying && /[0-9]/.test(words[i])) {
+            return tr('add_err_digits', 'Numbers are only available with a paid plan.');
         }
-        
-        var words = threewords.trim().split(/\s+/);
-
-        if (words.length !== 3) { 
-			
-			// Set to grey
-			$('#submitBtn').css('background-color', 'grey');
-			$('#submitBtn').css('color', 'white');
-
-			return false;
-		}	
-		
-		
-		
-		let subscribed = $('#subscribed').val();
-		
-		console.log('user subscription state is ' + subscribed  );
-		
-		flag = 1;
-		
-		
-		/*if(subscribed == 0) {
-			words.forEach(function(word) {
-				if (!isOnlyAlpha(word)) {
-					$('#helperText').html('The 3WordID can only contain a-z and A-Z characters');					
-					
-					flag = 0;	
-				}	
-			});
-		} else {
-			words.forEach(function(word) {
-				
-				console.log('test ' + word + ' result ' + isOnlyAlphanumeric(word));
-				
-				if (!isOnlyAlphanumeric(word)) {
-					$('#helperText').html('The 3WordID can only contain a-z and A-Z and 0-9 characters');	
-					
-					flag = 0;
-				}	
-			});
-		}
-	    
-	    console.log(threewords + ' flag ' + flag + ' is valid');
-	    
-	    */
-	    
-	    return flag;
-
+        if (!(paying ? /^[a-zA-Z0-9]+$/ : /^[a-zA-Z]+$/).test(words[i])) {
+            return paying
+                ? tr('add_err_chars_paid', 'Use only letters (a-z) and numbers (0-9).')
+                : tr('add_err_chars', 'Use only letters (a-z).');
+        }
+    }
+    if (words.length > 3 || (complete && words.length !== 3)) {
+        return tr('max_three', 'Maximum is three words');
+    }
+    return '';
 }
 
+function showFieldError(field, box, text, withPlansLink) {
+    var $box = $(box);
+    if (text === '') {
+        $box.attr('hidden', true).empty();
+        $(field).removeAttr('aria-invalid');
+        return;
+    }
+    $box.text(text);
+    if (withPlansLink) {
+        $box.append(' ').append($('<a>', { href: 'plans.php', text: tr('add_see_plans', 'See plans') }));
+    }
+    $box.removeAttr('hidden');
+    $(field).attr('aria-invalid', 'true');
+}
 
-$(document).ready(function() {
+function noteRequired() {
+    return !document.getElementById('linkthruflag').checked && !document.getElementById('emailform').checked;
+}
 
-	$('#threeword').on('keyup', function() {
-		let response = 'null'; // Use let instead of implicit global variable
+// "(optional)" next to the Message label when forward or chat is chosen
+function updateNoteOptional() {
+    var required = noteRequired();
+    $('#notificationOpt').prop('hidden', required);
+    if (!required) {
+        showFieldError('#notification', '#notificationError', '');
+    }
+}
 
-		let threewords = $('#threeword').val();
-		let threewords_array = threewords.trim().split(/\s+/);
-		let nr_words = threewords_array.length;
-		
-		console.log(threewords);
-		
-		validate_result = validate_threeword(threewords);
+function setButton(color) {
+    $('#submitBtn').css({ 'background-color': color || '', 'color': color ? 'white' : '' });
+}
 
-		console.log('validate threeword ' + threewords + ' result ' + validate_result);
-		
-		let subscribed = $('#subscribed').val();
+var existsRequest = 0;
 
-		if (validate_result) { // Fixed variable name from 'threeword' to 'threewords'
+function checkThreeword() {
+    var threewords = $('#threeword').val();
+    var problem = threewordProblem(threewords, false);
+    var digits = problem !== '' && !isPaying() && /[0-9]/.test(threewords);
+    showFieldError('#threeword', '#threewordError', problem, digits);
 
-			if (nr_words == 3) {
-				// Define an async function to handle the AJAX call
-				const checkThreeWord = async () => {
-					try {
-						response = await $.ajax({
-							type: 'POST',
-							url: '3wid_exists.php',
-							data: {
-								'threewords': threewords
-							}
-						});
-						
-						// This code runs after the AJAX call completes
-						if (response == 'exists') {
-							console.log('exists');
-							$('#helperText').text(tr('add_exists', '3 word id exists'));
-							
-							$('#submitBtn').css('background-color', 'red');
-							$('#submitBtn').css('color', 'white'); // Optional for text
-						} else {
-							console.log('new');
-							$('#helperText').text(tr('add_new', '3 word id is new'));
-							// Set to green
-							$('#submitBtn').css('background-color', 'green');
-							$('#submitBtn').css('color', 'white');
-						}
-						
-						console.log('response:' + response); // Now response has the AJAX value
-					} catch (error) {
-						console.error('An error occurred:', error);
-					}
-					
-					return response;
-				};
-				
-				// Call the async function
-				response = checkThreeWord();
-			} else {
-				// Set to grey
-				$('#submitBtn').css('background-color', 'grey');
-				$('#submitBtn').css('color', 'white');
-			}
-			
-			
-		} else {
-			
-		}
+    var words = threewords.trim() === '' ? [] : threewords.trim().split(/\s+/);
+    if (problem !== '') {
+        $('#helperText').text('');
+        setButton('grey');
+        return;
+    }
+    if (words.length !== 3) {
+        $('#helperText').text('');
+        setButton('');
+        return;
+    }
+    var mine = ++existsRequest;
+    $.ajax({ type: 'POST', url: '3wid_exists.php', data: { 'threewords': threewords } })
+        .done(function (response) {
+            if (mine !== existsRequest) { return; } // an older answer
+            if (response == 'exists') {
+                $('#helperText').text(tr('add_exists', '3 word id exists'));
+                setButton('red');
+            } else {
+                $('#helperText').text(tr('add_new', '3 word id is new'));
+                setButton('green');
+            }
+        });
+}
 
+$(document).ready(function () {
 
-
-    
-});
-
-// Attach event listener to the form
-    $('#3widForm').on('submit', function(event) {
-		event.preventDefault();
-        $('#helperText').text(tr('clicked', 'Clicked submit'));
-		
-        // Log to confirm the handler is firing
-        console.log('Form submit handler triggered');
-  
-        send = 1;
-        
-        console.log('Default submission prevented');
-
-        // Grab form data
-        let form = $(this);
-        let threeword = $('#threeword').val();
-        let threewords_array = threeword.trim().split(/\s+/);
-	    let nr_words = threewords_array.length;
-			  
-
-		console.log('validate 2');
-		
-		let subscribed = $('#subscribed').val();
-		
-		$('#helperText').html('');
-		 
-		send = validate_threeword(threeword);
-
-        let linkthru = $('#linkthru').val();
-        let linkthruflag = document.getElementById('linkthruflag').checked
-        let email = '';
-        let emailform = false ; 
-        let notification = $('#notification').val();
-        
-        console.log('threeword is ' + threeword);
-        console.log('email is ' + email);
-        console.log('emailform is ' + emailform);
-        console.log('linkthruflag is ' + linkthruflag);
-        console.log('linkthru is ' + linkthru);
-        console.log('notification is ' + notification);
-        
-        if(threeword.trim() =='') {
-			 $('#helperText').text(tr('add_need_3wid', 'Please provide a 3WordID'));
-				  send=0;
-				  return;
-			}
-			
-		if (linkthru.toLowerCase().includes("3wordid.com")) {
-			 $('#helperText').text(tr('add_no_forward', 'You can not use a 3WordID forward'));
-		     send=0;
-		     return;
-		}	
-
-        if(linkthruflag == true) {
-
-			if(!validateURL(linkthru)) {
-				 $('#helperText').text(tr('bad_url', 'URL missing or invalid'));
-				  send=0;
-				  return;
-				 
-			}
-				
-		}
-		
-		if(nr_words != 3) {
-				  $('#helperText').text(tr('max_three', 'Maximum is three words'));
-				  send=0;
-				  return;
-			}
-			
-		if(emailform==true) {
-			if(!validateEmail(email)) {
-				$('#helperText').text(tr('bad_email', 'Please provide a valid email'));
-				 send=0;
-				 return;
-			}
-		}
-
-		if(linkthruflag == false  && emailform==false && notification.trim() === '') {
-			$('#helperText').text(tr('need_notification', 'Please at least enter text in the notification box'));
-			send=0;
-		}
-
-        // Log form data for debugging
-        console.log('Form data:', { threeword, email, linkthru, emailform });
-
-
-        // If you reach here, email is valid
-        console.log('send is ' +  send);
-        // Add your next steps here (e.g., AJAX call)
-        
-        
-        
-        if(send==1) { 
-			// Use jQuery to submit the form, respecting the event handler
-			form.off('submit'); // Remove this handler to avoid infinite loop
-			form.submit(); // Trigger jQuery's submit, which sends the form
-		}
+    $('#threeword').on('input', checkThreeword);
+    $('#linkthruflag, #emailform').on('change', updateNoteOptional);
+    $('#notification').on('input', function () {
+        if ($('#notification').val().trim() !== '') {
+            showFieldError('#notification', '#notificationError', '');
+        }
     });
-	
-	
+    updateNoteOptional();
+    if ($('#threeword').val().trim() !== '') {
+        checkThreeword();
+    }
+
+    $('#3widForm').on('submit', function (event) {
+        event.preventDefault();
+        var form = this;
+        var threeword = $('#threeword').val();
+        var linkthru = $('#linkthru').val();
+        var notification = $('#notification').val();
+
+        $('#helperText').text('');
+
+        var problem = threewordProblem(threeword, true);
+        if (problem !== '') {
+            showFieldError('#threeword', '#threewordError', problem, !isPaying() && /[0-9]/.test(threeword));
+            $('#threeword').trigger('focus');
+            return;
+        }
+
+        if (linkthru.toLowerCase().includes('3wordid.com')) {
+            $('#helperText').text(tr('add_no_forward', 'You can not use a 3WordID forward'));
+            return;
+        }
+
+        if (document.getElementById('linkthruflag').checked && linkthru.trim() === '') {
+            $('#helperText').text(tr('bad_url', 'URL missing or invalid'));
+            $('#linkthru').trigger('focus');
+            return;
+        }
+
+        if (noteRequired() && notification.trim() === '') {
+            showFieldError('#notification', '#notificationError', tr('need_notification', 'Please fill in the Message field'));
+            $('#notification').trigger('focus');
+            return;
+        }
+
+        $('#helperText').text(tr('clicked', 'Clicked submit'));
+        form.submit(); // native submit: does not run this handler again
+    });
 });
-		
