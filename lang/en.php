@@ -652,4 +652,7 @@ The URL, notification, and chat for these words will be removed. This cannot be 
     'tb.back_chats' => 'Back to the chats of {words}',
     'tb.chatting_as' => 'Chatting as {words}',
     'tb.anonymous' => 'Anonymous message',
+    'inactive.page_title' => '3WordID not active',
+    'inactive.title' => 'This 3WordID is not active at the moment',
+    'inactive.sub' => 'Please try again later.',
 ];

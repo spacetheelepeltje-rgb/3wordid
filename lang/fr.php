@@ -560,4 +560,7 @@ L’URL, la notification et le chat de ces mots seront supprimés. Cette action 
     'tb.back_chats' => 'Retour aux discussions de {words}',
     'tb.chatting_as' => 'Vous discutez en tant que {words}',
     'tb.anonymous' => 'Message anonyme',
+    'inactive.page_title' => '3WordID inactif',
+    'inactive.title' => 'Ce 3WordID n’est pas actif pour le moment',
+    'inactive.sub' => 'Veuillez réessayer plus tard.',
 ];

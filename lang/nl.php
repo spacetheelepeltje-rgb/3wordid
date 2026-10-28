@@ -652,4 +652,7 @@ De URL, mededeling en chat van deze woorden worden verwijderd. Dit kan niet onge
     'tb.back_chats' => 'Terug naar de chats van {words}',
     'tb.chatting_as' => 'Je chat als {words}',
     'tb.anonymous' => 'Anoniem bericht',
+    'inactive.page_title' => '3WordID niet actief',
+    'inactive.title' => 'Deze 3WordID is op dit moment niet actief',
+    'inactive.sub' => 'Probeer het later nog eens.',
 ];
