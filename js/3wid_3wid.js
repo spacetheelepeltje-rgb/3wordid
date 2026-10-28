@@ -24,12 +24,22 @@ function validateURL(url) {
 
 $(document).ready(function() {
 
-    // "(optional)" next to the Message label when forward or chat is chosen
+    function msglinkChosen() {
+        var box = document.getElementById('msglinkflag');
+        return !!(box && box.checked);
+    }
+
+    // "(optional)" next to the Message label when forward or chat is chosen;
+    // the Link title field and the "Link URL" label only for "Message with link"
     function updateNoteOptional() {
         var required = !document.getElementById('linkthruflag').checked && !document.getElementById('emailform').checked;
         $('#notificationOpt').prop('hidden', required);
+        var msglink = msglinkChosen();
+        $('#linkTitleField').prop('hidden', !msglink);
+        var $label = $('#linkthruLabel');
+        $label.text($label.attr(msglink ? 'data-msglink' : 'data-forward') || $label.text());
     }
-    $('#linkthruflag, #emailform').on('change', updateNoteOptional);
+    $('#linkthruflag, #msglinkflag, #emailform').on('change', updateNoteOptional);
     updateNoteOptional();
 
     // Attach event listener to the form
@@ -75,6 +85,23 @@ $(document).ready(function() {
 			$('#helperText').text(tr('need_notification', 'Please fill in the Message field'));
 			$('#notification').trigger('focus');
 			send=0;
+		}
+
+		// "Message with link": message (above), URL and link title are required
+		if(send==1 && msglinkChosen()) {
+			if(linkthru.trim() === '' || !validateURL(linkthru)) {
+				$('#helperText').text(tr('bad_url', 'URL missing or invalid'));
+				$('#linkthru').trigger('focus');
+				send=0;
+			} else if(linkthru.toLowerCase().includes('3wordid.com')) {
+				$('#helperText').text(tr('add_no_forward', 'You can not use a 3WordID forward'));
+				$('#linkthru').trigger('focus');
+				send=0;
+			} else if($('#link_title').val().trim() === '') {
+				$('#helperText').text(tr('need_link_title', 'Please fill in the Link title field'));
+				$('#link_title').trigger('focus');
+				send=0;
+			}
 		}
 
         // Log form data for debugging

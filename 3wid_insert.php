@@ -60,10 +60,15 @@ try {
    // "Use forward URL" and "Link to chat" exclude each other (chat wins for a new 3WordID)
    [$linkthruflag, $emailform] = wid_exclusive_link_flags($linkthruflag, $emailform);
 
+   // "Message with link": only when forward and chat are both off (they win)
+   $link_title = (string) ($_POST["link_title"] ?? '');
+   $msglink = (isset($_POST["msglinkflag"]) && $linkthruflag === 0 && $emailform === 0 && db_3wordid_has_link_title()) ? 1 : 0;
+
    // Not accepted: back to the form with the reason, and with what was typed
    $paying = user_is_paying($data);
    $error = wid_threeword_error((string) $threeword, $paying)
-         ?? wid_note_error($clean_notification, $linkthruflag, $emailform);
+         ?? wid_note_error($clean_notification, $linkthruflag, $emailform)
+         ?? wid_link_error($linkthruflag, $msglink, (string) $linkthru, $link_title);
    $valid_threeword = $error === null ? db_3wid_validate_type($threeword, $paying ? 1 : 0) : false;
    if (!$valid_threeword) {
        $_SESSION['add_form'] = [
@@ -73,6 +78,8 @@ try {
            'linkthru' => (string) $linkthru,
            'linkthruflag' => $linkthruflag,
            'emailform' => $emailform,
+           'msglinkflag' => $msglink,
+           'link_title' => $link_title,
            'private' => $private,
        ];
        header('location:3wid_add.php');
@@ -85,7 +92,9 @@ try {
     
    if($new_id == FALSE) {
 	   error_log('aborted insert');
-	   } 
+	   } elseif ($msglink === 1) {
+	   db_3wordid_set_link_title($new_id, $link_title);
+	   }
     
    //header('location:' .   $loginUrl);
    header('location:3wid_list.php'); 

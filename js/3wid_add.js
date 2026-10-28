@@ -7,6 +7,8 @@ var tr = window.tr || function (key, fallback) {
 //  - Free users: letters only. Paying users: letters and digits.
 //  - The Message field is only required when the 3WordID shows it, so not for
 //    "Use forward URL" or "Link to chat".
+//  - "Message with link": the message is shown with a link below it, so the
+//    Message, URL and Link title fields are all required.
 
 function isPaying() {
     return $('#3widForm').attr('data-paying') === '1';
@@ -56,12 +58,42 @@ function noteRequired() {
     return !document.getElementById('linkthruflag').checked && !document.getElementById('emailform').checked;
 }
 
-// "(optional)" next to the Message label when forward or chat is chosen
+function msglinkChosen() {
+    var box = document.getElementById('msglinkflag');
+    return !!(box && box.checked);
+}
+
+// Same idea as the check in 3wid_3wid.js: false when the URL can't be used
+function validateURL(url) {
+    url = url.trim();
+    if (url === '') { return false; }
+    url = url.replace(/^http:\/\//i, 'https://');
+    if (!/^https:\/\//i.test(url)) { url = 'https://' + url; }
+    try {
+        var parsed = new URL(url);
+        return /\./.test(parsed.hostname) ? parsed.href : false;
+    } catch (e) {
+        return false;
+    }
+}
+
+// "(optional)" next to the Message label when forward or chat is chosen;
+// the Link title field and the "Link URL" label only for "Message with link"
 function updateNoteOptional() {
     var required = noteRequired();
     $('#notificationOpt').prop('hidden', required);
     if (!required) {
         showFieldError('#notification', '#notificationError', '');
+    }
+    var msglink = msglinkChosen();
+    $('#linkTitleField').prop('hidden', !msglink);
+    var $label = $('#linkthruLabel');
+    $label.text($label.attr(msglink ? 'data-msglink' : 'data-forward') || $label.text());
+    if (!msglink) {
+        showFieldError('#link_title', '#linkTitleError', '');
+    }
+    if (!msglink && !document.getElementById('linkthruflag').checked) {
+        showFieldError('#linkthru', '#linkthruError', '');
     }
 }
 
@@ -105,10 +137,18 @@ function checkThreeword() {
 $(document).ready(function () {
 
     $('#threeword').on('input', checkThreeword);
-    $('#linkthruflag, #emailform').on('change', updateNoteOptional);
+    $('#linkthruflag, #msglinkflag, #emailform').on('change', updateNoteOptional);
     $('#notification').on('input', function () {
         if ($('#notification').val().trim() !== '') {
             showFieldError('#notification', '#notificationError', '');
+        }
+    });
+    $('#linkthru').on('input', function () {
+        showFieldError('#linkthru', '#linkthruError', '');
+    });
+    $('#link_title').on('input', function () {
+        if ($('#link_title').val().trim() !== '') {
+            showFieldError('#link_title', '#linkTitleError', '');
         }
     });
     updateNoteOptional();
@@ -137,15 +177,27 @@ $(document).ready(function () {
             return;
         }
 
+        if (noteRequired() && notification.trim() === '') {
+            showFieldError('#notification', '#notificationError', tr('need_notification', 'Please fill in the Message field'));
+            $('#notification').trigger('focus');
+            return;
+        }
+
+        var msglink = msglinkChosen();
         if (document.getElementById('linkthruflag').checked && linkthru.trim() === '') {
             $('#helperText').text(tr('bad_url', 'URL missing or invalid'));
             $('#linkthru').trigger('focus');
             return;
         }
+        if (msglink && !validateURL(linkthru)) {
+            showFieldError('#linkthru', '#linkthruError', tr('bad_url', 'URL missing or invalid'));
+            $('#linkthru').trigger('focus');
+            return;
+        }
 
-        if (noteRequired() && notification.trim() === '') {
-            showFieldError('#notification', '#notificationError', tr('need_notification', 'Please fill in the Message field'));
-            $('#notification').trigger('focus');
+        if (msglink && $('#link_title').val().trim() === '') {
+            showFieldError('#link_title', '#linkTitleError', tr('need_link_title', 'Please fill in the Link title field'));
+            $('#link_title').trigger('focus');
             return;
         }
 

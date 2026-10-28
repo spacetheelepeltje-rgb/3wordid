@@ -81,8 +81,14 @@ if ($data == NULL) {
    // "Use forward URL" and "Link to chat" exclude each other: keep the one just switched on
    [$linkthruflag, $emailform] = wid_exclusive_link_flags($linkthruflag, $emailform, db_3wordid_get($id) ?: null);
 
-   // The Message field is required only when the 3WordID shows it (no forward, no chat)
-   $note_error = wid_note_error($clean_notification, $linkthruflag, $emailform);
+   // "Message with link": only when forward and chat are both off (they win)
+   $link_title = (string) ($_POST["link_title"] ?? '');
+   $msglink = (isset($_POST["msglinkflag"]) && $linkthruflag === 0 && $emailform === 0 && db_3wordid_has_link_title()) ? 1 : 0;
+
+   // The Message field is required only when the 3WordID shows it (no forward, no chat);
+   // forward and "Message with link" need a valid URL, "Message with link" also a link title
+   $note_error = wid_note_error($clean_notification, $linkthruflag, $emailform)
+              ?? wid_link_error($linkthruflag, $msglink, (string) $linkthru, $link_title);
    if ($note_error !== null) {
        $_SESSION['edit_form_error'] = [
            'id' => $id,
@@ -92,6 +98,8 @@ if ($data == NULL) {
            'linkthru' => (string) $linkthru,
            'linkthruflag' => $linkthruflag,
            'emailform' => $emailform,
+           'msglinkflag' => $msglink,
+           'link_title' => $link_title,
            'private' => $private,
        ];
        $from = (($_POST['from'] ?? '') === 'admin') ? '&from=admin' : '';
@@ -113,6 +121,9 @@ if ($data == NULL) {
 try {
 	
     db_3wordid_update($id, $clean_notification, $linkthru, $linkthruflag, $emailform,$private);
+
+    // Link title: kept only for "Message with link", cleared for the other options
+    db_3wordid_set_link_title($id, $msglink === 1 ? $link_title : '');
 
     // "Show my photo in chats" (opt-in, off by default). Only when the edit form sent it;
     // does nothing until the show_photo column exists.

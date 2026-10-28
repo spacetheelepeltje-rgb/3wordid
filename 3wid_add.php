@@ -31,6 +31,11 @@ if (empty($_SESSION['csrf_token'])) {
      return $on ? ' checked' : '';
  };
 
+
+ // "Message with link" (only offered once the link_title column exists)
+ $has_link_title = db_3wordid_has_link_title();
+ $is_msglink = $has_link_title && (int) ($old['msglinkflag'] ?? 0) === 1;
+
 ?>  
 <!DOCTYPE html>
 <html lang="<?php echo current_lang(); ?>">
@@ -262,7 +267,7 @@ if (empty($_SESSION['csrf_token'])) {
         line-height: 1.5;
       }
       .field-error a { color: var(--danger); text-decoration: underline; text-underline-offset: 2px; }
-      .field-error[hidden], .lbl .opt[hidden] { display: none; }
+      .field-error[hidden], .lbl .opt[hidden], .field[hidden] { display: none; }
       input[aria-invalid="true"], textarea[aria-invalid="true"] { border-color: var(--danger); }
       .lbl .opt { font-weight: 500; color: var(--muted); }
       .form-error {
@@ -331,12 +336,24 @@ if (empty($_SESSION['csrf_token'])) {
           </div>
 
           <div class="field">
-            <label class="lbl" for="linkthru"><?php echo t('add.linkthru'); ?></label>
-            <input type="text" name="linkthru" id="linkthru" class="search-bar" placeholder="<?php echo t('add.linkthru_ph'); ?>" value="<?php echo htmlspecialchars((string) ($old['linkthru'] ?? '')); ?>">
+            <label class="lbl" for="linkthru" id="linkthruLabel" data-forward="<?php echo t('add.linkthru'); ?>" data-msglink="<?php echo t('add.link_url'); ?>"><?php echo $is_msglink ? t('add.link_url') : t('add.linkthru'); ?></label>
+            <input type="text" name="linkthru" id="linkthru" class="search-bar" placeholder="<?php echo t('add.linkthru_ph'); ?>" value="<?php echo htmlspecialchars((string) ($old['linkthru'] ?? '')); ?>" aria-describedby="linkthruError">
+            <p class="field-error" id="linkthruError" role="alert" hidden></p>
           </div>
+
+          <?php if ($has_link_title) { ?>
+          <div class="field" id="linkTitleField"<?php echo $is_msglink ? '' : ' hidden'; ?>>
+            <label class="lbl" for="link_title"><?php echo t('add.link_title'); ?></label>
+            <input type="text" name="link_title" id="link_title" class="search-bar" maxlength="255" placeholder="<?php echo t('add.link_title_ph'); ?>" value="<?php echo htmlspecialchars((string) ($old['link_title'] ?? '')); ?>" aria-describedby="linkTitleError">
+            <p class="field-error" id="linkTitleError" role="alert" hidden></p>
+          </div>
+          <?php } ?>
 
           <div class="checks">
             <label><input type="checkbox" id="linkthruflag" name="linkthruflag"<?php echo $old_checked('linkthruflag'); ?>> <?php echo t('add.use_forward'); ?></label>
+            <?php if ($has_link_title) { ?>
+            <label><input type="checkbox" id="msglinkflag" name="msglinkflag"<?php echo $is_msglink ? ' checked' : ''; ?>> <?php echo t('add.use_msglink'); ?></label>
+            <?php } ?>
             <label><input type="checkbox" id="emailform" name="emailform"<?php echo $old_checked('emailform'); ?>> <?php echo t('add.link_form'); ?></label>
             <label><input type="checkbox" id="private" name="private"<?php echo $old_checked('private', true); ?>> <?php echo t('add.private'); ?></label>
           </div>
@@ -365,13 +382,18 @@ if (empty($_SESSION['csrf_token'])) {
 
 <?php echo i18n_js_all(); ?>
 <script>
-    // "Use forward URL" and "Link to chat" exclude each other: ticking one unticks the other
+    // "Use forward URL", "Message with link" and "Link to chat" exclude each other:
+    // ticking one unticks the others
     (function () {
-        var fwd = document.getElementById('linkthruflag');
-        var chat = document.getElementById('emailform');
-        if (!fwd || !chat) { return; }
-        fwd.addEventListener('change', function () { if (fwd.checked) { chat.checked = false; } });
-        chat.addEventListener('change', function () { if (chat.checked) { fwd.checked = false; } });
+        var boxes = ['linkthruflag', 'msglinkflag', 'emailform']
+            .map(function (id) { return document.getElementById(id); })
+            .filter(function (el) { return el; });
+        boxes.forEach(function (box) {
+            box.addEventListener('change', function () {
+                if (!box.checked) { return; }
+                boxes.forEach(function (other) { if (other !== box) { other.checked = false; } });
+            });
+        });
     })();
 </script>
 <script src="js/3wid_add.js"></script>
