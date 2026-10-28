@@ -9,8 +9,10 @@
   if(isset($_POST["threewords"])) {
 	  $threewords = trim($_POST["threewords"]);
 	} elseif(isset($_GET["threewords"])) {
+		 //error_log('3wid forward get');
 		 $threewords = $_GET["threewords"]; 
-	} else { 
+	} else {
+			 
 	     header('location:' . $main_url); 
 	     die('sent do mainurl'); 
 	     
@@ -46,7 +48,7 @@
 		header('location:' . $main_url);
 		die('sent do mainurl');   
    }
-
+   
    if((int)$word_row['enabled'] !== 1) {
 		header('location:3wid_inactive.php?threewords=' . rawurlencode($word_row['threeword']));
 		die('switched off');
