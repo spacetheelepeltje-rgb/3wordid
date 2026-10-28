@@ -144,7 +144,6 @@ return [
     'msg.recipient' => 'Recipient',
     'msg.message_label' => 'Message',
     'msg.message_ph' => 'Enter your message here',
-    'msg.hint1' => 'Replies show up in the same conversation, so you can chat back and forth.',
     'msg.consent' => 'I consent with the above',
     'msg.hint2' => 'Your message is shown to the recipient. Your message and IP address are stored and kept, also for lawful requests from law enforcement. <a href="/terms.php#data">Read more</a>',
     'msg.js_ok_recipient' => 'recipient exists',

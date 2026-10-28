@@ -130,7 +130,6 @@ return [
     'msg.recipient' => 'Destinataire',
     'msg.message_label' => 'Message',
     'msg.message_ph' => 'Saisissez votre message ici',
-    'msg.hint1' => 'Les réponses s’affichent dans la même conversation : vous pouvez échanger librement.',
     'msg.consent' => 'Je consens à ce qui précède',
     'msg.hint2' => 'Votre message est montré au destinataire. Votre message et votre adresse IP sont enregistrés et conservés, y compris pour répondre aux demandes légales des forces de l’ordre. <a href="/terms.php#data">En savoir plus</a>',
     'msg.js_ok_recipient' => 'le destinataire existe',

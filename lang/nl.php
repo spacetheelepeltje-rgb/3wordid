@@ -144,7 +144,6 @@ return [
     'msg.recipient' => 'Ontvanger',
     'msg.message_label' => 'Bericht',
     'msg.message_ph' => 'Typ hier je bericht',
-    'msg.hint1' => 'Antwoorden verschijnen in hetzelfde gesprek, zodat je heen en weer kunt chatten.',
     'msg.consent' => 'Ik ga akkoord met het bovenstaande',
     'msg.hint2' => 'Je bericht wordt aan de ontvanger getoond. Je bericht en IP-adres worden opgeslagen en bewaard, ook voor rechtmatige verzoeken van politie en justitie. <a href="/terms.php#data">Lees meer</a>',
     'msg.js_ok_recipient' => 'ontvanger bestaat',

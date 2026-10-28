@@ -128,7 +128,6 @@
 <div class="chat-app">
 
     <main class="chat-scroll" data-scroll="end">
-        <div class="pill-wrap"><span class="pill info"><?php echo t('msg.hint1'); ?></span></div>
         <div class="pill-wrap"><span class="pill info"><?php echo t_raw('msg.hint2'); ?></span></div>
 
         <?php if ($error_key !== ''): ?>
