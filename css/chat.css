@@ -410,7 +410,7 @@ button.avatar.photo { cursor: zoom-in; }
 }
 .setup .f { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--divider); }
 .setup .f:last-child { border-bottom: 0; }
-.setup .f-status { font-size: 12px; color: var(--slate); padding: 0 0 8px 82px; }
+.setup .f-status { font-size: 12px; color: var(--slate); padding: 6px 0 12px 82px; }
 .setup .f-status:empty, .composer .c-status:empty { display: none; }
 .setup .f:has(+ .f-status:empty) { border-bottom: 0; }
 /* live recipient check (js/3wid_messageform.js): green only for a 3WordID that exists */
