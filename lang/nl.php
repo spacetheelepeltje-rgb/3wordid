@@ -141,7 +141,6 @@ return [
     'msg.h1' => 'Verstuur een bericht',
     'msg.subhead' => 'Je kunt berichten versturen en ontvangen met alle 3WordID’s die je hebt gemaakt.',
     'msg.from' => 'Van',
-    'msg.send_from' => 'Versturen vanaf: {words}',
     'msg.recipient' => 'Ontvanger',
     'msg.message_label' => 'Bericht',
     'msg.message_ph' => 'Typ hier je bericht',

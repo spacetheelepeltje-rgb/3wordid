@@ -110,7 +110,8 @@
         'avatar'  => chat_avatar($threeword),
         'name'    => $threeword_safe,
         'sub'     => t_n('chat.conversations', $total),
-        'actions' => chat_tb_button('3wid_messageform.php?threeword_id=' . (int) $threeword_id, 'compose', t_plain('chat.new_message')),
+        'actions' => chat_tb_button('3wid_messageform.php?threeword_id=' . (int) $threeword_id, 'compose', t_plain('chat.new_message'))
+                   . chat_tb_button('3wid_list.php', 'list', t_plain('tb.my_ids')),
     )); ?>
 <div class="chat-app">
 

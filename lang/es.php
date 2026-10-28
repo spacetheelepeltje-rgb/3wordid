@@ -127,7 +127,6 @@ return [
     'msg.h1' => 'Enviar un mensaje',
     'msg.subhead' => 'Puede enviar y recibir mensajes desde todos los 3 Word ID que defina.',
     'msg.from' => 'De',
-    'msg.send_from' => 'Enviar desde: {words}',
     'msg.recipient' => 'Destinatario',
     'msg.message_label' => 'Mensaje',
     'msg.message_ph' => 'Introduzca aquí su mensaje',

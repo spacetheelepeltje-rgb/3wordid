@@ -141,7 +141,6 @@ return [
     'msg.h1' => 'Send a message',
     'msg.subhead' => 'You can send and receive messages from all the 3 Word IDs you define.',
     'msg.from' => 'From',
-    'msg.send_from' => 'Send from : {words}',
     'msg.recipient' => 'Recipient',
     'msg.message_label' => 'Message',
     'msg.message_ph' => 'Enter your message here',

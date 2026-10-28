@@ -270,7 +270,7 @@ function chat_avatar_for($name, $wid_id, $photo_ids, $extra_class = '', $zoom = 
 
 // Version of css/chat.css and js/chat.js: raise it when they change, so browsers
 // load the new files without a hard refresh (Ctrl+F5).
-if (!defined('CHAT_ASSET_VERSION')) { define('CHAT_ASSET_VERSION', '4'); }
+if (!defined('CHAT_ASSET_VERSION')) { define('CHAT_ASSET_VERSION', '5'); }
 
 function chat_asset($path) {
 	return chat_e($path . '?v=' . CHAT_ASSET_VERSION);
@@ -334,7 +334,9 @@ function chat_topbar($o) {
 	$h .= '<div class="tb-who">' . ($o['avatar'] ?? '');
 	$h .= '<div class="tb-text"><div class="tb-name"' . (!empty($o['name_id']) ? ' id="' . chat_e($o['name_id']) . '"' : '') . '>' . $o['name'] . '</div>';
 	if (isset($o['sub']) && $o['sub'] !== '') {
-		$h .= '<div class="tb-sub"' . (!empty($o['sub_attrs']) ? ' ' . $o['sub_attrs'] : '') . '>' . $o['sub'] . '</div>';
+		// sub_attrs may bring its own class attribute (it must then include tb-sub)
+		$sub_attrs = !empty($o['sub_attrs']) ? $o['sub_attrs'] : '';
+		$h .= '<div' . (strpos($sub_attrs, 'class=') === false ? ' class="tb-sub"' : '') . ($sub_attrs !== '' ? ' ' . $sub_attrs : '') . '>' . $o['sub'] . '</div>';
 	}
 	$h .= '</div></div>';
 	$h .= '<div class="tb-actions">' . ($o['actions'] ?? '') . chat_lang_menu() . '</div>';
