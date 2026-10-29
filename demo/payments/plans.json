@@ -1,0 +1,67 @@
+{
+    "_help": "Plans for the iDEAL payment demo. Edit, save, reload plans.php. How to edit: docs/PAYMENTS.md, section 'Editing plans.json'. Prices are PLACEHOLDERS in EUR incl. VAT. This file is public: never put secrets in it.",
+    "currency": "EUR",
+    "prices_are_placeholders": true,
+    "plans": [
+        {
+            "id": "single",
+            "name": { "en": "Individual", "nl": "Persoonlijk" },
+            "description": { "en": "1 to 5 3WordIDs for yourself", "nl": "1 tot 5 3WordID’s voor jezelf" },
+            "ids": 1,
+            "qty_min": 1,
+            "qty_max": 5,
+            "prices": { "year": 10.00, "month": 1.50 },
+            "features": {
+                "en": ["Price is per 3WordID", "Numbers in your 3WordIDs (like room 12 east)", "Gold lock in the homepage search", "Forward URL, Message, Message with link and Chat"],
+                "nl": ["Prijs is per 3WordID", "Cijfers in je 3WordID’s (zoals zaal 12 oost)", "Gouden slotje in de zoekbalk op de homepage", "Doorsturen naar URL, Mededeling, Mededeling met link en Chat"]
+            },
+            "highlight": false,
+            "proof_required": false
+        },
+        {
+            "id": "group10",
+            "name": { "en": "Group 10", "nl": "Groep 10" },
+            "description": { "en": "For a team, club or small business", "nl": "Voor een team, club of klein bedrijf" },
+            "ids": 10,
+            "qty_min": 1,
+            "qty_max": 1,
+            "prices": { "year": 60.00, "month": 6.00 },
+            "features": {
+                "en": ["10 3WordIDs", "Numbers in your 3WordIDs (like room 12 east)", "Gold lock in the homepage search", "Forward URL, Message, Message with link and Chat"],
+                "nl": ["10 3WordID’s", "Cijfers in je 3WordID’s (zoals zaal 12 oost)", "Gouden slotje in de zoekbalk op de homepage", "Doorsturen naar URL, Mededeling, Mededeling met link en Chat"]
+            },
+            "highlight": true,
+            "proof_required": false
+        },
+        {
+            "id": "group100",
+            "name": { "en": "Group 100", "nl": "Groep 100" },
+            "description": { "en": "For larger organisations", "nl": "Voor grotere organisaties" },
+            "ids": 100,
+            "qty_min": 1,
+            "qty_max": 1,
+            "prices": { "year": 500.00, "month": 50.00 },
+            "features": {
+                "en": ["100 3WordIDs", "Numbers in your 3WordIDs (like room 12 east)", "Gold lock in the homepage search", "Forward URL, Message, Message with link and Chat"],
+                "nl": ["100 3WordID’s", "Cijfers in je 3WordID’s (zoals zaal 12 oost)", "Gouden slotje in de zoekbalk op de homepage", "Doorsturen naar URL, Mededeling, Mededeling met link en Chat"]
+            },
+            "highlight": false,
+            "proof_required": false
+        },
+        {
+            "id": "museum20",
+            "name": { "en": "Museums & galleries", "nl": "Musea & galeries" },
+            "description": { "en": "For museums and galleries", "nl": "Voor musea en galeries" },
+            "ids": 20,
+            "qty_min": 1,
+            "qty_max": 1,
+            "prices": { "year": 20.00, "month": null },
+            "features": {
+                "en": ["20 3WordIDs", "Numbers in your 3WordIDs (like room 12 east)", "Gold lock in the homepage search", "Forward URL, Message, Message with link and Chat", "We ask for proof that you are a museum or gallery", "Need more? Take it twice: 40, 60, …"],
+                "nl": ["20 3WordID’s", "Cijfers in je 3WordID’s (zoals zaal 12 oost)", "Gouden slotje in de zoekbalk op de homepage", "Doorsturen naar URL, Mededeling, Mededeling met link en Chat", "We vragen om bewijs dat je een museum of galerie bent", "Meer nodig? Neem het twee keer: 40, 60, …"]
+            },
+            "highlight": false,
+            "proof_required": true
+        }
+    ]
+}
