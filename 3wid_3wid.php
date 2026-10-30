@@ -262,13 +262,14 @@
       @media (max-width: 800px) {
         .wrap { padding-top: 20px; }
       }
-      .chat-login-panel { margin-top: 18px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 18px; }
-      .chat-login-panel h2 { margin: 0 0 4px; font-size: 17px; letter-spacing: -.01em; }
-      .chat-login-panel p { margin: 0; color: var(--slate); font-size: 14px; max-width: 520px; }
-      .chat-login-panel .cl-state { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 6px; }
-      .chat-login-panel .cl-state::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #B8BDC9; }
-      .chat-login-panel .cl-state.on { color: #047857; }
-      .chat-login-panel .cl-state.on::before { background: #10B981; }
+      /* Chat settings link next to "Link to chat" (key: grey = chat login off, green = on) */
+      .check-with-link { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; }
+      .chat-settings-link { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--slate); font-size: 13px; font-weight: 600; text-decoration: none; }
+      .chat-settings-link:hover { border-color: var(--navy); color: var(--navy); }
+      .chat-settings-link .cl-key { color: var(--muted); }
+      .chat-settings-link.cl-on { border-color: #9fd3b6; background: #e8f6ee; color: #14623C; }
+      .chat-settings-link.cl-on .cl-key { color: #16794a; }
+      .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
     </style>
 </head>
 <body>
@@ -325,7 +326,14 @@
                     <?php if ($has_link_title) { ?>
                     <label><input <?php echo $is_msglink ? 'checked' : ''; ?> type="checkbox" id="msglinkflag" name="msglinkflag"> <?php echo t('add.use_msglink'); ?></label>
                     <?php } ?>
+                    <?php if ($chat_login_row) { $cl_on = ((int) $chat_login_row['chat_login'] === 1); $cl_title = $cl_on ? t('cl.status_on') : t('cl.status_off'); ?>
+                    <div class="check-with-link">
+                        <label><input <?php echo $row["emailform"]== 1 ?'checked':''; ?> type="checkbox" id="emailform" name="emailform"> <?php echo t('edit.link_form'); ?></label>
+                        <a class="chat-settings-link<?php echo $cl_on ? ' cl-on' : ''; ?>" href="3wid_chat_settings.php?id=<?php echo (int) $row['id']; ?>" title="<?php echo $cl_title; ?>"><?php echo chat_login_key_icon(15); ?><span><?php echo t('cl.edit_btn'); ?></span><span class="visually-hidden"> (<?php echo $cl_title; ?>)</span></a>
+                    </div>
+                    <?php } else { ?>
                     <label><input <?php echo $row["emailform"]== 1 ?'checked':''; ?> type="checkbox" id="emailform" name="emailform"> <?php echo t('edit.link_form'); ?></label>
+                    <?php } ?>
                     <label><input <?php echo $row["private"]== 1 ?'checked':''; ?> type="checkbox" id="private" name="private"> <?php echo t('edit.private'); ?></label>
                 </div>
 
@@ -349,17 +357,6 @@
                 <?php } ?>
             </form>
         </div>
-
-        <?php if ($chat_login_row) { $cl_on = ((int) $chat_login_row['chat_login'] === 1); ?>
-        <section class="panel chat-login-panel" aria-labelledby="chatLoginH">
-            <div>
-                <div class="cl-state<?php echo $cl_on ? ' on' : ''; ?>"><?php echo $cl_on ? t('cl.status_on') : t('cl.status_off'); ?></div>
-                <h2 id="chatLoginH"><?php echo t('cl.edit_h'); ?></h2>
-                <p><?php echo $cl_on ? t('cl.edit_p_on') : t('cl.edit_p_off'); ?></p>
-            </div>
-            <a class="btn btn-ghost" href="3wid_chat_settings.php?id=<?php echo (int) $row['id']; ?>"><?php echo t('cl.edit_btn'); ?></a>
-        </section>
-        <?php } ?>
     </main>
      <footer class="site-footer">
         <div><?php echo $footer; ?></div>
@@ -368,7 +365,7 @@
 </body>
 <?php echo i18n_js_all(); ?>
 <script>
-    // "Use forward URL", "Message with link" and "Link to chat" exclude each other:
+    // "Use forward URL", "Forward URL with message" and "Link to chat" exclude each other:
     // ticking one unticks the others
     (function () {
         var boxes = ['linkthruflag', 'msglinkflag', 'emailform']

@@ -59,7 +59,6 @@ if ($ready && $_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $action_token = get_action_token();
-$e = function ($s) { return htmlspecialchars((string) $s, ENT_QUOTES, 'UTF-8'); };
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo current_lang(); ?>">
@@ -70,12 +69,15 @@ $e = function ($s) { return htmlspecialchars((string) $s, ENT_QUOTES, 'UTF-8'); 
     <title><?php echo t('cl.login_title'); ?></title>
     <link rel="icon" type="image/x-icon" href="img/favicon.ico">
     <link href="/css/inter.css" rel="stylesheet">
-    <link rel="stylesheet" href="css/chat_login.css?v=1">
+    <link rel="stylesheet" href="css/chat_login.css?v=2">
 </head>
 <body class="cl-body">
     <header class="cl-header">
         <a class="cl-brand" href="index.php"><img src="img/3wid_big.png" alt="">3WordID</a>
-        <div class="cl-header-actions"><?php echo lang_switcher(); ?></div>
+        <div class="cl-header-actions">
+            <?php echo lang_switcher(); ?>
+            <a class="cl-btn cl-btn-ghost" href="login/options.php"><?php echo t('nav.login'); ?></a>
+        </div>
     </header>
 
     <main class="cl-wrap">
@@ -93,16 +95,7 @@ $e = function ($s) { return htmlspecialchars((string) $s, ENT_QUOTES, 'UTF-8'); 
         <?php if (!$ready): ?>
             <p style="margin:0"><?php echo t('cl.unavailable'); ?></p>
         <?php else: ?>
-            <form method="post" action="3wid_chat_login.php" autocomplete="off" novalidate>
-                <label class="cl-field" for="words"><?php echo t('cl.words_label'); ?></label>
-                <input class="cl-input" type="text" id="words" name="words" value="<?php echo $e($words); ?>"
-                       placeholder="<?php echo t('common.placeholder_words'); ?>" autocomplete="off" autocapitalize="none"
-                       autocorrect="off" spellcheck="false" maxlength="200" required<?php echo $error !== '' ? ' aria-describedby="clError"' : ''; ?>>
-                <label class="cl-field" for="password"><?php echo t('cl.password_label'); ?></label>
-                <input class="cl-input" type="password" id="password" name="password" autocomplete="current-password" maxlength="1024" required>
-                <input type="hidden" name="action_token" value="<?php echo $e($action_token); ?>">
-                <button type="submit" class="cl-btn cl-btn-primary full"><?php echo t('cl.login_btn'); ?></button>
-            </form>
+            <?php echo chat_login_form_html('', $action_token, $words, $error !== '' ? 'clError' : ''); ?>
         <?php endif; ?>
         </div>
 
@@ -111,5 +104,6 @@ $e = function ($s) { return htmlspecialchars((string) $s, ENT_QUOTES, 'UTF-8'); 
     </main>
 
     <footer class="cl-footer"><?php echo site_copyright(); ?></footer>
+    <script src="js/chat_login.js?v=1"></script>
 </body>
 </html>

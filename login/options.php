@@ -3,6 +3,7 @@ require_once 'config.php';
 require_once __DIR__ . '/../php/session_boot.php';
 start_app_session();
 require_once __DIR__ . '/../php/i18n.php'; // t(), current_lang(), lang_switcher()
+require_once __DIR__ . '/../php/functions.php'; // get_action_token(), chat login (php/chat_login.php)
 
 if (current_user_from_session($conn)) {
     header('Location: ../3wid_list.php');
@@ -17,6 +18,10 @@ $_SESSION['oauth_state'] = bin2hex(random_bytes(16));
 $client->setState($_SESSION['oauth_state']);
 $googleUrl = $client->createAuthUrl();
 
+// "Three words" box: chat login for members (posts to ../3wid_chat_login.php)
+$chat_login_box = chat_login_ready();
+$action_token = $chat_login_box ? get_action_token() : '';
+
 $message = '';
 if (isset($_GET['message'])) {
     $message = htmlspecialchars($_GET['message'], ENT_QUOTES, 'UTF-8');
@@ -30,6 +35,7 @@ if (isset($_GET['message'])) {
     <title><?php echo t('login.title'); ?></title>
     <link rel="icon" type="image/x-icon" href="../img/favicon.ico">
     <link href="/css/inter.css" rel="stylesheet">
+    <link rel="stylesheet" href="../css/chat_login.css?v=2">
     <style>
         :root {
             --navy: #0F1C3F;
@@ -204,9 +210,9 @@ if (isset($_GET['message'])) {
             h1 { font-size: 28px; }
             .wrap { margin-top: 32px; }
         }
-        .chat-login-hint { margin: 22px 0 0; text-align: center; font-size: 14px; color: var(--muted); }
-        .chat-login-hint a { color: var(--slate); font-weight: 600; text-underline-offset: 3px; }
-        .chat-login-hint a:hover { color: var(--navy); }
+        .card h2.with-icon { display: flex; align-items: center; gap: 8px; }
+        .card h2 .cl-key { color: var(--navy); }
+        .card .cl-login-form .cl-btn { font-size: 14px; height: 44px; }
     </style>
 </head>
 <body>
@@ -248,11 +254,20 @@ if (isset($_GET['message'])) {
             </div>
         </div>
 
-        <p class="chat-login-hint"><?php echo t_raw('login.chat_link'); ?></p>
+        <?php if ($chat_login_box): ?>
+        <div class="divider"><?php echo t('login.or'); ?></div>
+
+        <div class="card" id="threeWords">
+            <h2 class="with-icon"><?php echo chat_login_key_icon(16); ?><?php echo t('login.words_h'); ?></h2>
+            <p><?php echo t('login.words_p'); ?></p>
+            <?php echo chat_login_form_html('../', $action_token); ?>
+        </div>
+        <?php endif; ?>
     </main>
 
     <footer>
         <?php echo site_copyright(); ?>
     </footer>
+    <?php if ($chat_login_box): ?><script src="../js/chat_login.js?v=1"></script><?php endif; ?>
 </body>
 </html>

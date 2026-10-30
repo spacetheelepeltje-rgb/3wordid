@@ -128,6 +128,12 @@ $conversations = member_chat_conversations($threeword_id, $owner_id);
 $with = isset($_GET['with']) ? (string) $_GET['with'] : '';
 $open = ($with !== '' && isset($conversations[$with])) ? $conversations[$with] : null;
 $new = ($open === null && isset($_GET['new']) && !$read_only);
+// Never sent or received anything yet: show the composer straight away (recipient field,
+// input bar and send arrow) with a "choose a recipient" note, instead of an empty list
+$first_chat = (!$conversations && $open === null && !$read_only);
+if ($first_chat) {
+    $new = true;
+}
 
 // Opening a conversation marks the messages sent to this 3WordID in it as read
 if ($open !== null && $open['unread'] > 0) {
@@ -221,16 +227,18 @@ $logout = '<form class="tb-logout-form" method="post" action="3wid_chat_logout.p
 
 <?php elseif ($new): ?>
     <?php echo chat_topbar(array(
-        'back'    => array($self, t('tb.chats'), t('tb.back_chats', ['words' => $threeword])),
-        'avatar'  => '',
-        'name'    => t('chat.new_message'),
-        'sub'     => t('tb.chatting_as', ['words' => $threeword]),
+        'back'    => $first_chat ? null : array($self, t('tb.chats'), t('tb.back_chats', ['words' => $threeword])),
+        'avatar'  => $first_chat ? chat_avatar($threeword) : '',
+        'name'    => $first_chat ? $threeword_safe : t('chat.new_message'),
+        'sub'     => $first_chat ? t('cl.empty') : t('tb.chatting_as', ['words' => $threeword]),
         'after'   => $logout,
     )); ?>
 <div class="chat-app">
     <main class="chat-scroll" data-scroll="end">
         <?php if ($conv_error !== ''): ?>
         <div class="pill-wrap"><span class="pill info" role="alert"><?php echo t($conv_error); ?></span></div>
+        <?php elseif ($first_chat): ?>
+        <div class="pill-wrap"><span class="pill info first-chat" role="note"><?php echo t('cl.choose_recipient'); ?></span></div>
         <?php endif; ?>
         <div class="setup">
             <div class="f">
