@@ -299,7 +299,7 @@ function chat_avatar_for($name, $wid_id, $photo_ids, $extra_class = '', $zoom = 
 
 // Version of css/chat.css and js/chat.js: raise it when they change, so browsers
 // load the new files without a hard refresh (Ctrl+F5).
-if (!defined('CHAT_ASSET_VERSION')) { define('CHAT_ASSET_VERSION', '9'); }
+if (!defined('CHAT_ASSET_VERSION')) { define('CHAT_ASSET_VERSION', '10'); }
 
 function chat_asset($path) {
 	return chat_e($path . '?v=' . CHAT_ASSET_VERSION);
@@ -363,6 +363,7 @@ function chat_home_button() {
 //   avatar    avatar markup (chat_avatar_for / chat_visitor_avatar)
 //   name      bold line: who you are chatting with
 //   name_id   optional id of the name element (updated by page JS)
+//   badge     optional HTML after the name, same line (car make + colour of a car chat)
 //   sub       small second line
 //   sub_attrs optional extra attributes of the sub line
 //   actions   buttons on the right (chat_tb_button), before the language menu
@@ -379,7 +380,12 @@ function chat_topbar($o) {
 			. ($back_icon !== '' ? chat_tb_icon($back_icon) : chat_icon('back')) . '<span class="tb-back-label">' . $back[1] . '</span></a>';
 	}
 	$h .= '<div class="tb-who">' . ($o['avatar'] ?? '');
-	$h .= '<div class="tb-text"><div class="tb-name"' . (!empty($o['name_id']) ? ' id="' . chat_e($o['name_id']) . '"' : '') . '>' . $o['name'] . '</div>';
+	$name = '<div class="tb-name"' . (!empty($o['name_id']) ? ' id="' . chat_e($o['name_id']) . '"' : '') . '>' . $o['name'] . '</div>';
+	// badge: optional HTML right after the name on the same line (car make + colour, car_topbar_badge)
+	if (!empty($o['badge'])) {
+		$name = '<div class="tb-line">' . $name . $o['badge'] . '</div>';
+	}
+	$h .= '<div class="tb-text">' . $name;
 	if (isset($o['sub']) && $o['sub'] !== '') {
 		// sub_attrs may bring its own class attribute (it must then include tb-sub)
 		$sub_attrs = !empty($o['sub_attrs']) ? $o['sub_attrs'] : '';

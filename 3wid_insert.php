@@ -35,11 +35,9 @@ try {
    
    $clean_notification = $purifier->purify($notification);
    
-   if (isset($_POST["emailform"])) {
-	   $emailform = 1;   
-	   } else {
-	   $emailform = 0;
-	}
+   // "Link to chat" is not on the create page (set later on the edit page, from the list):
+   // a new 3WordID always starts without chat
+   $emailform = 0;
 	
 	if (isset($_POST["private"])) {
 	   $private = 1;   

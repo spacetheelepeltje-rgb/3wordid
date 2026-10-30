@@ -251,6 +251,7 @@ Se eliminarán la URL, la notificación y el chat de estas palabras. Esta acció
     'js.need_link_title' => 'Rellene el campo Título del enlace',
     'add.subscribe_hint' => 'Puede suscribirse para asegurarse de que otro usuario no se quede con su 3WordID ni se elimine. Caduca a las dos semanas. La suscripción se puede hacer mediante <a href=\'https://3wordid.com/3wid_signup.php\'>el formulario de registro</a>.',
     'add.create' => 'Crear',
+    'add.later_note' => 'Las opciones de chat, y si este 3WordID es público o privado, se configuran desde la lista de sus 3WordID, donde también se activa el 3WordID.',
     'edit.wrong_user' => 'Este no es el id de 3wid correcto para este usuario',
     'edit.back_user' => 'Volver a los 3WordID de este usuario',
     'edit.title' => 'Editar 3WordID',

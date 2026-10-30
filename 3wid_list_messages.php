@@ -168,6 +168,8 @@
         'back'    => array($base_url, t('tb.chats'), t('tb.back_chats', ['words' => $threeword])),
         'avatar'  => ($is_visitor || $is_deleted) ? chat_visitor_avatar() : chat_avatar_for($open['name'], $open['wid'], $photo_ids, '', true),
         'name'    => $label,
+        // car chat partner: make + colour next to its plate (not for your own car)
+        'badge'   => ($is_visitor || $is_deleted || empty($open['wid'])) ? '' : car_topbar_badge(db_3wordid_get((int) $open['wid']) ?: null, array((int) $data['id'])),
         'sub'     => t('tb.chatting_as', ['words' => $threeword]),
         'actions' => chat_tb_button('3wid_chat_print.php?wid_id=' . (int) $threeword_id . '&with=' . rawurlencode($open['key']), 'print', t_plain('chat.print_title'), 'target="_blank" rel="noopener"')
                    . chat_tb_button('3wid_list.php', 'list', t_plain('tb.my_ids')),

@@ -271,6 +271,8 @@ $logout = '<form class="tb-logout-form" method="post" action="3wid_chat_logout.p
         'back'    => array($self, t('tb.chats'), t('tb.back_chats', ['words' => $threeword])),
         'avatar'  => ($is_visitor || $is_deleted) ? chat_visitor_avatar() : chat_avatar($open['name']),
         'name'    => $label,
+        // car chat partner: make + colour next to its plate (not for a car of this account)
+        'badge'   => ($is_visitor || $is_deleted || empty($open['wid'])) ? '' : car_topbar_badge(db_3wordid_get((int) $open['wid']) ?: null, array($owner_id)),
         'sub'     => t('tb.chatting_as', ['words' => $threeword]),
         'after'   => $logout,
     )); ?>

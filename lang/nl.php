@@ -279,6 +279,7 @@ De URL, mededeling en chat van deze woorden worden verwijderd. Dit kan niet onge
     'js.need_link_title' => 'Vul het veld Linktitel in',
     'add.subscribe_hint' => 'Je kunt een abonnement nemen om te zorgen dat je 3WordID niet door een andere gebruiker wordt overgenomen of verwijderd. Hij verloopt na twee weken. Een abonnement kun je afsluiten via <a href=\'https://3wordid.com/3wid_signup.php\'>het aanmeldformulier</a>.',
     'add.create' => 'Maken',
+    'add.later_note' => 'Chatopties, en of deze 3WordID openbaar of privé is, stel je in vanuit het overzicht van je 3WordID’s. Daar schakel je de 3WordID ook in.',
 
     // ---- edit
     'edit.wrong_user' => 'Dit is niet de juiste 3wid-id voor deze gebruiker',

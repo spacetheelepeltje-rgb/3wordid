@@ -241,6 +241,15 @@ if (empty($_SESSION['csrf_token'])) {
         margin: 0 0 18px;
         line-height: 1.5;
       }
+      .later-note {
+        font-size: 13px;
+        color: var(--muted);
+        line-height: 1.5;
+        margin: -6px 0 18px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        background: #f6f4ef;
+      }
       .hint a { color: var(--navy); text-decoration: underline; text-underline-offset: 2px; }
       .form-actions {
         display: flex;
@@ -354,9 +363,10 @@ if (empty($_SESSION['csrf_token'])) {
             <?php if ($has_link_title) { ?>
             <label><input type="checkbox" id="msglinkflag" name="msglinkflag"<?php echo $is_msglink ? ' checked' : ''; ?>> <?php echo t('add.use_msglink'); ?></label>
             <?php } ?>
-            <label><input type="checkbox" id="emailform" name="emailform"<?php echo $old_checked('emailform'); ?>> <?php echo t('add.link_form'); ?></label>
             <label><input type="checkbox" id="private" name="private"<?php echo $old_checked('private', true); ?>> <?php echo t('add.private'); ?></label>
           </div>
+          <?php // Kept simple: "Link to chat" / "Car chat" and open / closed are on the edit page, from the list ?>
+          <p class="later-note" id="laterNote"><?php echo t('add.later_note'); ?></p>
 
           <div class="hint">
             <?php if($data['max_3wids']==0) {
@@ -382,10 +392,10 @@ if (empty($_SESSION['csrf_token'])) {
 
 <?php echo i18n_js_all(); ?>
 <script>
-    // "Use forward URL", "Message with link" and "Link to chat" exclude each other:
+    // "Use forward URL" and "Message with link" exclude each other:
     // ticking one unticks the others
     (function () {
-        var boxes = ['linkthruflag', 'msglinkflag', 'emailform']
+        var boxes = ['linkthruflag', 'msglinkflag']
             .map(function (id) { return document.getElementById(id); })
             .filter(function (el) { return el; });
         boxes.forEach(function (box) {
@@ -396,7 +406,7 @@ if (empty($_SESSION['csrf_token'])) {
         });
     })();
 </script>
-<script src="js/3wid_add.js"></script>
+<script src="js/3wid_add.js?v=2"></script>
 <script>
     function handleGoogleLogin() {
         let userImageURL = 'path/to/user/image.jpg';

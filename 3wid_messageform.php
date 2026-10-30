@@ -124,6 +124,9 @@
       'avatar'    => $reply_to !== '' ? chat_avatar_for($reply_to, $reply_wid, $photo_ids, '', true) : '',
       'name'      => $reply_to !== '' ? $reply_to_safe : t('chat.new_message'),
       'name_id'   => 'tbName',
+      // writing to a car chat: make + colour next to its plate (hidden by JS below when the
+      // recipient field changes; never looked up while typing)
+      'badge'     => $reply_to !== '' ? car_topbar_badge($reply_row, array((int) $data['id']), $reply_to) : '',
       'sub'       => $sub,
       'sub_attrs' => 'class="tb-sub tb-sub-from"',
       'actions'   => chat_tb_button('3wid_list.php', 'list', t_plain('tb.my_ids')),
@@ -190,7 +193,11 @@
     (function () {
         var name = document.getElementById('tbName'), to = document.getElementById('threeword');
         var empty = name ? name.textContent : '';
-        function syncName() { if (name && to) { name.textContent = to.value.replace(/\s+/g, ' ').trim() || empty; } }
+        var car = document.getElementById('tbCar');
+        function syncName() {
+            if (name && to) { name.textContent = to.value.replace(/\s+/g, ' ').trim() || empty; }
+            if (car && to) { car.hidden = to.value.replace(/\s+/g, ' ').trim().toLowerCase() !== car.getAttribute('data-for'); }
+        }
         if (to) { to.addEventListener('input', syncName); syncName(); }
     })();
 </script>
