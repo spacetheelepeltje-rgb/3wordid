@@ -138,7 +138,7 @@
             // sender: make + colour (car chat) and the organization name of its account, never for your own
             $cr_car = ($c['visitor'] || !empty($c['deleted']) || empty($c['wid'])) ? '' : sender_list_badges(db_3wordid_get((int) $c['wid']) ?: null, array((int) $data['id']));
         ?>
-            <li>
+            <li class="cr-item">
                 <a class="chat-row<?php echo $c['unread'] > 0 ? ' unread' : ''; ?>" href="<?php echo chat_e($base_url . '&with=' . rawurlencode($c['key'])); ?>">
                     <?php echo ($c['visitor'] || !empty($c['deleted'])) ? chat_visitor_avatar() : chat_avatar_for($c['name'], $c['wid'], $photo_ids); ?>
                     <span class="cr-main">
@@ -152,6 +152,10 @@
                         </span>
                     </span>
                 </a>
+                <?php // Bin: delete the whole conversation without opening it (same POST as the top bar bin in a conversation)
+                echo chat_row_delete_form((int) $threeword_id, $c['key'], $action_token,
+                    t_plain('chat.delete_conversation_with', ['name' => $c['visitor'] ? t_plain('chat.visitors') : (string) $c['name']]),
+                    t_plain('chat.confirm_delete_conversation')); ?>
             </li>
         <?php endforeach; ?>
         </ul>

@@ -514,6 +514,7 @@ L’URL, la notification et le chat de ces mots seront supprimés. Cette action 
     'chat.confirm_delete' => 'Supprimer ce message ? Cette action est irréversible.',
     'chat.confirm_delete_own' => 'Supprimer votre message ? Il est aussi supprimé chez le destinataire, même s’il l’a déjà lu. Cette action est irréversible.',
     'chat.delete_conversation' => 'Supprimer la conversation',
+    'chat.delete_conversation_with' => 'Supprimer la conversation avec {name}',
     'chat.confirm_delete_conversation' => 'Supprimer toute cette conversation ? Tous ses messages sont supprimés, et vos propres messages disparaissent aussi chez l’autre personne. Cette action est irréversible.',
     'chat.received' => 'Message reçu',
     'chat.sent_by_you' => 'Envoyé par vous',

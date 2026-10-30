@@ -299,7 +299,7 @@ function chat_avatar_for($name, $wid_id, $photo_ids, $extra_class = '', $zoom = 
 
 // Version of css/chat.css and js/chat.js: raise it when they change, so browsers
 // load the new files without a hard refresh (Ctrl+F5).
-if (!defined('CHAT_ASSET_VERSION')) { define('CHAT_ASSET_VERSION', '12'); }
+if (!defined('CHAT_ASSET_VERSION')) { define('CHAT_ASSET_VERSION', '13'); }
 
 function chat_asset($path) {
 	return chat_e($path . '?v=' . CHAT_ASSET_VERSION);
@@ -341,6 +341,20 @@ function chat_tb_form_button($action, $fields, $icon, $label, $confirm = '', $ex
 	}
 	return $h . '<button type="submit" class="tb-btn' . ($extra_class !== '' ? ' ' . chat_e($extra_class) : '') . '" title="' . chat_e($label) . '" aria-label="' . chat_e($label) . '">'
 		. chat_tb_icon($icon) . '</button></form>';
+}
+
+// Bin at the end of a row in the conversation list: deletes that whole conversation without
+// opening it (POST to 3wid_message_delete.php, do=conversation, like the top bar bin).
+// It is a sibling of the row link, never inside it, so a click never opens the conversation.
+function chat_row_delete_form($wid_id, $key, $action_token, $label, $confirm) {
+	return '<form class="cr-del-form" method="post" action="3wid_message_delete.php"'
+		. ' onsubmit="return confirm(' . chat_e(json_encode($confirm, JSON_UNESCAPED_UNICODE)) . ');">'
+		. '<input type="hidden" name="do" value="conversation">'
+		. '<input type="hidden" name="wid_id" value="' . (int) $wid_id . '">'
+		. '<input type="hidden" name="with" value="' . chat_e($key) . '">'
+		. '<input type="hidden" name="action_token" value="' . chat_e($action_token) . '">'
+		. '<button type="submit" class="cr-del" title="' . chat_e($label) . '" aria-label="' . chat_e($label) . '">'
+		. chat_icon('trash') . '</button></form>';
 }
 
 // Bin icon on one of your own (or a received) bubbles that deletes it, as a link

@@ -365,6 +365,19 @@ button.avatar.photo { cursor: zoom-in; }
     background: #fff;
 }
 .chat-row:hover, .chat-row:focus-visible { background: var(--well); outline: none; }
+/* Row + bin: the bin is a sibling form of the row link (a click on it never opens the conversation).
+   The divider and white background move to the li so the bin sits on the same line. */
+.chat-list .cr-item { display: flex; align-items: stretch; background: #fff; border-bottom: 1px solid var(--divider); }
+.chat-list .cr-item .chat-row { flex: 1 1 auto; min-width: 0; border-bottom: 0; background: transparent; padding-right: 4px; }
+.chat-list .cr-item:hover, .chat-list .cr-item:has(.chat-row:focus-visible) { background: var(--well); }
+.chat-list .cr-del-form { display: flex; flex: 0 0 auto; margin: 0; }
+.chat-list .cr-del {
+    display: flex; align-items: center; justify-content: center;
+    width: 44px; min-height: 44px; padding: 0 10px 0 4px; margin: 0;
+    background: none; border: 0; cursor: pointer; color: var(--muted); opacity: .7; font: inherit;
+}
+.chat-list .cr-del svg { width: 18px; height: 18px; }
+.chat-list .cr-del:hover, .chat-list .cr-del:focus-visible { color: #9B1C1C; opacity: 1; outline: none; background: rgba(155, 28, 28, .06); }
 .chat-row .cr-main { flex: 1 1 auto; min-width: 0; }
 .chat-row .cr-top, .chat-row .cr-bottom { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .chat-row .cr-name { font-weight: 600; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

@@ -606,6 +606,7 @@ De URL, mededeling en chat van deze woorden worden verwijderd. Dit kan niet onge
     'chat.confirm_delete' => 'Dit bericht verwijderen? Dit kan niet ongedaan worden gemaakt.',
     'chat.confirm_delete_own' => 'Je bericht verwijderen? Het verdwijnt ook bij de ontvanger, ook als die het al gelezen heeft. Dit kan niet ongedaan worden gemaakt.',
     'chat.delete_conversation' => 'Gesprek verwijderen',
+    'chat.delete_conversation_with' => 'Gesprek met {name} verwijderen',
     'chat.confirm_delete_conversation' => 'Dit hele gesprek verwijderen? Alle berichten erin worden verwijderd, en je eigen berichten verdwijnen ook bij de ander. Dit kan niet ongedaan worden gemaakt.',
     'chat.received' => 'Ontvangen bericht',
     'chat.sent_by_you' => 'Door jou verstuurd',

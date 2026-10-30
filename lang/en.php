@@ -606,6 +606,7 @@ The URL, notification, and chat for these words will be removed. This cannot be 
     'chat.confirm_delete' => 'Delete this message? This cannot be undone.',
     'chat.confirm_delete_own' => 'Delete your message? It is also removed for the recipient, even if they have read it. This cannot be undone.',
     'chat.delete_conversation' => 'Delete conversation',
+    'chat.delete_conversation_with' => 'Delete conversation with {name}',
     'chat.confirm_delete_conversation' => 'Delete this whole conversation? All its messages are removed, and your own messages are also removed for the other person. This cannot be undone.',
     'chat.received' => 'Received message',
     'chat.sent_by_you' => 'Sent by you',

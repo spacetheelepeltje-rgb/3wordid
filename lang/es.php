@@ -514,6 +514,7 @@ Se eliminarán la URL, la notificación y el chat de estas palabras. Esta acció
     'chat.confirm_delete' => '¿Eliminar este mensaje? No se puede deshacer.',
     'chat.confirm_delete_own' => '¿Eliminar tu mensaje? También se elimina para el destinatario, aunque ya lo haya leído. No se puede deshacer.',
     'chat.delete_conversation' => 'Eliminar conversación',
+    'chat.delete_conversation_with' => 'Eliminar la conversación con {name}',
     'chat.confirm_delete_conversation' => '¿Eliminar toda esta conversación? Se eliminan todos sus mensajes, y tus propios mensajes también desaparecen para la otra persona. No se puede deshacer.',
     'chat.received' => 'Mensaje recibido',
     'chat.sent_by_you' => 'Enviado por ti',
