@@ -62,3 +62,28 @@ body.cl-body {
     .cl-wrap { margin-top: 24px; }
     .cl-body h1 { font-size: 26px; }
 }
+
+/* Three-words field: green when the words are an existing 3WordID (js/chat_login.js) */
+.cl-input.is-valid { border-color: var(--ok); background: #F1FAF5; box-shadow: 0 0 0 3px rgba(22,121,74,.12); }
+.cl-valid { display: flex; align-items: center; gap: 6px; color: var(--ok); font-size: 13px; font-weight: 600; margin: -8px 0 14px; }
+.cl-valid[hidden] { display: none; }
+.cl-valid svg { flex: 0 0 auto; }
+
+/* Chat settings page: one heading per setting, cards below it */
+.cl-section-h { display: flex; align-items: center; gap: 10px; font-size: 20px; letter-spacing: -.02em; margin: 28px 0 6px; }
+.cl-section-h .cl-key { color: var(--ok); }
+.cl-section-p { color: var(--slate); font-size: 14px; line-height: 1.5; margin: 0 0 14px; }
+.cl-sub b { display: inline-block; background: var(--well); border-radius: 8px; padding: 1px 8px; color: var(--navy); }
+
+/* Password rules, ticked off while typing (only a hint, the server checks too) */
+.cl-rules { list-style: none; margin: -6px 0 14px; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; font-size: 13px; color: var(--muted); }
+.cl-rules li { display: flex; align-items: center; gap: 6px; }
+.cl-rules li::before { content: ""; width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid #B8BDC9; flex: 0 0 auto; }
+.cl-rules li.ok { color: var(--ok); }
+.cl-rules li.ok::before { background: var(--ok); border-color: var(--ok); }
+@media (max-width: 420px) { .cl-rules { grid-template-columns: 1fr; } }
+.cl-header-actions .cl-btn { white-space: nowrap; }
+@media (max-width: 560px) {
+    .cl-header-actions .cl-btn { min-height: 38px; padding: 0 12px; font-size: 14px; }
+    .cl-hide-sm { display: none !important; }
+}

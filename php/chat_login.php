@@ -414,8 +414,54 @@ function chat_password_error(string $pw, string $confirm): string
     if ($len > CHAT_PW_MAX) {
         return 'cl.pw_long';
     }
+    if (!chat_password_strong($pw)) {
+        return 'cl.pw_weak';
+    }
     if (!hash_equals($pw, $confirm)) {
         return 'cl.pw_mismatch';
     }
     return '';
+}
+
+/**
+ * A chat password needs letters, numbers and at least one symbol (for example the
+ * shift + number keys: ! @ # $ % ^ & * ( )). Any character that is not a letter, a digit
+ * or a space counts as a symbol. The length is checked in chat_password_error().
+ * The same rule runs in the browser as a hint (js/chat_login.js); this is the real check.
+ */
+function chat_password_strong(string $pw): bool
+{
+    return preg_match('/\p{L}/u', $pw) === 1
+        && preg_match('/\p{N}/u', $pw) === 1
+        && preg_match('/[^\p{L}\p{N}\s]/u', $pw) === 1;
+}
+
+/** The key icon of Chat login (same as the key button on the list page). Decorative. */
+function chat_login_key_icon(int $size = 18): string
+{
+    return '<svg class="cl-key" width="' . $size . '" height="' . $size . '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">'
+        . '<circle cx="7.5" cy="15.5" r="4.5"></circle><path d="M10.7 12.3 21 2M16 7l3 3M18.5 4.5l2 2"></path></svg>';
+}
+
+/**
+ * The three-words login form, shared by 3wid_chat_login.php and the "Three words" box on
+ * login/options.php. $base is the path to the site root from the page ('' or '../').
+ * The three-words field turns green for an existing 3WordID (js/chat_login.js).
+ */
+function chat_login_form_html(string $base, string $action_token, string $words = '', string $described_by = ''): string
+{
+    $e = function ($s) { return htmlspecialchars((string) $s, ENT_QUOTES, 'UTF-8'); };
+    $check = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>';
+    return '<form class="cl-login-form" method="post" action="' . $e($base . '3wid_chat_login.php') . '" autocomplete="off" novalidate>'
+        . '<label class="cl-field" for="words">' . t('cl.words_label') . '</label>'
+        . '<input class="cl-input" type="text" id="words" name="words" value="' . $e($words) . '"'
+        . ' placeholder="' . t('common.placeholder_words') . '" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="200" required'
+        . ' data-exists-url="' . $e($base . '3wid_exists.php') . '" data-status="clWordsOk"'
+        . ($described_by !== '' ? ' aria-describedby="' . $e($described_by) . '"' : '') . '>'
+        . '<p class="cl-valid" id="clWordsOk" role="status" hidden>' . $check . t('cl.words_ok') . '</p>'
+        . '<label class="cl-field" for="password">' . t('cl.password_label') . '</label>'
+        . '<input class="cl-input" type="password" id="password" name="password" autocomplete="current-password" maxlength="1024" required>'
+        . '<input type="hidden" name="action_token" value="' . $e($action_token) . '">'
+        . '<button type="submit" class="cl-btn cl-btn-primary full">' . t('cl.login_btn') . '</button>'
+        . '</form>';
 }
