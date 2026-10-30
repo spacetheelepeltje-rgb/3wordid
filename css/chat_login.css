@@ -87,3 +87,29 @@ body.cl-body {
     .cl-header-actions .cl-btn { min-height: 38px; padding: 0 12px; font-size: 14px; }
     .cl-hide-sm { display: none !important; }
 }
+
+/* Account settings page (3wid_settings.php) */
+.cl-section-h .org-ico { color: var(--gold); }
+.acct-dl { display: grid; grid-template-columns: max-content 1fr; gap: 10px 18px; margin: 0; font-size: 14px; }
+.acct-dl dt { color: var(--slate); font-weight: 600; }
+.acct-dl dd { margin: 0; color: var(--navy); font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+.acct-none { color: var(--muted); font-weight: 500; }
+.acct-type { display: inline-block; padding: 1px 10px; border-radius: 999px; background: var(--well); font-size: 13px; }
+.acct-type.paid { background: #FDF3E1; color: var(--gold); }
+.cl-card .acct-foot { margin: 16px 0 0; }
+.acct-foot a { font-weight: 600; }
+.cl-card .acct-empty { margin: 0 0 12px; color: var(--slate); }
+.acct-table-wrap { overflow-x: auto; }
+.acct-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.acct-table th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 700; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+.acct-table td { padding: 10px 8px; border-bottom: 1px solid #F0EEE9; color: var(--navy); vertical-align: top; }
+.acct-table tr:last-child td { border-bottom: 0; }
+@media (max-width: 480px) {
+    .acct-dl { grid-template-columns: 1fr; gap: 2px; }
+    .acct-dl dd { margin-bottom: 10px; }
+    .acct-table thead { display: none; }
+    .acct-table tr { display: block; padding: 8px 0; border-bottom: 1px solid #F0EEE9; }
+    .acct-table tr:last-child { border-bottom: 0; }
+    .acct-table td { display: flex; justify-content: space-between; gap: 12px; padding: 3px 0; border: 0; }
+    .acct-table td::before { content: attr(data-label); color: var(--muted); font-size: 12px; font-weight: 600; }
+}

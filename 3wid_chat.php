@@ -209,8 +209,8 @@ $logout = '<form class="tb-logout-form" method="post" action="3wid_chat_logout.p
             $last = $c['items'][count($c['items']) - 1];
             $label = $c['visitor'] ? t('chat.visitors') : chat_e($c['name']);
             $show_title = !$last['mine'] && !chat_title_redundant($last['title'], $last['message']);
-            // sender is a car chat plate: its make + colour next to the plate (never the organisation's own car)
-            $cr_car = ($c['visitor'] || !empty($c['deleted']) || empty($c['wid'])) ? '' : car_list_badge(db_3wordid_get((int) $c['wid']) ?: null, array($owner_id));
+            // sender: make + colour (car chat) and the organization name of its account, never for this account's own
+            $cr_car = ($c['visitor'] || !empty($c['deleted']) || empty($c['wid'])) ? '' : sender_list_badges(db_3wordid_get((int) $c['wid']) ?: null, array($owner_id));
         ?>
             <li>
                 <a class="chat-row<?php echo $c['unread'] > 0 ? ' unread' : ''; ?>" href="<?php echo chat_e($self . '?with=' . rawurlencode($c['key'])); ?>">
@@ -273,8 +273,8 @@ $logout = '<form class="tb-logout-form" method="post" action="3wid_chat_logout.p
         'back'    => array($self, t('tb.chats'), t('tb.back_chats', ['words' => $threeword])),
         'avatar'  => ($is_visitor || $is_deleted) ? chat_visitor_avatar() : chat_avatar($open['name']),
         'name'    => $label,
-        // car chat partner: make + colour next to its plate (not for a car of this account)
-        'badge'   => ($is_visitor || $is_deleted || empty($open['wid'])) ? '' : car_topbar_badge(db_3wordid_get((int) $open['wid']) ?: null, array($owner_id)),
+        // chat partner: make + colour (car chat) and organization name next to its words (not for this account)
+        'badge'   => ($is_visitor || $is_deleted || empty($open['wid'])) ? '' : sender_topbar_badges(db_3wordid_get((int) $open['wid']) ?: null, array($owner_id)),
         'sub'     => t('tb.chatting_as', ['words' => $threeword]),
         'after'   => $logout,
     )); ?>
