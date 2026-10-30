@@ -209,13 +209,16 @@ function chat_recipient_error($row) {
 // db_3wordid_list_sent() rows (sent from my 3WordID). Anonymous visitors (user 25)
 // share one group 'visitors'. $dates / $reads: [id => creation_date] / [id => read_at]
 // (empty when those columns do not exist yet).
-// Returns [key => ['key', 'name', 'visitor', 'wid', 'unread', 'items' (oldest first;
+// Messages whose sender 3WordID or account no longer exists (sender_wid / sender_user NULL
+// from the LEFT JOINs in db_3wordid_list_messages) share one group 'deleted', named
+// t('chat.deleted_sender'): no replies, opened and marked read by message id.
+// Returns [key => ['key', 'name', 'visitor', 'deleted', 'wid', 'unread', 'items' (oldest first;
 // each with 'mine', 'sent_at', 'read_at' (null = unread, '' = unknown))]], newest first.
 function chat_conversations($incoming, $dates, $sent = array(), $reads = array()) {
 	$conversations = array();
-	$add = function ($key, $name, $is_visitor, $wid, $m, $mine) use (&$conversations, $dates, $reads) {
+	$add = function ($key, $name, $is_visitor, $wid, $m, $mine, $is_deleted = false) use (&$conversations, $dates, $reads) {
 		if (!isset($conversations[$key])) {
-			$conversations[$key] = array('key' => $key, 'name' => $name, 'visitor' => $is_visitor, 'wid' => $wid, 'unread' => 0, 'items' => array());
+			$conversations[$key] = array('key' => $key, 'name' => $name, 'visitor' => $is_visitor, 'deleted' => $is_deleted, 'wid' => $wid, 'unread' => 0, 'items' => array());
 		}
 		$id = (int) $m['id'];
 		$m['mine'] = $mine;
@@ -229,7 +232,16 @@ function chat_conversations($incoming, $dates, $sent = array(), $reads = array()
 	foreach ((array) $incoming as $m) {
 		$is_visitor = ((int) $m['from_id'] === CHAT_VISITOR_USER_ID);
 		$wid = $is_visitor ? 0 : (int) ($m['3wid_from_id'] ?? 0);
-		$key = $is_visitor ? 'visitors' : ($wid > 0 ? 'w' . $wid : ((int) $m['from_id'] . ':' . $m['threeword']));
+		// Sender 3WordID deleted (or sender account removed): no partner to show or reply to
+		$gone = !$is_visitor && ($wid < 1
+			|| (array_key_exists('sender_wid', $m) && $m['sender_wid'] === null)
+			|| (array_key_exists('sender_user', $m) && $m['sender_user'] === null)
+			|| (string) ($m['threeword'] ?? '') === '');
+		if ($gone) {
+			$add('deleted', t_plain('chat.deleted_sender'), false, 0, $m, false, true);
+			continue;
+		}
+		$key = $is_visitor ? 'visitors' : 'w' . $wid;
 		$add($key, $is_visitor ? '' : $m['threeword'], $is_visitor, $wid, $m, false);
 	}
 	foreach ((array) $sent as $m) {

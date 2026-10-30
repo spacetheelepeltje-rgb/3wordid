@@ -39,9 +39,15 @@
   $sent_at = $dates[(int) $message_row['id']] ?? '';
   $is_visitor = ((int) $message_row['from_id'] === CHAT_VISITOR_USER_ID);
   $from_name = $is_visitor ? '' : (string) db_3wordid_threeword_name($message_row['3wid_from_id'] ?? 0);
+  // Sender 3WordID deleted since (moved to 3wordid_deleted): no name, no reply
+  $from_deleted = (!$is_visitor && $from_name === '');
+  // The owner opening the message has read it (only messages sent to the owner's own 3WordID)
+  if ($is_owner) {
+      db_3wordid_mark_read_ids($message_row['3wid_id'], array($message_row['id']));
+  }
   // The owner sees who sent it (and goes back to that conversation); the sender sees the recipient
   if ($is_owner) {
-      $conv_key = $is_visitor ? 'visitors' : ('w' . (int) ($message_row['3wid_from_id'] ?? 0));
+      $conv_key = $is_visitor ? 'visitors' : ($from_deleted ? 'deleted' : ('w' . (int) ($message_row['3wid_from_id'] ?? 0)));
       $back_url = '3wid_list_messages.php?wid_id=' . (int) $message_row['3wid_id'] . '&with=' . rawurlencode($conv_key);
       $reply_url = ($is_visitor || $from_name === '') ? '' : '3wid_messageform.php?threeword_id=' . (int) $message_row['3wid_id'] . '&threeword=' . rawurlencode($from_name);
   } else {
@@ -51,7 +57,7 @@
   // Photo of the other side (sender for the owner, recipient for the sender), when turned on
   $head_wid = $is_owner ? ($is_visitor ? 0 : (int) ($message_row['3wid_from_id'] ?? 0)) : (int) $message_row['3wid_id'];
   $photo_ids = $head_wid ? db_3wordid_photo_ids(array($head_wid)) : array();
-  $head_name = $is_owner ? ($is_visitor ? t_plain('chat.visitor') : $from_name) : (string) $to_name;
+  $head_name = $is_owner ? ($is_visitor ? t_plain('chat.visitor') : ($from_deleted ? t_plain('chat.deleted_sender') : $from_name)) : (string) $to_name;
 
 ?>
 <!DOCTYPE html>
@@ -69,7 +75,7 @@
   // Back to the conversation (owner) or to My 3WordIDs (sender); the list button is always there
   echo chat_topbar(array(
       'back'    => $back_url === '3wid_list.php' ? chat_back_home(true) : array($back_url, t('tb.chats'), t('tb.back_chats', ['words' => $to_name])),
-      'avatar'  => ($is_owner && $is_visitor) ? chat_visitor_avatar() : chat_avatar_for($head_name, $head_wid, $photo_ids, '', true),
+      'avatar'  => ($is_owner && ($is_visitor || $from_deleted)) ? chat_visitor_avatar() : chat_avatar_for($head_name, $head_wid, $photo_ids, '', true),
       'name'    => chat_e($head_name),
       'sub'     => $is_owner ? t('chat.to_you', ['words' => $to_name]) : t('chat.sent_by_you'),
       'actions' => chat_tb_button('3wid_list.php', 'list', t_plain('tb.my_ids')),
@@ -101,6 +107,8 @@
 
     <?php if ($is_owner && $is_visitor): ?>
     <div class="reply-bar"><p class="note" role="note"><?php echo t('chat.no_reply'); ?></p></div>
+    <?php elseif ($is_owner && $from_deleted): ?>
+    <div class="reply-bar"><p class="note" role="note"><?php echo t('chat.deleted_no_reply'); ?></p></div>
     <?php elseif ($reply_url !== ''): ?>
     <a class="reply-bar" href="<?php echo chat_e($reply_url); ?>" style="text-decoration:none">
         <span class="fake"><?php echo t('lm.reply', ['name' => $from_name]); ?></span>

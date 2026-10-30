@@ -18,6 +18,12 @@ if ((int)$data['privacy_consent'] === 0) {
     exit;
 }
 
+// The red unread dot must be fresh: never serve this page from the browser cache
+// (Back from a chat used to show the old dot). See also the pageshow reload below.
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
+header('Expires: 0');
+
 $message = isset($_GET['message']) ? $_GET['message'] : '';
 
 if (empty($_SESSION['csrf_token'])) {
@@ -289,6 +295,12 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
         <?php echo site_copyright(); ?>
     </footer>
 </body>
+<script>
+// Restored from the Back/Forward cache: reload so the unread dots are up to date
+window.addEventListener('pageshow', function (e) {
+    if (e.persisted) { window.location.reload(); }
+});
+</script>
 <script>
 	function confirmDelete(link) {
 		var name = link.getAttribute('data-threeword') || <?php echo json_encode(t_plain('list.confirm_delete_this')); ?>;

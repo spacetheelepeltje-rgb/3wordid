@@ -320,7 +320,15 @@ function db_3wordid_list_messages($wid_id) {
     }
     
     // Prepare the SQL statement
-    $sql = "SELECT m.id as id,w.threeword as threeword, m.3wid_from_id as 3wid_from_id, m.from_id as from_id, m.title as title, m.message as message,u.picture as picture FROM 3wordid_messages as m, google_users as u,3wordid as w WHERE m.3wid_id = ? and w.id=m.3wid_from_id and m.from_id=u.id ORDER BY m.id DESC";
+    // LEFT JOINs: a message whose sender 3WordID (moved to 3wordid_deleted) or sender account
+    // is gone must still be listed, otherwise it stays unread forever and the red dot on
+    // 3wid_list.php (db_3wordid_mail_summary) never goes away. sender_wid / sender_user are
+    // NULL for those; php/chat.php groups them as one 'deleted 3WordID' conversation.
+    $sql = "SELECT m.id as id,w.threeword as threeword, m.3wid_from_id as 3wid_from_id, m.from_id as from_id, m.title as title, m.message as message,u.picture as picture, w.id as sender_wid, u.id as sender_user
+            FROM 3wordid_messages as m
+            LEFT JOIN 3wordid as w ON w.id = m.3wid_from_id
+            LEFT JOIN google_users as u ON u.id = m.from_id
+            WHERE m.3wid_id = ? ORDER BY m.id DESC";
     $stmt = $conn->prepare($sql);
     
     error_log('query ' .  $sql);
@@ -3361,6 +3369,25 @@ function db_3wordid_mark_read($to_wid, $from_wid) {
 		$ok = $stmt->execute();
 		$stmt->close();
 	}
+	$conn->close();
+	return $ok;
+}
+
+// Mark the given messages, sent to the owner's 3WordID $to_wid, as read (by message id).
+// Used for conversations without a sender 3WordID to match on (sender deleted) and for
+// 3wid_message_view.php. Call only after checking that $to_wid belongs to the logged-in user;
+// the 3wid_id condition keeps it to messages sent to that 3WordID.
+function db_3wordid_mark_read_ids($to_wid, $ids) {
+	$to_wid = (int) $to_wid;
+	$ids = array_values(array_unique(array_filter(array_map('intval', (array) $ids), function ($i) { return $i > 0; })));
+	if ($to_wid < 1 || !$ids || !db_3wordid_messages_has_column('read_at')) {
+		return false;
+	}
+	$conn = get_db_conn();
+	if (!$conn || $conn->connect_error) {
+		return false;
+	}
+	$ok = (bool) $conn->query("UPDATE 3wordid_messages SET read_at = NOW() WHERE 3wid_id = " . $to_wid . " AND id IN (" . implode(',', $ids) . ") AND read_at IS NULL");
 	$conn->close();
 	return $ok;
 }
