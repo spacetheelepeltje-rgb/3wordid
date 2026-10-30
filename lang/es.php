@@ -10,7 +10,7 @@ return [
     'nav.plans' => 'Planes de suscripción',
     'nav.terms' => 'Términos',
     'nav.docs' => 'Documentación en X.com',
-    'nav.github' => 'Código abierto en GitHub',
+    'nav.github' => 'Código abierto',
     'nav.login' => 'Iniciar sesión',
     'nav.login_spaced' => 'Iniciar sesión / Crear ID',
     'nav.whatsapp' => 'Chatear por WhatsApp',

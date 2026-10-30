@@ -14,7 +14,7 @@ return [
     'nav.plans' => 'Abonnementen',
     'nav.terms' => 'Voorwaarden',
     'nav.docs' => 'Uitleg op X.com',
-    'nav.github' => 'Open source op GitHub',
+    'nav.github' => 'Open source',
     'nav.login' => 'Inloggen',
     'nav.login_spaced' => 'Inloggen / ID maken',
     'nav.whatsapp' => 'Chat via WhatsApp',
