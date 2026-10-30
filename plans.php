@@ -123,7 +123,7 @@ $loginUrl = '/login/options.php';
         </a>
         <nav class="nav-links">
             <a href="https://x.com/climatebabes/status/1921113933592584660">Docs on X.com</a>
-            <a href="https://github.com/spacetheelepeltje-rgb/3wordid">Open Source on Github</a>
+            <a href="https://x.com/climatebabes/status/1921113933592584660">Open Source</a>
             <a href="terms.php">Terms</a>
         </nav>
         <div class="header-actions">

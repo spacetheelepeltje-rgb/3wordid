@@ -14,7 +14,7 @@ return [
     'nav.plans' => 'Subscription Plans',
     'nav.terms' => 'Terms',
     'nav.docs' => 'Docs on X.com',
-    'nav.github' => 'Open Source on Github',
+    'nav.github' => 'Open Source',
     'nav.login' => 'Login',
     'nav.login_spaced' => 'Log in / Create ID',
     'nav.whatsapp' => 'Chat on WhatsApp',
