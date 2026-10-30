@@ -72,7 +72,16 @@
 
   // Opening a conversation marks the messages sent to me in it as read (this 3WordID is mine)
   if ($open !== null && $open['unread'] > 0) {
-      db_3wordid_mark_read($threeword_id, $open['visitor'] ? CHAT_VISITOR_WID : $open['wid']);
+      if (!empty($open['deleted'])) {
+          // Sender 3WordID or account is gone: nothing to match on, mark exactly the messages shown
+          $unread_ids = array();
+          foreach ($open['items'] as $it) {
+              if (!$it['mine'] && $it['read_at'] === null) { $unread_ids[] = (int) $it['id']; }
+          }
+          db_3wordid_mark_read_ids($threeword_id, $unread_ids);
+      } else {
+          db_3wordid_mark_read($threeword_id, $open['visitor'] ? CHAT_VISITOR_WID : $open['wid']);
+      }
   }
 
   // The reply just sent from the composer below (3wid_messageform_process.php), once
@@ -129,7 +138,7 @@
         ?>
             <li>
                 <a class="chat-row<?php echo $c['unread'] > 0 ? ' unread' : ''; ?>" href="<?php echo chat_e($base_url . '&with=' . rawurlencode($c['key'])); ?>">
-                    <?php echo $c['visitor'] ? chat_visitor_avatar() : chat_avatar_for($c['name'], $c['wid'], $photo_ids); ?>
+                    <?php echo ($c['visitor'] || !empty($c['deleted'])) ? chat_visitor_avatar() : chat_avatar_for($c['name'], $c['wid'], $photo_ids); ?>
                     <span class="cr-main">
                         <span class="cr-top">
                             <span class="cr-name"><?php echo $label; ?></span>
@@ -148,6 +157,7 @@
 
 <?php else:
     $is_visitor = $open['visitor'];
+    $is_deleted = !empty($open['deleted']);
     $label = $is_visitor ? t('chat.visitors') : chat_e($open['name']);
     $prev_day = null;
 ?>
@@ -156,7 +166,7 @@
     // The list button next to the language menu goes straight to My 3WordIDs.
     echo chat_topbar(array(
         'back'    => array($base_url, t('tb.chats'), t('tb.back_chats', ['words' => $threeword])),
-        'avatar'  => $is_visitor ? chat_visitor_avatar() : chat_avatar_for($open['name'], $open['wid'], $photo_ids, '', true),
+        'avatar'  => ($is_visitor || $is_deleted) ? chat_visitor_avatar() : chat_avatar_for($open['name'], $open['wid'], $photo_ids, '', true),
         'name'    => $label,
         'sub'     => t('tb.chatting_as', ['words' => $threeword]),
         'actions' => chat_tb_button('3wid_chat_print.php?wid_id=' . (int) $threeword_id . '&with=' . rawurlencode($open['key']), 'print', t_plain('chat.print_title'), 'target="_blank" rel="noopener"')
@@ -197,7 +207,9 @@
         <footer class="chat-footer"><?php echo $footer; ?></footer>
     </main>
 
-    <?php if (!$is_visitor): ?>
+    <?php if ($is_deleted): ?>
+    <div class="reply-bar"><p class="note" role="note"><?php echo t('chat.deleted_no_reply'); ?></p></div>
+    <?php elseif (!$is_visitor): ?>
     <form class="composer conv" id="3widForm"<?php echo $just_sent ? ' data-sent="1"' : ''; ?> action="3wid_messageform_process.php" method="post">
         <?php if ($conv_error !== ''): ?><p class="c-note err" role="alert"><?php echo t($conv_error); ?></p><?php endif; ?>
         <input type="hidden" name="from_id" value="<?php echo (int) $threeword_id; ?>">
