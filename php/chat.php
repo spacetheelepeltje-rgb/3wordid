@@ -299,7 +299,7 @@ function chat_avatar_for($name, $wid_id, $photo_ids, $extra_class = '', $zoom = 
 
 // Version of css/chat.css and js/chat.js: raise it when they change, so browsers
 // load the new files without a hard refresh (Ctrl+F5).
-if (!defined('CHAT_ASSET_VERSION')) { define('CHAT_ASSET_VERSION', '11'); }
+if (!defined('CHAT_ASSET_VERSION')) { define('CHAT_ASSET_VERSION', '12'); }
 
 function chat_asset($path) {
 	return chat_e($path . '?v=' . CHAT_ASSET_VERSION);
@@ -319,6 +319,9 @@ function chat_tb_icon($name) {
 			return '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>';
 		case 'login':
 			return '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="M10 17l5-5-5-5M15 12H3"/></svg>';
+		case 'trash':
+			// "Delete conversation": the same bin as on the bubbles, top bar size
+			return '<svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v6M14 11v6"/></svg>';
 	}
 	return chat_icon($name);
 }
@@ -326,6 +329,26 @@ function chat_tb_icon($name) {
 // Round icon button for the right side of the bar. $label is plain text.
 function chat_tb_button($href, $icon, $label, $attrs = '') {
 	return '<a class="tb-btn" href="' . chat_e($href) . '" title="' . chat_e($label) . '" aria-label="' . chat_e($label) . '"' . ($attrs !== '' ? ' ' . $attrs : '') . '>' . chat_tb_icon($icon) . '</a>';
+}
+
+// Round icon button that POSTs a small form (e.g. Delete conversation). $fields: hidden
+// name => value. $confirm: plain text of a confirm() question ('' = none). $label is plain text.
+function chat_tb_form_button($action, $fields, $icon, $label, $confirm = '', $extra_class = '') {
+	$h = '<form class="tb-form" method="post" action="' . chat_e($action) . '"'
+		. ($confirm !== '' ? ' onsubmit="return confirm(' . chat_e(json_encode($confirm, JSON_UNESCAPED_UNICODE)) . ');"' : '') . '>';
+	foreach ($fields as $name => $value) {
+		$h .= '<input type="hidden" name="' . chat_e($name) . '" value="' . chat_e($value) . '">';
+	}
+	return $h . '<button type="submit" class="tb-btn' . ($extra_class !== '' ? ' ' . chat_e($extra_class) : '') . '" title="' . chat_e($label) . '" aria-label="' . chat_e($label) . '">'
+		. chat_tb_icon($icon) . '</button></form>';
+}
+
+// Bin icon on one of your own (or a received) bubbles that deletes it, as a link
+// (3wid_message_delete.php checks who may delete it). $confirm is plain text.
+function chat_del_link($message_id, $action_token, $label, $confirm) {
+	return '<a class="del" title="' . chat_e($label) . '" aria-label="' . chat_e($label) . '"'
+		. ' href="3wid_message_delete.php?id=' . (int) $message_id . '&amp;action_token=' . chat_e($action_token) . '"'
+		. ' onclick="return confirm(' . chat_e(json_encode($confirm, JSON_UNESCAPED_UNICODE)) . ');">' . chat_icon('trash') . '</a>';
 }
 
 // Language menu: current language code, the others in a small drop-down (no page JS needed)

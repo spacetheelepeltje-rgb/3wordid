@@ -3460,3 +3460,4 @@ function db_3wordid_mail_summary($user_id) {
 require_once __DIR__ . '/chat_login.php';
 require_once __DIR__ . '/car_chat.php';
 require_once __DIR__ . '/account_settings.php';
+require_once __DIR__ . '/message_delete.php';

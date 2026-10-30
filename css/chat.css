@@ -343,6 +343,14 @@ button.avatar.photo { cursor: zoom-in; }
 }
 .bubble .b-meta .del { display: inline-flex; color: var(--muted); opacity: .75; padding: 2px; }
 .bubble .b-meta .del:hover, .bubble .b-meta .del:focus-visible { color: #9B1C1C; opacity: 1; outline: none; }
+/* own messages: the bin sits after the ticks; member chat uses a small POST form */
+.bubble .b-meta .del-form { display: inline-flex; margin: 0; }
+.bubble .b-meta button.del { font: inherit; background: none; border: 0; cursor: pointer; border-radius: 4px; }
+.row.out .bubble .b-meta .del { margin-left: 2px; }
+/* top bar: Delete conversation is a POST form with a button that looks like the other icons */
+.chat-topbar .tb-form { margin: 0; display: inline-flex; }
+.chat-topbar button.tb-btn { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+.chat-topbar .tb-del:hover, .chat-topbar .tb-del:focus-visible { color: #FECACA; }
 .tick { color: var(--tick); vertical-align: -1px; }
 .bubble.note { background: #fff; border: 1px dashed #D9CDB4; }
 

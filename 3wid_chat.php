@@ -1,7 +1,8 @@
 <?php
 // The chat of ONE 3WordID for a member who logged in with Chat login (3wid_chat_login.php).
 // Same look as the owner's chats (3wid_list_messages.php), but bound to the 3WordID in the
-// member session: no list of 3WordIDs, no account, no edit/delete, no payments.
+// member session: no list of 3WordIDs, no account, no edit, no payments. A member may delete
+// a message sent FROM this 3WordID (its own side), not received ones or whole conversations.
 // Every request checks the member session again (chat_member_require), so a password
 // change or switching chat login off by the owner ends it at once.
 //
@@ -10,6 +11,7 @@
 //   GET ?new=1         write to a 3WordID that is not in the list yet
 //   POST do=reply      reply in conversation 'with' (recipient taken from the conversation)
 //   POST do=new        new message to the typed three words
+//   POST do=delete     delete message 'id' sent from this 3WordID, in conversation 'with'
 //
 // When the 3WordID is switched off (enabled = 0) the member can still log in and read,
 // but not send (others can't write to a switched-off 3WordID either).
@@ -50,6 +52,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!check_action_token($_POST['action_token'] ?? '')) {
         $_SESSION['chat_error'] = 'common.session_expired_retry';
         header('Location: ' . $self);
+        exit;
+    }
+
+    if ($do === 'delete') {
+        // Only a message this 3WordID sent, found in one of its own conversations. It is moved to
+        // 3wordid_messages_deleted (db_message_delete) and gone for the recipient too.
+        $with = (string) ($_POST['with'] ?? '');
+        $id = (int) ($_POST['id'] ?? 0);
+        $conversations = member_chat_conversations($threeword_id, $owner_id);
+        $ok = false;
+        foreach (($conversations[$with]['items'] ?? array()) as $it) {
+            if ((int) $it['id'] === $id && $it['mine']) { $ok = true; break; }
+        }
+        $row = $ok ? db_message_row($id) : null;
+        if ($row && (int) $row['3wid_from_id'] === $threeword_id && (int) $row['from_id'] === $owner_id) {
+            db_message_delete($id);
+        } else {
+            error_log('member chat delete: 3wid ' . $threeword_id . ' may not delete message ' . $id);
+        }
+        header('Location: ' . $self . (isset($conversations[$with]) ? '?with=' . rawurlencode($with) : ''));
         exit;
     }
 
@@ -296,7 +318,13 @@ $logout = '<form class="tb-logout-form" method="post" action="3wid_chat_logout.p
                 <div class="b-text"><?php echo chat_text($m['message']); ?></div>
                 <div class="b-meta">
                     <?php if (chat_clock($m['sent_at']) !== ''): ?><time><?php echo chat_e(chat_clock($m['sent_at'])); ?></time><?php endif; ?>
-                    <?php if ($m['mine']): ?><?php echo (is_string($m['read_at']) && $m['read_at'] !== '') ? chat_icon('ticks') : chat_icon('tick'); ?><?php endif; ?>
+                    <?php if ($m['mine']): ?><?php echo (is_string($m['read_at']) && $m['read_at'] !== '') ? chat_icon('ticks') : chat_icon('tick'); ?>
+                    <form class="del-form" method="post" action="<?php echo chat_e($self); ?>" onsubmit="return confirm(<?php echo chat_e(json_encode(t_plain('chat.confirm_delete_own'), JSON_UNESCAPED_UNICODE)); ?>);">
+                        <input type="hidden" name="do" value="delete"><input type="hidden" name="id" value="<?php echo (int) $m['id']; ?>">
+                        <input type="hidden" name="with" value="<?php echo chat_e($open['key']); ?>"><input type="hidden" name="action_token" value="<?php echo chat_e($action_token); ?>">
+                        <button type="submit" class="del" title="<?php echo t('common.delete'); ?>" aria-label="<?php echo t('common.delete'); ?>"><?php echo chat_icon('trash'); ?></button>
+                    </form>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
