@@ -270,8 +270,6 @@ The URL, notification, and chat for these words will be removed. This cannot be 
     'add.linkthru' => 'Forward URL',
     'add.linkthru_ph' => 'Enter forward URL',
     'add.use_forward' => 'Use forward URL',
-    'add.link_form' => 'Link to chat (don\'t forget to activate it)',
-    'add.private' => 'Keep 3WordID private (won\'t be published anywhere)',
     'add.use_msglink' => 'Forward URL with message',
     'add.link_url' => 'Link URL',
     'add.link_title' => 'Link title',

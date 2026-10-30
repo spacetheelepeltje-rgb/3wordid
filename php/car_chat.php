@@ -290,6 +290,16 @@ function car_icon(int $size = 18): string
  * The RDW source is in the tooltip. $for (the words) adds id="tbCar" so page JS can hide it
  * when the recipient field changes (3wid_messageform.php).
  */
+/**
+ * Conversations list: make + colour of the other party (sender) next to its plate, only when
+ * that 3WordID is a car chat and is not one of the viewer's own (never your own car).
+ */
+function car_list_badge($row, array $not_for = array()): string
+{
+    $badge = car_topbar_badge($row, $not_for);
+    return $badge === '' ? '' : str_replace('<span class="tb-car"', '<span class="cr-car"', $badge);
+}
+
 function car_topbar_badge($row, array $not_for = array(), string $for = ''): string
 {
     if (!car_chat_on($row)) {

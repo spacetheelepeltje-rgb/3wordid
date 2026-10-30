@@ -242,8 +242,6 @@ L’URL, la notification et le chat de ces mots seront supprimés. Cette action 
     'add.linkthru' => 'URL de redirection',
     'add.linkthru_ph' => 'Saisissez l’URL de redirection',
     'add.use_forward' => 'Utiliser l’URL de redirection',
-    'add.link_form' => 'Lien vers le chat (n’oubliez pas de l’activer)',
-    'add.private' => 'Garder le 3WordID privé (il ne sera publié nulle part)',
     'add.use_msglink' => 'URL de redirection avec message',
     'add.link_url' => 'URL du lien',
     'add.link_title' => 'Titre du lien',

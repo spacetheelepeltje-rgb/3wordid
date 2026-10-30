@@ -209,13 +209,15 @@ $logout = '<form class="tb-logout-form" method="post" action="3wid_chat_logout.p
             $last = $c['items'][count($c['items']) - 1];
             $label = $c['visitor'] ? t('chat.visitors') : chat_e($c['name']);
             $show_title = !$last['mine'] && !chat_title_redundant($last['title'], $last['message']);
+            // sender is a car chat plate: its make + colour next to the plate (never the organisation's own car)
+            $cr_car = ($c['visitor'] || !empty($c['deleted']) || empty($c['wid'])) ? '' : car_list_badge(db_3wordid_get((int) $c['wid']) ?: null, array($owner_id));
         ?>
             <li>
                 <a class="chat-row<?php echo $c['unread'] > 0 ? ' unread' : ''; ?>" href="<?php echo chat_e($self . '?with=' . rawurlencode($c['key'])); ?>">
                     <?php echo ($c['visitor'] || !empty($c['deleted'])) ? chat_visitor_avatar() : chat_avatar($c['name']); ?>
                     <span class="cr-main">
                         <span class="cr-top">
-                            <span class="cr-name"><?php echo $label; ?></span>
+                            <span class="cr-who"><span class="cr-name"><?php echo $label; ?></span><?php echo $cr_car; ?></span>
                             <span class="cr-time"><?php echo chat_e(chat_time_label($last['sent_at'])); ?></span>
                         </span>
                         <span class="cr-bottom">

@@ -135,13 +135,15 @@
             $label = $c['visitor'] ? t('chat.visitors') : chat_e($c['name']);
             $preview = chat_preview($last['message']);
             $show_title = !$last['mine'] && !chat_title_redundant($last['title'], $last['message']);
+            // sender is a car chat plate: its make + colour next to the plate (never your own car)
+            $cr_car = ($c['visitor'] || !empty($c['deleted']) || empty($c['wid'])) ? '' : car_list_badge(db_3wordid_get((int) $c['wid']) ?: null, array((int) $data['id']));
         ?>
             <li>
                 <a class="chat-row<?php echo $c['unread'] > 0 ? ' unread' : ''; ?>" href="<?php echo chat_e($base_url . '&with=' . rawurlencode($c['key'])); ?>">
                     <?php echo ($c['visitor'] || !empty($c['deleted'])) ? chat_visitor_avatar() : chat_avatar_for($c['name'], $c['wid'], $photo_ids); ?>
                     <span class="cr-main">
                         <span class="cr-top">
-                            <span class="cr-name"><?php echo $label; ?></span>
+                            <span class="cr-who"><span class="cr-name"><?php echo $label; ?></span><?php echo $cr_car; ?></span>
                             <span class="cr-time"><?php echo chat_e(chat_time_label($last['sent_at'])); ?></span>
                         </span>
                         <span class="cr-bottom">

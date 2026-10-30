@@ -242,8 +242,6 @@ Se eliminarán la URL, la notificación y el chat de estas palabras. Esta acció
     'add.linkthru' => 'URL de redirección',
     'add.linkthru_ph' => 'Introduzca la URL de redirección',
     'add.use_forward' => 'Usar URL de redirección',
-    'add.link_form' => 'Enlace al chat (no olvide activarlo)',
-    'add.private' => 'Mantener el 3WordID privado (no se publicará en ningún sitio)',
     'add.use_msglink' => 'URL de redirección con mensaje',
     'add.link_url' => 'URL del enlace',
     'add.link_title' => 'Título del enlace',

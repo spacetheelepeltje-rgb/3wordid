@@ -363,9 +363,8 @@ if (empty($_SESSION['csrf_token'])) {
             <?php if ($has_link_title) { ?>
             <label><input type="checkbox" id="msglinkflag" name="msglinkflag"<?php echo $is_msglink ? ' checked' : ''; ?>> <?php echo t('add.use_msglink'); ?></label>
             <?php } ?>
-            <label><input type="checkbox" id="private" name="private"<?php echo $old_checked('private', true); ?>> <?php echo t('add.private'); ?></label>
           </div>
-          <?php // Kept simple: "Link to chat" / "Car chat" and open / closed are on the edit page, from the list ?>
+          <?php // Kept simple: "Link to chat" / "Car chat", open / closed and public / private are on the edit page, from the list ?>
           <p class="later-note" id="laterNote"><?php echo t('add.later_note'); ?></p>
 
           <div class="hint">

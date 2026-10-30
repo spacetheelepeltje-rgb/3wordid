@@ -270,8 +270,6 @@ De URL, mededeling en chat van deze woorden worden verwijderd. Dit kan niet onge
     'add.linkthru' => 'Doorverwijs-URL',
     'add.linkthru_ph' => 'Vul de doorverwijs-URL in',
     'add.use_forward' => 'Doorverwijs-URL gebruiken',
-    'add.link_form' => 'Link naar chat (vergeet niet hem te activeren)',
-    'add.private' => 'Houd 3WordID privé (wordt nergens gepubliceerd)',
     'add.use_msglink' => 'Doorverwijs-URL met mededeling',
     'add.link_url' => 'Link-URL',
     'add.link_title' => 'Linktitel',

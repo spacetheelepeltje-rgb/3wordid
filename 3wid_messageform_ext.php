@@ -76,9 +76,8 @@
   }
   unset($_SESSION['chat_error']);
 
-  // Car chat: make and colour from RDW (stored when car chat was turned on) in the top bar,
-  // next to the plate. Not for the owner looking at their own car (php/car_chat.php).
-  $car_badge = car_topbar_badge($row, array($viewer ? (int) ($viewer['id'] ?? 0) : 0));
+  // Car chat: the make + colour of a car is shown to the people it gets messages FROM (next to
+  // sender plates in their conversations), not to visitors writing to the car (php/car_chat.php)
   // Closed chat: messages only from 3WordIDs of the same account, so no visitor composer here
   $is_closed = chat_is_closed($row);
   if ($is_closed && $error_key === 'chat.err_closed_in') {
@@ -107,7 +106,6 @@
       'back'    => chat_back_home((bool) $viewer, $main_url),
       'avatar'  => chat_avatar_for($reply_to, $wid_id, $photo_ids, '', true),
       'name'    => $reply_to_safe,
-      'badge'   => $car_badge,
       'sub'     => t('tb.anonymous'),
       // Logged in: the list button to My 3WordIDs; visitors: "Login" top left, a home icon here
       'actions' => $viewer ? chat_tb_button('3wid_list.php', 'list', t_plain('tb.my_ids')) : chat_home_button(),

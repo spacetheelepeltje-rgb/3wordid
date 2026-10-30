@@ -345,6 +345,15 @@ button.avatar.photo { cursor: zoom-in; }
 .chat-row .cr-main { flex: 1 1 auto; min-width: 0; }
 .chat-row .cr-top, .chat-row .cr-bottom { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .chat-row .cr-name { font-weight: 600; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chat-row .cr-who { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.chat-row .cr-who .cr-name { flex: 0 1 auto; min-width: 3em; }
+.chat-row .cr-car {
+    display: inline-flex; align-items: center; gap: 4px; min-width: 0; flex: 0 1 auto;
+    padding: 1px 8px; border-radius: 999px; background: #e8f5ee; color: #1f6b45;
+    font-size: 12px; font-weight: 600; line-height: 18px; white-space: nowrap;
+}
+.chat-row .cr-car .car-ico { flex: none; }
+.chat-row .cr-car .tb-car-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .chat-row .cr-time { flex: 0 0 auto; font-size: 12px; color: var(--muted); }
 .chat-row .cr-preview { font-size: 14px; color: var(--slate); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .chat-row .cr-preview b { font-weight: 600; color: var(--navy); }
