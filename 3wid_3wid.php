@@ -43,7 +43,7 @@
   if (isset($_SESSION['edit_form_error']) && is_array($_SESSION['edit_form_error'])) {
       if ((int) ($_SESSION['edit_form_error']['id'] ?? 0) === (int) $row['id']) {
           $form_error = (string) ($_SESSION['edit_form_error']['error'] ?? '');
-          foreach (['notification', 'linkthru', 'linkthruflag', 'emailform', 'private', 'link_title', 'msglinkflag'] as $k) {
+          foreach (['notification', 'linkthru', 'linkthruflag', 'emailform', 'private', 'link_title', 'msglinkflag', 'car_chat', 'chat_open', 'car_error'] as $k) {
               if (array_key_exists($k, $_SESSION['edit_form_error'])) {
                   $row[$k] = $_SESSION['edit_form_error'][$k];
               }
@@ -66,6 +66,13 @@
   if ((int) $data['id'] === (int) $row['user_id'] && chat_login_ready() && chat_login_allowed($data)) {
       $chat_login_row = db_chat_login_get((int) $row['id']);
   }
+
+  // Car chat and open / closed (php/car_chat.php): only once the car chat SQL has run
+  $car_ready = car_chat_ready();
+  $is_car = $car_ready && (int) ($row['car_chat'] ?? 0) === 1 && (int) $row['emailform'] === 1;
+  $car_saved = $car_ready && (int) ($row['car_error'] ?? 0) !== 1 && $is_car && trim((string) ($row['car_make'] ?? '')) !== '';
+  $is_chat_open = $car_ready && (int) ($row['chat_open'] ?? 0) === 1;
+  $is_chat = ((int) $row['emailform'] === 1);
 
   // The admin came from the admin pages: go back to that user's 3WordIDs
   $from_admin = ((int)$data["id"] === 4 && ($_GET['from'] ?? '') === 'admin');
@@ -269,6 +276,18 @@
       .chat-settings-link .cl-key { color: var(--muted); }
       .chat-settings-link.cl-on { border-color: #9fd3b6; background: #e8f6ee; color: #14623C; }
       .chat-settings-link.cl-on .cl-key { color: #16794a; }
+      /* Car chat pill (make and colour from RDW) and the open / closed choice */
+      .check-help { margin: -4px 0 0 26px; }
+      .car-ico { flex: none; vertical-align: -3px; color: var(--slate); }
+      .car-pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border: 1px solid #9fd3b6; border-radius: 999px; background: #e8f6ee; color: #14623C; font-size: 13px; font-weight: 600; }
+      .car-pill .car-ico { color: #16794a; }
+      .chat-access { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px 10px; margin: 2px 0 0; background: #fff; }
+      .chat-access[hidden] { display: none; }
+      .chat-access legend { font-size: 13px; font-weight: 700; color: var(--slate); padding: 0 6px; }
+      .checks .access-opt { align-items: flex-start; margin: 4px 0 8px; }
+      .access-opt input { margin-top: 3px; }
+      .access-help { display: block; color: var(--slate); font-size: 13px; font-weight: 400; margin-top: 2px; }
+      .access-defaults { margin: 4px 0 0; }
       .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
     </style>
 </head>
@@ -328,11 +347,28 @@
                     <?php } ?>
                     <?php if ($chat_login_row) { $cl_on = ((int) $chat_login_row['chat_login'] === 1); $cl_title = $cl_on ? t('cl.status_on') : t('cl.status_off'); ?>
                     <div class="check-with-link">
-                        <label><input <?php echo $row["emailform"]== 1 ?'checked':''; ?> type="checkbox" id="emailform" name="emailform"> <?php echo t('edit.link_form'); ?></label>
+                        <label><input <?php echo ($row["emailform"] == 1 && !$is_car) ? 'checked' : ''; ?> type="checkbox" id="emailform" name="emailform"> <?php echo t('edit.link_form'); ?></label>
                         <a class="chat-settings-link<?php echo $cl_on ? ' cl-on' : ''; ?>" href="3wid_chat_settings.php?id=<?php echo (int) $row['id']; ?>" title="<?php echo $cl_title; ?>"><?php echo chat_login_key_icon(15); ?><span><?php echo t('cl.edit_btn'); ?></span><span class="visually-hidden"> (<?php echo $cl_title; ?>)</span></a>
                     </div>
                     <?php } else { ?>
-                    <label><input <?php echo $row["emailform"]== 1 ?'checked':''; ?> type="checkbox" id="emailform" name="emailform"> <?php echo t('edit.link_form'); ?></label>
+                    <label><input <?php echo ($row["emailform"] == 1 && !$is_car) ? 'checked' : ''; ?> type="checkbox" id="emailform" name="emailform"> <?php echo t('edit.link_form'); ?></label>
+                    <?php } ?>
+                    <?php if ($car_ready) { ?>
+                    <div class="check-with-link">
+                        <label><input <?php echo $is_car ? 'checked' : ''; ?> type="checkbox" id="car_chat" name="car_chat" aria-describedby="carChatHelp"> <?php echo car_icon(16); ?> <?php echo t('car.option'); ?></label>
+                        <?php if ($car_saved) { ?>
+                        <span class="car-pill" title="<?php echo t('car.from_rdw'); ?>"><?php echo car_icon(15); ?><span><?php echo htmlspecialchars(car_summary($row)); ?></span></span>
+                        <?php } ?>
+                    </div>
+                    <p class="meta check-help" id="carChatHelp"><?php echo t('car.option_help'); ?></p>
+
+                    <fieldset class="chat-access" id="chatAccess"<?php echo $is_chat ? '' : ' hidden'; ?>>
+                        <legend><?php echo t('access.legend'); ?></legend>
+                        <label class="access-opt"><input type="radio" name="chat_access" value="open" <?php echo $is_chat_open ? 'checked' : ''; ?>> <span><strong><?php echo t('access.open'); ?></strong> <span class="access-help"><?php echo t('access.open_help'); ?></span></span></label>
+                        <label class="access-opt"><input type="radio" name="chat_access" value="closed" <?php echo $is_chat_open ? '' : 'checked'; ?>> <span><strong><?php echo t('access.closed'); ?></strong> <span class="access-help"><?php echo t('access.closed_help'); ?></span></span></label>
+                        <p class="meta access-defaults"><?php echo t('access.defaults'); ?></p>
+                        <input type="hidden" name="chat_access_touched" id="chatAccessTouched" value="0">
+                    </fieldset>
                     <?php } ?>
                     <label><input <?php echo $row["private"]== 1 ?'checked':''; ?> type="checkbox" id="private" name="private"> <?php echo t('edit.private'); ?></label>
                 </div>
@@ -368,7 +404,7 @@
     // "Use forward URL", "Forward URL with message" and "Link to chat" exclude each other:
     // ticking one unticks the others
     (function () {
-        var boxes = ['linkthruflag', 'msglinkflag', 'emailform']
+        var boxes = ['linkthruflag', 'msglinkflag', 'emailform', 'car_chat']
             .map(function (id) { return document.getElementById(id); })
             .filter(function (el) { return el; });
         boxes.forEach(function (box) {
@@ -377,9 +413,26 @@
                 boxes.forEach(function (other) { if (other !== box) { other.checked = false; } });
             });
         });
+
+        // Open / closed: only shown for "Link to chat" and "Car chat". Until the owner picks
+        // one, it follows the defaults: Car chat open, Link to chat closed.
+        var access = document.getElementById('chatAccess');
+        if (!access) { return; }
+        var chat = document.getElementById('emailform'), car = document.getElementById('car_chat');
+        var touched = document.getElementById('chatAccessTouched');
+        var radio = function (v) { return access.querySelector('input[value="' + v + '"]'); };
+        var sync = function (changed) {
+            var on = (chat && chat.checked) || (car && car.checked);
+            access.hidden = !on;
+            if (changed && changed.checked && touched.value !== '1') {
+                radio(changed === car ? 'open' : 'closed').checked = true;
+            }
+        };
+        boxes.forEach(function (box) { box.addEventListener('change', function () { sync(box === chat || box === car ? box : null); }); });
+        access.addEventListener('change', function () { touched.value = '1'; });
     })();
 </script>
-<script src="js/3wid_3wid.js"></script>
+<script src="js/3wid_3wid.js?v=2"></script>
 <script>
     function handleGoogleLogin() {
         let userImageURL = 'path/to/user/image.jpg';

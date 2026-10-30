@@ -71,10 +71,18 @@
 
   // Held back by the spam limit (3wid_messageform_ext_process.php): a note, and the typed text back, once
   $error_key = '';
-  if (!empty($_SESSION['chat_error']) && in_array($_SESSION['chat_error'], array('chat.err_rate_visitor', 'chat.err_rate_recipient'), true)) {
+  if (!empty($_SESSION['chat_error']) && in_array($_SESSION['chat_error'], array('chat.err_rate_visitor', 'chat.err_rate_recipient', 'chat.err_closed_in'), true)) {
       $error_key = $_SESSION['chat_error'];
   }
   unset($_SESSION['chat_error']);
+
+  // Car chat: make and colour from RDW, stored when car chat was turned on (php/car_chat.php)
+  $car_line = car_chat_on($row) ? car_summary($row) : '';
+  // Closed chat: messages only from 3WordIDs of the same account, so no visitor composer here
+  $is_closed = chat_is_closed($row);
+  if ($is_closed && $error_key === 'chat.err_closed_in') {
+      $error_key = ''; // the closed note below says the same
+  }
 
   // What was typed when a message was held back (rate limit), put back in the box once
   $draft = (string) ($_SESSION['chat_draft'] ?? '');
@@ -109,7 +117,13 @@
         <?php if ($has_photo && !$viewer): ?>
         <div class="pill-wrap"><span class="pill info"><a href="<?php echo chat_e($loginUrl); ?>"><?php echo t('chat.photo_login_hint'); ?></a></span></div>
         <?php endif; ?>
+        <?php if ($car_line !== ''): ?>
+        <div class="pill-wrap"><span class="pill car" title="<?php echo t('car.from_rdw'); ?>"><?php echo car_icon(18); ?><span><span class="car-label"><?php echo t('car.label'); ?></span> <strong><?php echo chat_e($car_line); ?></strong></span></span></div>
+        <div class="pill-wrap"><span class="pill car-src"><?php echo t('car.from_rdw'); ?></span></div>
+        <?php endif; ?>
+        <?php if (!$is_closed): ?>
         <div class="pill-wrap"><span class="pill info"><?php echo t_raw('ext.hint1'); ?></span></div>
+        <?php endif; ?>
 
         <?php if ($has_note): ?>
         <div class="row in first">
@@ -117,7 +131,11 @@
         </div>
         <?php endif; ?>
 
+        <?php if ($is_closed): ?>
+        <div class="pill-wrap"><span class="pill info closed-note" role="status"><?php echo t('access.closed_note'); ?></span></div>
+        <?php else: ?>
         <div class="pill-wrap"><span class="pill info"><?php echo t_raw('ext.hint2', ['login' => $loginUrl]); ?></span></div>
+        <?php endif; ?>
 
         <?php if ($sent): ?>
         <div class="pill-wrap"><span class="pill"><?php echo t('chat.today'); ?></span></div>
@@ -138,6 +156,7 @@
         <footer class="chat-footer"><?php echo $footer; ?></footer>
     </main>
 
+    <?php if (!$is_closed): ?>
     <form class="composer" id="3widForm"<?php echo $sent ? ' data-sent="1"' : ''; ?> action="3wid_messageform_ext_process.php" method="post">
         <input type="hidden" id="threeword" value="<?php echo $reply_to_safe; ?>">
         <input type="hidden" name="threeword" value="<?php echo $reply_to_safe; ?>">
@@ -150,6 +169,7 @@
             <button type="submit" id="submitBtn" class="send" aria-label="<?php echo t('common.send'); ?>" title="<?php echo t('common.send'); ?>"><?php echo chat_icon('send'); ?></button>
         </div>
     </form>
+    <?php endif; ?>
 </div>
 <?php echo i18n_js([
     'clicked'      => 'msg.js_clicked',

@@ -92,7 +92,7 @@
   unset($_SESSION['chat_conv_sent']);
   // A note from the process script (recipient gone, etc.), once
   $conv_error = '';
-  if ($open !== null && !empty($_SESSION['chat_error']) && in_array($_SESSION['chat_error'], array('chat.err_visitor', 'chat.err_recipient', 'chat.err_inactive', 'chat.err_empty', 'chat.err_rate_pair', 'chat.err_rate_recipient'), true)) {
+  if ($open !== null && !empty($_SESSION['chat_error']) && in_array($_SESSION['chat_error'], array('chat.err_visitor', 'chat.err_recipient', 'chat.err_inactive', 'chat.err_empty', 'chat.err_rate_pair', 'chat.err_rate_recipient', 'chat.err_closed_in', 'chat.err_closed_out'), true)) {
       $conv_error = $_SESSION['chat_error'];
       unset($_SESSION['chat_error']);
   }

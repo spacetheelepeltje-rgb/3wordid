@@ -93,6 +93,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($error === '' && (int) $recipient['id'] === $threeword_id) {
         $error = 'chat.err_recipient';
     }
+    if ($error === '') {
+        // Open / closed chats (php/car_chat.php)
+        $error = chat_access_error(db_3wordid_get($threeword_id) ?: $wid_row, $recipient);
+    }
     if ($error === '' && $message === '') {
         $error = 'chat.err_empty';
     }
@@ -150,7 +154,7 @@ if ($open !== null && $open['unread'] > 0) {
 
 $just_sent = ($open !== null && ($_SESSION['chat_conv_sent'] ?? '') === $threeword_id . '|' . $open['key']);
 unset($_SESSION['chat_conv_sent']);
-$known_errors = array('chat.err_visitor', 'chat.err_recipient', 'chat.err_inactive', 'chat.err_empty', 'chat.err_rate_pair', 'chat.err_rate_recipient', 'cl.read_only', 'cl.err_owner', 'common.session_expired_retry');
+$known_errors = array('chat.err_visitor', 'chat.err_recipient', 'chat.err_inactive', 'chat.err_empty', 'chat.err_rate_pair', 'chat.err_rate_recipient', 'chat.err_closed_in', 'chat.err_closed_out', 'cl.read_only', 'cl.err_owner', 'common.session_expired_retry');
 $conv_error = (!empty($_SESSION['chat_error']) && in_array($_SESSION['chat_error'], $known_errors, true)) ? $_SESSION['chat_error'] : '';
 unset($_SESSION['chat_error']);
 $draft = (string) ($_SESSION['chat_draft'] ?? '');

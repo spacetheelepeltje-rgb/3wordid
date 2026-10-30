@@ -82,10 +82,14 @@
    // There is no "one message until a reply" limit here: members can chat back and forth.
    // (same rule as the live check in 3wid_recipient_check.php: chat_recipient_error())
    $error = chat_recipient_error($threeword_data);
+   // Open / closed chats (php/car_chat.php): a closed chat only talks to 3WordIDs of the same account
+   if ($error === '') {
+	   $error = chat_access_error(db_3wordid_get($from_id) ?: null, $threeword_data);
+   }
    if ($error === '' && $message === '') {
 	   $error = 'chat.err_empty';
    }
-   if ($error === 'chat.err_recipient' || $error === 'chat.err_inactive') {
+   if ($error === 'chat.err_recipient' || $error === 'chat.err_inactive' || $error === 'chat.err_closed_in' || $error === 'chat.err_closed_out') {
 	   // Keep what was typed, so a typo in the three words doesn't lose the message
 	   $_SESSION['chat_draft'] = $message;
    }
@@ -105,7 +109,7 @@
 	   $form_url = '3wid_messageform.php?threeword_id=' . $from_id;
 	   if (strpos($error, 'chat.err_rate') === 0) {
 		   $form_url .= '&threeword=' . rawurlencode($threeword_data['threeword']); // stay with the same recipient
-	   } elseif (($error === 'chat.err_recipient' || $error === 'chat.err_inactive') && $threeword !== '') {
+	   } elseif (in_array($error, array('chat.err_recipient', 'chat.err_inactive', 'chat.err_closed_in', 'chat.err_closed_out'), true) && $threeword !== '') {
 		   $form_url .= '&threeword=' . rawurlencode(chat_substr($threeword, 0, 80)); // put the words back to correct them
 	   }
 	   header('location:' . ($to_conversation ? $conv_url : $form_url));
