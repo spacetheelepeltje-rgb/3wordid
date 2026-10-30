@@ -32,14 +32,15 @@ $(document).ready(function() {
     // "(optional)" next to the Message label when forward or chat is chosen;
     // the Link title field and the "Link URL" label only for "Message with link"
     function updateNoteOptional() {
-        var required = !document.getElementById('linkthruflag').checked && !document.getElementById('emailform').checked;
+        var car = document.getElementById('car_chat');
+        var required = !document.getElementById('linkthruflag').checked && !document.getElementById('emailform').checked && !(car && car.checked);
         $('#notificationOpt').prop('hidden', required);
         var msglink = msglinkChosen();
         $('#linkTitleField').prop('hidden', !msglink);
         var $label = $('#linkthruLabel');
         $label.text($label.attr(msglink ? 'data-msglink' : 'data-forward') || $label.text());
     }
-    $('#linkthruflag, #msglinkflag, #emailform').on('change', updateNoteOptional);
+    $('#linkthruflag, #msglinkflag, #emailform, #car_chat').on('change', updateNoteOptional);
     updateNoteOptional();
 
     // Attach event listener to the form
@@ -63,7 +64,9 @@ $(document).ready(function() {
         let linkthru = $('#linkthru').val();
         let linkthruflag = document.getElementById('linkthruflag').checked
         // "Link to chat": the Message field is not required then
-        let emailform = document.getElementById('emailform').checked;
+        // "Car chat" is a kind of "Link to chat"
+        let carchat = document.getElementById('car_chat');
+        let emailform = document.getElementById('emailform').checked || !!(carchat && carchat.checked);
         let notification = $('#notification').val();
         
         console.log('emailform is ' + emailform);

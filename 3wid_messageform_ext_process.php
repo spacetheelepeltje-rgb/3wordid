@@ -52,6 +52,13 @@
 	   exit;
    }
 
+   // A closed chat (php/car_chat.php) takes no messages from visitors: back to the page, which says so
+   if ($threeword_data && chat_access_error(null, $threeword_data) !== '') {
+	   $_SESSION['chat_error'] = 'chat.err_closed_in';
+	   header('location:3wid_messageform_ext.php?threeword=' . rawurlencode($threeword_data['threeword']));
+	   exit;
+   }
+
    // An empty message is never stored (the form checks this too): back to the form
    if ($threeword_data && $message === '') {
 	   header('location:3wid_messageform_ext.php?threeword=' . rawurlencode($threeword_data['threeword']));

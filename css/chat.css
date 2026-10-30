@@ -263,6 +263,11 @@ button.avatar.photo { cursor: zoom-in; }
 .pill.info { background: var(--info-bg); color: #5a4a1e; line-height: 1.45; padding: 7px 12px; }
 .pill.info a { text-decoration: underline; font-weight: 600; }
 .pill.ok { background: #E4F3E9; color: #14623C; }
+/* Car chat: make and colour from RDW (3wid_messageform_ext.php) */
+.pill.car { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: var(--navy, #0F1C3F); border: 1px solid #9fd3b6; padding: 8px 14px; font-size: 14px; }
+.pill.car .car-ico { color: #16794a; flex: none; }
+.pill.car .car-label { color: #5B6478; font-weight: 500; }
+.pill.car-src { background: transparent; box-shadow: none; color: #8A93A6; font-size: 12px; padding: 0 8px; margin-top: -4px; }
 
 
 /* ---------- bubbles ---------- */

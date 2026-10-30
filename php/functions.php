@@ -3458,3 +3458,4 @@ function db_3wordid_mail_summary($user_id) {
 
 // Chat login (members log in with a 3WordID + password set by its owner)
 require_once __DIR__ . '/chat_login.php';
+require_once __DIR__ . '/car_chat.php';
