@@ -77,6 +77,8 @@
       'back'    => $back_url === '3wid_list.php' ? chat_back_home(true) : array($back_url, t('tb.chats'), t('tb.back_chats', ['words' => $to_name])),
       'avatar'  => ($is_owner && ($is_visitor || $from_deleted)) ? chat_visitor_avatar() : chat_avatar_for($head_name, $head_wid, $photo_ids, '', true),
       'name'    => chat_e($head_name),
+      // other party is a car chat 3WordID: its make + colour next to its plate (never your own car)
+      'badge'   => (!$head_wid || ($is_owner && $from_deleted)) ? '' : car_topbar_badge(db_3wordid_get($head_wid) ?: null, array((int) $data['id'])),
       'sub'     => $is_owner ? t('chat.to_you', ['words' => $to_name]) : t('chat.sent_by_you'),
       'actions' => chat_tb_button('3wid_list.php', 'list', t_plain('tb.my_ids')),
   ));

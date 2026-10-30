@@ -55,7 +55,9 @@ function showFieldError(field, box, text, withPlansLink) {
 }
 
 function noteRequired() {
-    return !document.getElementById('linkthruflag').checked && !document.getElementById('emailform').checked;
+    // ("Link to chat" is no longer on this page: it is set on the edit page)
+    var chat = document.getElementById('emailform');
+    return !document.getElementById('linkthruflag').checked && !(chat && chat.checked);
 }
 
 function msglinkChosen() {
@@ -137,7 +139,7 @@ function checkThreeword() {
 $(document).ready(function () {
 
     $('#threeword').on('input', checkThreeword);
-    $('#linkthruflag, #msglinkflag, #emailform').on('change', updateNoteOptional);
+    $('#linkthruflag, #msglinkflag').on('change', updateNoteOptional);
     $('#notification').on('input', function () {
         if ($('#notification').val().trim() !== '') {
             showFieldError('#notification', '#notificationError', '');

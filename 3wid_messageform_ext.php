@@ -76,8 +76,8 @@
   }
   unset($_SESSION['chat_error']);
 
-  // Car chat: make and colour from RDW, stored when car chat was turned on (php/car_chat.php)
-  $car_line = car_chat_on($row) ? car_summary($row) : '';
+  // Car chat: the make + colour of a car is shown to the people it gets messages FROM (next to
+  // sender plates in their conversations), not to visitors writing to the car (php/car_chat.php)
   // Closed chat: messages only from 3WordIDs of the same account, so no visitor composer here
   $is_closed = chat_is_closed($row);
   if ($is_closed && $error_key === 'chat.err_closed_in') {
@@ -116,10 +116,6 @@
     <main class="chat-scroll" data-scroll="end">
         <?php if ($has_photo && !$viewer): ?>
         <div class="pill-wrap"><span class="pill info"><a href="<?php echo chat_e($loginUrl); ?>"><?php echo t('chat.photo_login_hint'); ?></a></span></div>
-        <?php endif; ?>
-        <?php if ($car_line !== ''): ?>
-        <div class="pill-wrap"><span class="pill car" title="<?php echo t('car.from_rdw'); ?>"><?php echo car_icon(18); ?><span><span class="car-label"><?php echo t('car.label'); ?></span> <strong><?php echo chat_e($car_line); ?></strong></span></span></div>
-        <div class="pill-wrap"><span class="pill car-src"><?php echo t('car.from_rdw'); ?></span></div>
         <?php endif; ?>
         <?php if (!$is_closed): ?>
         <div class="pill-wrap"><span class="pill info"><?php echo t_raw('ext.hint1'); ?></span></div>

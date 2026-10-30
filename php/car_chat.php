@@ -282,3 +282,42 @@ function car_icon(int $size = 18): string
     return '<svg class="car-ico" width="' . $size . '" height="' . $size . '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">'
         . '<path d="M5 17H3v-5l2-5h14l2 5v5h-2"/><path d="M3 12h18"/><circle cx="7.5" cy="17" r="2"/><circle cx="16.5" cy="17" r="2"/><path d="M9.5 17h5"/></svg>';
 }
+
+/**
+ * Make and colour of a car chat 3WordID for the chat top bar, next to its words, for the
+ * people messaging the car. '' when $row is no car chat, or when it belongs to one of the
+ * accounts in $not_for (the viewer, or the account they chat as): the owner knows their car.
+ * The RDW source is in the tooltip. $for (the words) adds id="tbCar" so page JS can hide it
+ * when the recipient field changes (3wid_messageform.php).
+ */
+/**
+ * Conversations list: make + colour of the other party (sender) next to its plate, only when
+ * that 3WordID is a car chat and is not one of the viewer's own (never your own car).
+ */
+function car_list_badge($row, array $not_for = array()): string
+{
+    $badge = car_topbar_badge($row, $not_for);
+    return $badge === '' ? '' : str_replace('<span class="tb-car"', '<span class="cr-car"', $badge);
+}
+
+function car_topbar_badge($row, array $not_for = array(), string $for = ''): string
+{
+    if (!car_chat_on($row)) {
+        return '';
+    }
+    $summary = car_summary($row);
+    if ($summary === '') {
+        return '';
+    }
+    $owner = (int) ($row['user_id'] ?? 0);
+    foreach ($not_for as $uid) {
+        if ((int) $uid > 0 && (int) $uid === $owner) {
+            return '';
+        }
+    }
+    $label = t('car.label');
+    $title = $label . ' ' . chat_e($summary) . ' (' . t('car.from_rdw') . ')';
+    $id = $for !== '' ? ' id="tbCar" data-for="' . chat_e(strtolower((string) preg_replace('/\s+/', ' ', trim($for)))) . '"' : '';
+    return '<span class="tb-car"' . $id . ' title="' . $title . '">' . car_icon(14)
+        . '<span class="tb-sr">' . $label . ' </span><span class="tb-car-text">' . chat_e($summary) . '</span></span>';
+}

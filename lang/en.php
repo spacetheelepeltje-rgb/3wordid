@@ -270,8 +270,6 @@ The URL, notification, and chat for these words will be removed. This cannot be 
     'add.linkthru' => 'Forward URL',
     'add.linkthru_ph' => 'Enter forward URL',
     'add.use_forward' => 'Use forward URL',
-    'add.link_form' => 'Link to chat (don\'t forget to activate it)',
-    'add.private' => 'Keep 3WordID private (won\'t be published anywhere)',
     'add.use_msglink' => 'Forward URL with message',
     'add.link_url' => 'Link URL',
     'add.link_title' => 'Link title',
@@ -279,6 +277,7 @@ The URL, notification, and chat for these words will be removed. This cannot be 
     'js.need_link_title' => 'Please fill in the Link title field',
     'add.subscribe_hint' => 'You can subscribe to make sure your 3WordID is not taken by another user or deleted. It expires after two weeks. Subscription can be done via <a href=\'https://3wordid.com/3wid_signup.php\'>the signup form</a>.',
     'add.create' => 'Create',
+    'add.later_note' => 'Chat options, and whether this 3WordID is public or private, can be set from the list view, where you also switch the 3WordID on.',
 
     // ---- edit
     'edit.wrong_user' => 'This is not the correct 3wid id for this user',
