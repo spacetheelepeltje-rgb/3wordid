@@ -488,3 +488,21 @@ button.avatar.photo { cursor: zoom-in; }
 .chat-row .cr-you { color: var(--muted); font-weight: 500; }
 .tick.read { color: var(--tick-read, #2F8FED); }
 .composer.conv .c-note.err { margin: 0 0 6px; font-size: 13px; color: #B3261E; }
+
+/* ---------- chat login (member) pages: 3wid_chat.php ---------- */
+.chat-topbar .tb-logout-form { margin: 0 0 0 4px; display: inline-flex; }
+.chat-topbar .tb-logout {
+    font: inherit; font-size: 13px; font-weight: 600; color: #fff; cursor: pointer; white-space: nowrap;
+    padding: 0 12px 0 10px; background: rgba(255, 255, 255, .1); border: 1px solid rgba(255, 255, 255, .35);
+}
+.chat-topbar .tb-logout svg { width: 18px; height: 18px; }
+.chat-topbar .tb-logout:hover, .chat-topbar .tb-logout:focus-visible { background: rgba(255, 255, 255, .2); outline: 2px solid transparent; }
+.member-chat .chat-topbar .tb-who { margin-left: 6px; }
+/* phones: Log out keeps its text (it is the only way out), the name gives way */
+@media (max-width: 560px) {
+    .chat-topbar .tb-logout { padding: 0 10px 0 8px; }
+}
+@media (max-width: 360px) {
+    .chat-topbar .tb-logout span { display: none; }
+    .chat-topbar .tb-logout { padding: 0; width: 40px; }
+}

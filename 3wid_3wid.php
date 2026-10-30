@@ -61,6 +61,12 @@
   // CSRF token for the update form
   $action_token = get_action_token();
 
+  // Chat login (php/chat_login.php): only the owner of this 3WordID can manage it
+  $chat_login_row = null;
+  if ((int) $data['id'] === (int) $row['user_id'] && chat_login_ready() && chat_login_allowed($data)) {
+      $chat_login_row = db_chat_login_get((int) $row['id']);
+  }
+
   // The admin came from the admin pages: go back to that user's 3WordIDs
   $from_admin = ((int)$data["id"] === 4 && ($_GET['from'] ?? '') === 'admin');
   if ($from_admin) {
@@ -256,6 +262,13 @@
       @media (max-width: 800px) {
         .wrap { padding-top: 20px; }
       }
+      .chat-login-panel { margin-top: 18px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 18px; }
+      .chat-login-panel h2 { margin: 0 0 4px; font-size: 17px; letter-spacing: -.01em; }
+      .chat-login-panel p { margin: 0; color: var(--slate); font-size: 14px; max-width: 520px; }
+      .chat-login-panel .cl-state { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 6px; }
+      .chat-login-panel .cl-state::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #B8BDC9; }
+      .chat-login-panel .cl-state.on { color: #047857; }
+      .chat-login-panel .cl-state.on::before { background: #10B981; }
     </style>
 </head>
 <body>
@@ -336,6 +349,17 @@
                 <?php } ?>
             </form>
         </div>
+
+        <?php if ($chat_login_row) { $cl_on = ((int) $chat_login_row['chat_login'] === 1); ?>
+        <section class="panel chat-login-panel" aria-labelledby="chatLoginH">
+            <div>
+                <div class="cl-state<?php echo $cl_on ? ' on' : ''; ?>"><?php echo $cl_on ? t('cl.status_on') : t('cl.status_off'); ?></div>
+                <h2 id="chatLoginH"><?php echo t('cl.edit_h'); ?></h2>
+                <p><?php echo $cl_on ? t('cl.edit_p_on') : t('cl.edit_p_off'); ?></p>
+            </div>
+            <a class="btn btn-ghost" href="3wid_chat_settings.php?id=<?php echo (int) $row['id']; ?>"><?php echo t('cl.edit_btn'); ?></a>
+        </section>
+        <?php } ?>
     </main>
      <footer class="site-footer">
         <div><?php echo $footer; ?></div>

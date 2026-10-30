@@ -38,6 +38,9 @@ $max = $data['max_3wids'] + 1;
 
 $db_3wordid_list = db_3wordid_list($id);
 
+// Chat login (php/chat_login.php): a key button per 3WordID, green when it is on
+$chat_login_on = (chat_login_ready() && chat_login_allowed($data)) ? db_chat_login_map($id) : null;
+
 // Message counts per 3WordID for the mail icons, in one go (see db_3wordid_mail_summary)
 $mail_summary = db_3wordid_mail_summary($id);
 
@@ -103,7 +106,7 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
     <link rel="icon" type="image/x-icon" href="img/favicon.ico">
     <link href="/css/inter.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <link href="/css/3wid_list.css?v=4" rel="stylesheet">
+    <link href="/css/3wid_list.css?v=5" rel="stylesheet">
 </head>
 <body>
     <header class="site-header">
@@ -253,6 +256,16 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
                         </svg>
                         <?php if ($mail['unread'] > 0) { ?><span class="mail-dot" aria-hidden="true"></span><?php } ?>
                     </a>
+                    <?php if ($chat_login_on !== null) {
+                        $cl_on = isset($chat_login_on[(int)$db_3wordid_item['id']]);
+                        $cl_label = $cl_on ? t('cl.list_on_title', $mail_words) : t('cl.list_off_title', $mail_words); ?>
+                    <a href="3wid_chat_settings.php?id=<?php echo (int)$db_3wordid_item['id']; ?>" class="icon-btn chat-login-icon<?php echo $cl_on ? ' cl-on' : ''; ?>" title="<?php echo $cl_label; ?>" aria-label="<?php echo $cl_label; ?>">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="7.5" cy="15.5" r="4.5"></circle>
+                            <path d="M10.7 12.3 21 2M16 7l3 3M18.5 4.5l2 2"></path>
+                        </svg>
+                    </a>
+                    <?php } ?>
                     <a href="3wid_delete.php?id=<?php echo (int)$db_3wordid_item['id']; ?>&action_token=<?php echo $action_token; ?>"
 					class="icon-btn trash-icon"
 					title="<?php echo t('list.delete_title'); ?>"
