@@ -299,7 +299,7 @@ function chat_avatar_for($name, $wid_id, $photo_ids, $extra_class = '', $zoom = 
 
 // Version of css/chat.css and js/chat.js: raise it when they change, so browsers
 // load the new files without a hard refresh (Ctrl+F5).
-if (!defined('CHAT_ASSET_VERSION')) { define('CHAT_ASSET_VERSION', '10'); }
+if (!defined('CHAT_ASSET_VERSION')) { define('CHAT_ASSET_VERSION', '11'); }
 
 function chat_asset($path) {
 	return chat_e($path . '?v=' . CHAT_ASSET_VERSION);
@@ -381,7 +381,7 @@ function chat_topbar($o) {
 	}
 	$h .= '<div class="tb-who">' . ($o['avatar'] ?? '');
 	$name = '<div class="tb-name"' . (!empty($o['name_id']) ? ' id="' . chat_e($o['name_id']) . '"' : '') . '>' . $o['name'] . '</div>';
-	// badge: optional HTML right after the name on the same line (car make + colour, car_topbar_badge)
+	// badge: optional HTML right after the name on the same line (car make + colour and organization name, sender_topbar_badges)
 	if (!empty($o['badge'])) {
 		$name = '<div class="tb-line">' . $name . $o['badge'] . '</div>';
 	}
