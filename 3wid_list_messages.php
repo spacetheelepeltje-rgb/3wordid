@@ -174,6 +174,9 @@
         'badge'   => ($is_visitor || $is_deleted || empty($open['wid'])) ? '' : sender_topbar_badges(db_3wordid_get((int) $open['wid']) ?: null, array((int) $data['id'])),
         'sub'     => t('tb.chatting_as', ['words' => $threeword]),
         'actions' => chat_tb_button('3wid_chat_print.php?wid_id=' . (int) $threeword_id . '&with=' . rawurlencode($open['key']), 'print', t_plain('chat.print_title'), 'target="_blank" rel="noopener"')
+                   // Delete conversation: everything in it, received and sent (3wid_message_delete.php)
+                   . chat_tb_form_button('3wid_message_delete.php', array('do' => 'conversation', 'wid_id' => (int) $threeword_id, 'with' => $open['key'], 'action_token' => $action_token),
+                       'trash', t_plain('chat.delete_conversation'), t_plain('chat.confirm_delete_conversation'), 'tb-del')
                    . chat_tb_button('3wid_list.php', 'list', t_plain('tb.my_ids')),
     )); ?>
 <div class="chat-app">
@@ -199,10 +202,10 @@
                     <?php if (chat_clock($m['sent_at']) !== ''): ?><time><?php echo chat_e(chat_clock($m['sent_at'])); ?></time><?php endif; ?>
                     <?php if ($m['mine']): ?>
                     <?php echo (is_string($m['read_at']) && $m['read_at'] !== '') ? chat_icon('ticks') : chat_icon('tick'); ?>
+                    <?php // your own message: delete it, also after it has been read (gone for the other person too) ?>
+                    <?php echo chat_del_link($m['id'], $action_token, t_plain('common.delete'), t_plain('chat.confirm_delete_own')); ?>
                     <?php else: ?>
-                    <a class="del" title="<?php echo t('common.delete'); ?>" aria-label="<?php echo t('common.delete'); ?>"
-                       href="3wid_message_delete.php?id=<?php echo (int) $m['id']; ?>&amp;action_token=<?php echo chat_e($action_token); ?>"
-                       onclick="return confirm(<?php echo chat_e(json_encode(t_plain('chat.confirm_delete'), JSON_UNESCAPED_UNICODE)); ?>);"><?php echo chat_icon('trash'); ?></a>
+                    <?php echo chat_del_link($m['id'], $action_token, t_plain('common.delete'), t_plain('chat.confirm_delete')); ?>
                     <?php endif; ?>
                 </div>
             </div>

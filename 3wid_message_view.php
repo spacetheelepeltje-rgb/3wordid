@@ -96,11 +96,11 @@
                 <div class="b-meta">
                     <?php if (chat_clock($sent_at) !== ''): ?><time><?php echo chat_e(chat_clock($sent_at)); ?></time><?php endif; ?>
                     <?php if ($is_owner): ?>
-                    <a class="del" title="<?php echo t('msgview.delete'); ?>" aria-label="<?php echo t('msgview.delete'); ?>"
-                       href="3wid_message_delete.php?id=<?php echo (int) $message_row['id']; ?>&amp;action_token=<?php echo chat_e($action_token); ?>"
-                       onclick="return confirm(<?php echo chat_e(json_encode(t_plain('chat.confirm_delete'), JSON_UNESCAPED_UNICODE)); ?>);"><?php echo chat_icon('trash'); ?></a>
+                    <?php echo chat_del_link($message_row['id'], $action_token, t_plain('msgview.delete'), t_plain('chat.confirm_delete')); ?>
                     <?php else: ?>
                     <?php echo chat_icon('tick'); ?>
+                    <?php // the sender: delete your own message, also after it has been read ?>
+                    <?php echo chat_del_link($message_row['id'], $action_token, t_plain('msgview.delete'), t_plain('chat.confirm_delete_own')); ?>
                     <?php endif; ?>
                 </div>
             </div>
