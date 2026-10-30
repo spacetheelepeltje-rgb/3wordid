@@ -43,7 +43,7 @@ Put the file OUTSIDE the web folder (so it can't be downloaded), for example
 define('GEOIP_COUNTRY_DB', '/home/USER/geoip/country.mmdb');
 ```
 
-Update the file once a month (IP ranges change). Example cron line (DB-IP, first day of the month):
+Update the file once a month (IP ranges change). Example cron line (DB-IP, on the 2nd of each month, when the new file is out):
 
 ```
 5 3 2 * * cd /home/USER/geoip && curl -sf -o new.mmdb.gz "https://download.db-ip.com/free/dbip-country-lite-$(date +\%Y-\%m).mmdb.gz" && gunzip -f new.mmdb.gz && mv new.mmdb country.mmdb
