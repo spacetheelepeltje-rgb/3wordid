@@ -204,6 +204,9 @@ if (isset($_GET['message'])) {
             h1 { font-size: 28px; }
             .wrap { margin-top: 32px; }
         }
+        .chat-login-hint { margin: 22px 0 0; text-align: center; font-size: 14px; color: var(--muted); }
+        .chat-login-hint a { color: var(--slate); font-weight: 600; text-underline-offset: 3px; }
+        .chat-login-hint a:hover { color: var(--navy); }
     </style>
 </head>
 <body>
@@ -245,7 +248,7 @@ if (isset($_GET['message'])) {
             </div>
         </div>
 
-       
+        <p class="chat-login-hint"><?php echo t_raw('login.chat_link'); ?></p>
     </main>
 
     <footer>

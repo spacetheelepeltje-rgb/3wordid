@@ -299,7 +299,7 @@ function chat_avatar_for($name, $wid_id, $photo_ids, $extra_class = '', $zoom = 
 
 // Version of css/chat.css and js/chat.js: raise it when they change, so browsers
 // load the new files without a hard refresh (Ctrl+F5).
-if (!defined('CHAT_ASSET_VERSION')) { define('CHAT_ASSET_VERSION', '7'); }
+if (!defined('CHAT_ASSET_VERSION')) { define('CHAT_ASSET_VERSION', '8'); }
 
 function chat_asset($path) {
 	return chat_e($path . '?v=' . CHAT_ASSET_VERSION);
@@ -315,6 +315,8 @@ function chat_tb_icon($name) {
 			return '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>';
 		case 'home':
 			return '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg>';
+		case 'logout':
+			return '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>';
 		case 'login':
 			return '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="M10 17l5-5-5-5M15 12H3"/></svg>';
 	}
@@ -364,14 +366,18 @@ function chat_home_button() {
 //   sub       small second line
 //   sub_attrs optional extra attributes of the sub line
 //   actions   buttons on the right (chat_tb_button), before the language menu
+//   after     optional HTML after the language menu (Log out on the chat login pages)
+// 'back' => null leaves the back button out (the member chat of 3wid_chat.php has no way up).
 function chat_topbar($o) {
 	$back = $o['back'];
 	$h = '<header class="chat-topbar"><div class="tb-inner">';
-	// An optional 4th value is the icon instead of the back arrow; 'login' also keeps the
-	// "Login" text visible on phones (it is a button, not a way back)
-	$back_icon = $back[3] ?? '';
-	$h .= '<a class="tb-back' . ($back_icon === 'login' ? ' tb-back-login' : '') . '" href="' . chat_e($back[0]) . '" aria-label="' . $back[2] . '" title="' . $back[2] . '">'
-		. ($back_icon !== '' ? chat_tb_icon($back_icon) : chat_icon('back')) . '<span class="tb-back-label">' . $back[1] . '</span></a>';
+	if ($back !== null) {
+		// An optional 4th value is the icon instead of the back arrow; 'login' also keeps the
+		// "Login" text visible on phones (it is a button, not a way back)
+		$back_icon = $back[3] ?? '';
+		$h .= '<a class="tb-back' . ($back_icon === 'login' ? ' tb-back-login' : '') . '" href="' . chat_e($back[0]) . '" aria-label="' . $back[2] . '" title="' . $back[2] . '">'
+			. ($back_icon !== '' ? chat_tb_icon($back_icon) : chat_icon('back')) . '<span class="tb-back-label">' . $back[1] . '</span></a>';
+	}
 	$h .= '<div class="tb-who">' . ($o['avatar'] ?? '');
 	$h .= '<div class="tb-text"><div class="tb-name"' . (!empty($o['name_id']) ? ' id="' . chat_e($o['name_id']) . '"' : '') . '>' . $o['name'] . '</div>';
 	if (isset($o['sub']) && $o['sub'] !== '') {
@@ -380,6 +386,6 @@ function chat_topbar($o) {
 		$h .= '<div' . (strpos($sub_attrs, 'class=') === false ? ' class="tb-sub"' : '') . ($sub_attrs !== '' ? ' ' . $sub_attrs : '') . '>' . $o['sub'] . '</div>';
 	}
 	$h .= '</div></div>';
-	$h .= '<div class="tb-actions">' . ($o['actions'] ?? '') . chat_lang_menu() . '</div>';
+	$h .= '<div class="tb-actions">' . ($o['actions'] ?? '') . chat_lang_menu() . ($o['after'] ?? '') . '</div>';
 	return $h . '</div></header>';
 }

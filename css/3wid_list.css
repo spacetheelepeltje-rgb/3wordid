@@ -239,6 +239,10 @@ h1 { margin: 0; font-size: 32px; letter-spacing: -0.04em; line-height: 1.15; }
   background: #d93025;
   box-shadow: 0 0 0 2px #fff;
 }
+/* Chat login (key): grey = off, green = members can log in with the 3WordID and a password */
+.chat-login-icon { color: var(--muted); }
+.chat-login-icon.cl-on { color: var(--ok); background: #e8f6ee; border-color: #9fd3b6; }
+.chat-login-icon.cl-on:hover { background: #d9f0e3; border-color: var(--ok); }
 .icon-btn.enabled { color: var(--ok); }
 .icon-btn.disabled-toggle { color: var(--muted); }
 .trash-icon:hover { color: var(--danger); border-color: #e8c4c4; }
@@ -360,7 +364,7 @@ h1 { margin: 0; font-size: 32px; letter-spacing: -0.04em; line-height: 1.15; }
 /* very narrow phones (e.g. 320px): let the two icon groups stack */
 @media (max-width: 359px) {
   .id-row { grid-template-columns: 1fr; }
-  .id-row > .icon-row { gap: 6px; }
+  .id-row > .icon-row { gap: 6px; flex-wrap: wrap; }
   .site-header .lang-switch { margin-left: 0; }
   .site-header { padding: 10px 12px; gap: 8px 6px; }
   .brand { font-size: 17px; gap: 8px; }

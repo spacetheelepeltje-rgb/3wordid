@@ -1659,6 +1659,20 @@ function db_3wordid_backup($id) {
 		
 		error_log('backup success');
 
+		// Chat login: no password hash in the backup copy (login secrets are not kept)
+		if ($affected_rows > 0 && function_exists('chat_login_ready') && chat_login_ready()) {
+			try {
+				$clear = $conn->prepare("UPDATE 3wordid_deleted SET chat_pw_hash = NULL, chat_login = 0 WHERE id = ?");
+				if ($clear) {
+					$clear->bind_param("i", $id);
+					$clear->execute();
+					$clear->close();
+				}
+			} catch (Throwable $e) {
+				error_log('backup: could not clear chat password hash: ' . $e->getMessage());
+			}
+		}
+
         if ($affected_rows > 0) {
             return true; // Success, record was deleted
         } else {
@@ -3441,3 +3455,6 @@ function db_3wordid_mail_summary($user_id) {
 	$conn->close();
 	return $out;
 }
+
+// Chat login (members log in with a 3WordID + password set by its owner)
+require_once __DIR__ . '/chat_login.php';

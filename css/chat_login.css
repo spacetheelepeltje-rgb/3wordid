@@ -1,0 +1,64 @@
+/* Chat login pages: 3wid_chat_login.php (members) and 3wid_chat_settings.php (owner).
+   Same palette as the other pages (navy, paper, gold). */
+:root {
+    --navy: #0F1C3F; --navy-2: #162756; --slate: #5B6478; --muted: #8A93A6;
+    --line: #E6E3DC; --paper: #F7F6F3; --white: #FFFFFF; --gold: #B45309;
+    --well: #F3F1EC; --ok: #16794a; --shadow: 0 10px 30px rgba(15,28,63,.08);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body.cl-body {
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--paper); color: var(--navy); min-height: 100vh;
+    display: flex; flex-direction: column;
+}
+.cl-body a { color: var(--navy); }
+.cl-header {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 14px 24px; border-bottom: 1px solid var(--line); background: var(--paper);
+}
+.cl-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; font-weight: 800; letter-spacing: -.03em; font-size: 20px; color: var(--navy); }
+.cl-brand img { width: 34px; height: 34px; border-radius: 8px; }
+.cl-header-actions { display: flex; align-items: center; gap: 10px; }
+.cl-wrap { width: 100%; max-width: 480px; margin: 40px auto 0; padding: 0 20px 48px; flex: 1; }
+.cl-wrap.wide { max-width: 640px; }
+.cl-eyebrow { color: var(--gold); font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 8px; }
+.cl-body h1 { font-size: 30px; font-weight: 800; letter-spacing: -.04em; margin: 0 0 8px; }
+.cl-sub { color: var(--slate); font-size: 15px; line-height: 1.5; margin: 0 0 22px; }
+.cl-card { background: var(--white); border: 1px solid #ECEAE4; border-radius: 16px; padding: 22px; box-shadow: var(--shadow); }
+.cl-card + .cl-card { margin-top: 16px; }
+.cl-card h2 { font-size: 17px; margin: 0 0 6px; }
+.cl-card p { color: var(--slate); font-size: 14px; line-height: 1.5; margin: 0 0 14px; }
+.cl-field { display: block; font-size: 13px; font-weight: 600; color: var(--slate); margin: 0 0 6px; }
+.cl-input {
+    width: 100%; border: 1px solid var(--line); background: #fff; border-radius: 10px;
+    padding: 12px 14px; font: inherit; font-size: 16px; color: var(--navy); outline: none; margin-bottom: 14px;
+}
+.cl-input:focus { border-color: var(--navy); box-shadow: 0 0 0 3px rgba(15,28,63,.08); }
+.cl-help { color: var(--muted); font-size: 13px; line-height: 1.45; margin: -6px 0 14px; }
+.cl-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px;
+    padding: 0 18px; border-radius: 10px; font: inherit; font-size: 15px; font-weight: 600;
+    cursor: pointer; border: 1px solid transparent; text-decoration: none;
+}
+.cl-btn-primary { background: var(--navy); color: #fff; }
+.cl-btn-primary:hover { background: var(--navy-2); }
+.cl-btn-ghost { background: #fff; color: var(--navy); border-color: var(--line); }
+.cl-btn-ghost:hover { background: var(--well); }
+.cl-btn.full { width: 100%; }
+.cl-btn:focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
+.cl-flash { border-radius: 12px; padding: 12px 14px; font-size: 14px; line-height: 1.45; margin: 0 0 16px; background: #fff; border: 1px solid #ECEAE4; border-left: 4px solid var(--gold); color: var(--slate); }
+.cl-flash.err { background: #FDF2F2; border-color: #F3C7C7; border-left-color: #C53030; color: #9B1C1C; font-weight: 600; }
+.cl-flash.ok { background: #EEF8F2; border-color: #BFE3CD; border-left-color: var(--ok); color: #14623C; font-weight: 600; }
+.cl-status { display: flex; align-items: center; gap: 10px; font-weight: 700; margin: 0 0 6px; }
+.cl-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--muted); flex: 0 0 auto; }
+.cl-status.on .cl-dot { background: var(--ok); }
+.cl-words { display: inline-block; background: var(--well); border-radius: 8px; padding: 3px 8px; font-weight: 700; }
+.cl-hint { color: var(--muted); font-size: 13px; text-align: center; margin-top: 18px; line-height: 1.5; }
+.cl-hint a { font-weight: 600; text-decoration: none; }
+.cl-footer { text-align: center; color: var(--muted); font-size: 13px; padding: 24px; }
+@media (max-width: 560px) {
+    .cl-header { padding: 12px 16px; }
+    .cl-wrap { margin-top: 24px; }
+    .cl-body h1 { font-size: 26px; }
+}

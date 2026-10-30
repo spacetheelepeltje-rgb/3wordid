@@ -53,6 +53,9 @@ function establish_user_session(mysqli $conn, int $userId, ?string $plainEmail =
 
     session_regenerate_id(true);
 
+    // A chat login (member) session in this browser ends when the owner logs in
+    unset($_SESSION['chat_member']);
+
     $_SESSION['user_id']    = $userId;
     $_SESSION['user_token'] = $rawToken;
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
@@ -223,6 +226,12 @@ function record_last_login(mysqli $conn, int $userId): void
 
 function current_user_from_session(mysqli $conn): ?array
 {
+    // A chat login session (a member of one 3WordID, see php/chat_login.php) is never an
+    // owner session: every owner page then sees "not logged in".
+    if (!empty($_SESSION['chat_member'])) {
+        return null;
+    }
+
     $token = $_SESSION['user_token'] ?? '';
     if ($token === '') {
         return null;
