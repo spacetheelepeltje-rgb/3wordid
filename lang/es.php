@@ -68,6 +68,7 @@ return [
     'home.js_exists' => 'El 3wid existe',
     'home.js_missing' => 'El 3wid no existe, inicie sesión para crearlo',
     'home.js_paying' => 'Pertenece a una cuenta de pago',
+    'home.js_plate' => 'Matrícula neerlandesa',
     'terms.title' => 'Términos y condiciones — 3WordID',
     'terms.eyebrow' => 'AVISO LEGAL',
     'terms.h1' => 'Términos y condiciones',

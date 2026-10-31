@@ -78,6 +78,7 @@ return [
     'home.js_exists' => '3wid exists',
     'home.js_missing' => '3wid does not exist log in to create',
     'home.js_paying' => 'Owned by a paying account',
+    'home.js_plate' => 'Dutch licence plate',
 
     // ---- terms
     'terms.title' => 'Terms and Conditions — 3WordID',

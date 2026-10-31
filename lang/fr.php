@@ -68,6 +68,7 @@ return [
     'home.js_exists' => 'Le 3wid existe',
     'home.js_missing' => 'Le 3wid n’existe pas, connectez-vous pour le créer',
     'home.js_paying' => 'Appartient à un compte payant',
+    'home.js_plate' => 'Plaque d’immatriculation néerlandaise',
     'terms.title' => 'Conditions générales — 3WordID',
     'terms.eyebrow' => 'MENTIONS LÉGALES',
     'terms.h1' => 'Conditions générales',
