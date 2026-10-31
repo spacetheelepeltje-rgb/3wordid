@@ -269,7 +269,7 @@ $more_list = array_values($by_words);
     'see_more'  => 'home.see_more',
     'show_less' => 'home.show_less',
 ]); ?>
-<script src="js/3wid_index_2.js?v=2"></script>
+<script src="js/3wid_index_2.js?v=3"></script>
 <script>
     function handleGoogleLogin() {
         //window.location.href = '<?php echo $loginUrl; ?>';

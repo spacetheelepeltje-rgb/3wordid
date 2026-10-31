@@ -1,5 +1,7 @@
-function containsDigitsOrSpecialCharacters(str) {
-    return /\d/.test(str) || /[^a-zA-Z0-9]/.test(str);
+// Letters and digits are allowed (paid 3WordIDs and car chat licence plates such as
+// "92 zd ng" contain digits); anything else can never be a 3WordID.
+function containsSpecialCharacters(str) {
+    return /[^a-zA-Z0-9]/.test(str);
 }
 
 function sleep(miliseconds) {
@@ -75,7 +77,7 @@ var existsRequest = 0; // only the newest answer may change the lock
               let nr_words = threewords_array.length;
               
                for (let word of threewords_array) {
-                    if(containsDigitsOrSpecialCharacters(word)) {
+                    if(containsSpecialCharacters(word)) {
                         setSearchLock('closed');
                         return;
                     }
