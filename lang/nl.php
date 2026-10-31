@@ -78,6 +78,7 @@ return [
     'home.js_exists' => '3wid bestaat',
     'home.js_missing' => '3wid bestaat niet, log in om hem te maken',
     'home.js_paying' => 'Van een betaald account',
+    'home.js_plate' => 'Nederlands kenteken',
 
     // ---- terms
     'terms.title' => 'Algemene voorwaarden — 3WordID',

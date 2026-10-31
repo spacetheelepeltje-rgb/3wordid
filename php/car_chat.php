@@ -30,6 +30,10 @@ require_once __DIR__ . '/geoip.php';
 
 if (!defined('CAR_CACHE_FOUND_TTL')) { define('CAR_CACHE_FOUND_TTL', 900); }      // 15 minutes
 if (!defined('CAR_CACHE_NOT_FOUND_TTL')) { define('CAR_CACHE_NOT_FOUND_TTL', 600); } // 10 minutes
+// Homepage search plate check (car_plate_known): short RDW timeout so typing is not slowed,
+// and after an RDW error no new RDW calls from that check for a minute
+if (!defined('CAR_PLATE_CHECK_TIMEOUT')) { define('CAR_PLATE_CHECK_TIMEOUT', 2); }   // seconds
+if (!defined('CAR_PLATE_DOWN_TTL')) { define('CAR_PLATE_DOWN_TTL', 60); }            // seconds
 
 /** True when the car chat columns exist on 3wordid. Cached. */
 function car_chat_ready(): bool
@@ -89,7 +93,7 @@ function car_cache_file(string $plate): string
  * Returns ['status' => 'found'|'not_found'|'error', 'make' => '', 'colour' => ''].
  * Found / not found are cached for a short while; errors (RDW down, timeout) are not.
  */
-function car_rdw_lookup(string $plate): array
+function car_rdw_lookup(string $plate, ?int $timeout = null): array
 {
     $none = ['status' => 'error', 'make' => '', 'colour' => ''];
     if ($plate === '') {
@@ -106,7 +110,10 @@ function car_rdw_lookup(string $plate): array
 
     $base = defined('RDW_API_URL') ? (string) RDW_API_URL : 'https://opendata.rdw.nl/resource/m9d7-ebf2.json';
     $url = $base . (strpos($base, '?') === false ? '?' : '&') . http_build_query(['kenteken' => $plate]);
-    $timeout = defined('RDW_TIMEOUT') ? max(1, (int) RDW_TIMEOUT) : 6;
+    if ($timeout === null) {
+        $timeout = defined('RDW_TIMEOUT') ? max(1, (int) RDW_TIMEOUT) : 6;
+    }
+    $timeout = max(1, $timeout);
     $headers = ['Accept: application/json'];
     if (defined('RDW_APP_TOKEN') && (string) RDW_APP_TOKEN !== '') {
         $headers[] = 'X-App-Token: ' . RDW_APP_TOKEN;
@@ -152,6 +159,54 @@ function car_rdw_lookup(string $plate): array
     }
     @file_put_contents($cache, json_encode($result + ['t' => time()]), LOCK_EX);
     return $result;
+}
+
+/**
+ * Homepage search: could these three words be a licence plate? Three words of 1 to 3 letters /
+ * digits each, with at least one digit ("1 kbb 00", "gz 123 k"; not "3456 as x").
+ * The same rule as in js/3wid_index_2.js.
+ */
+function car_plate_pattern(string $words): bool
+{
+    $parts = preg_split('/\s+/', trim($words));
+    if (count($parts) !== 3 || !preg_match('/[0-9]/', $words)) {
+        return false;
+    }
+    foreach ($parts as $p) {
+        if (!preg_match('/^[A-Za-z0-9]{1,3}$/', $p)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/**
+ * Homepage search (3wid_exists.php): are these words a Dutch licence plate in the RDW register?
+ * Only yes / no leaves this function, never the make or colour. No Dutch IP needed (read-only).
+ * true / false, or null when unknown (RDW down or too slow): then the search shows no car.
+ * Found / not found come from the RDW cache of car_rdw_lookup(); after an RDW error this check
+ * leaves RDW alone for CAR_PLATE_DOWN_TTL seconds (one marker file).
+ */
+function car_plate_known(string $words): ?bool
+{
+    if (!car_plate_pattern($words)) {
+        return false;
+    }
+    $plate = car_plate_from_words($words);
+    if ($plate === '') {
+        return false; // not 6 characters of letters and digits: never a Dutch plate, no RDW call
+    }
+    $down = dirname(car_cache_file($plate)) . '/rdw_down';
+    $cached = is_file(car_cache_file($plate));
+    if (!$cached && is_file($down) && (time() - (int) @filemtime($down)) < CAR_PLATE_DOWN_TTL) {
+        return null;
+    }
+    $rdw = car_rdw_lookup($plate, (int) CAR_PLATE_CHECK_TIMEOUT);
+    if ($rdw['status'] === 'error') {
+        @touch($down);
+        return null;
+    }
+    return $rdw['status'] === 'found';
 }
 
 /**

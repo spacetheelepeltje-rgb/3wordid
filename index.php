@@ -125,6 +125,15 @@ $more_list = array_values($by_words);
             color: #B8860B;
             background: #fdf6e3;
         }
+        /* Licence plate in the RDW register: car instead of lock (js/3wid_index_2.js).
+           Green / gold as above when the 3WordID exists, blue when it does not exist yet. */
+        .lock .car-ico { display: none; }
+        .lock.is-car #lockIcon { display: none; }
+        .lock.is-car .car-ico { display: block; }
+        .lock.is-plate {
+            color: #1d4ed8;
+            background: #eff6ff;
+        }
     </style>
 </head>
 <body>
@@ -162,6 +171,9 @@ $more_list = array_values($by_words);
                         <svg id="lockIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                             <path id="lockShackle" d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                        <svg class="car-ico" id="carIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                            <path d="M5 17H3v-5l2-5h14l2 5v5h-2"></path><path d="M3 12h18"></path><circle cx="7.5" cy="17" r="2"></circle><circle cx="16.5" cy="17" r="2"></circle><path d="M9.5 17h5"></path>
                         </svg>
                     </div>
                     <input id="threewords" name="threewords" type="text" class="search-bar" placeholder="<?php echo t('common.placeholder_words'); ?>" value="<?= htmlspecialchars($threewords); ?>" autocomplete="off">
@@ -265,11 +277,12 @@ $more_list = array_values($by_words);
 <?php echo i18n_js([
     'exists'    => 'home.js_exists',
     'paying'    => 'home.js_paying',
+    'plate'     => 'home.js_plate',
     'missing'   => 'home.js_missing',
     'see_more'  => 'home.see_more',
     'show_less' => 'home.show_less',
 ]); ?>
-<script src="js/3wid_index_2.js?v=3"></script>
+<script src="js/3wid_index_2.js?v=4"></script>
 <script>
     function handleGoogleLogin() {
         //window.location.href = '<?php echo $loginUrl; ?>';
