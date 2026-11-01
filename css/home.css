@@ -21,6 +21,12 @@
 .step p { margin: 0; color: var(--slate); line-height: 1.5; font-size: 14px; }
 .step code { background: #efece6; border-radius: 6px; padding: 1px 6px; font-family: inherit; font-weight: 600; }
 
+/* "Use cases" heading above the cards, "Examples" heading above the public list */
+.use-cases { margin-top: 48px; }
+.use-cases .cards { margin-top: 0; }
+.recent h2.section-title { font-size: 22px; margin: 0 0 20px; color: inherit; font-weight: bold; }
+.recent .recent-sub { font-size: 16px; margin: 0 0 12px; color: var(--slate); font-weight: 600; }
+
 .card .card-kicker { color: var(--gold); font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; }
 .card .card-example { margin-top: 12px; font-size: 13px; color: var(--navy); }
 .card .card-example code { background: #efece6; border-radius: 6px; padding: 2px 6px; font-family: inherit; font-weight: 600; }
@@ -37,5 +43,6 @@
 @media (max-width: 800px) {
   .steps { grid-template-columns: 1fr; }
   .how { margin-top: 32px; }
+  .use-cases { margin-top: 32px; }
   .trust-item { width: 100%; text-align: center; border-radius: 12px; }
 }

@@ -46,7 +46,8 @@ $db_3wordid_list = db_3wordid_list_recent();
 // Homepage list of public 3WordIDs. Easy to edit:
 // - $featured_threewords: shown first, in this order (only if the 3WordID is public and enabled).
 // - $hidden_threewords: never shown on the homepage (test or private-looking entries).
-// - Every other public 3WordID sits behind the "See more" button.
+// - $examples_visible: how many rows the list shows; featured ones first, then the most viewed
+//   other public 3WordIDs fill it up. Every other public 3WordID sits behind the "See more" button.
 $featured_threewords = [
     'our delicious menu',
     'davinci mona lisa',
@@ -81,6 +82,10 @@ foreach ($hidden_threewords as $w) {
     unset($by_words[$w]);
 }
 $more_list = array_values($by_words);
+$examples_visible = 15;
+while (count($featured_list) < $examples_visible && count($more_list) > 0) {
+    $featured_list[] = array_shift($more_list);
+}
 
 
  
@@ -115,7 +120,7 @@ $more_list = array_values($by_words);
     <meta name="twitter:description" content="<?php echo t('home.og_desc'); ?>">
     <meta name="twitter:image" content="https://3wordid.com/img/og-3wordid.png">
     <link rel="stylesheet" href="css/newstyle.css">
-    <link rel="stylesheet" href="css/home.css">
+    <link rel="stylesheet" href="css/home.css?v=2">
     <style>
         .lock.is-found {
             color: #16a34a;
@@ -206,7 +211,9 @@ $more_list = array_values($by_words);
             </div>
         </section>
 
-        <section class="cards" id="use-cases">
+        <section class="use-cases" id="use-cases">
+            <h2 class="section-title"><?php echo t('home.use_cases_title'); ?></h2>
+            <div class="cards">
             <article class="card">
                 <div class="card-kicker"><?php echo t('home.card3_kicker'); ?></div>
                 <h3><?php echo t('home.card3_title'); ?></h3>
@@ -224,10 +231,12 @@ $more_list = array_values($by_words);
                 <p><?php echo t('home.card2_text'); ?></p>
                 <div class="card-example"><?php echo t('home.example'); ?> <code>our delicious menu</code></div>
             </article>
+            </div>
         </section>
 
         <section class="recent" id="public-3wordids">
-            <h2><?php echo t('home.public_title'); ?></h2>
+            <h2 class="section-title"><?php echo t('home.examples_title'); ?></h2>
+            <p class="recent-sub"><?php echo t('home.public_title'); ?></p>
             <div class="recent-list" id="recentList">
 <?php
                 foreach ($featured_list as $db_3wordid_item) {
