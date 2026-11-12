@@ -1,0 +1,811 @@
+{
+ "_about": "Plate to three words rules for Bumperchat. Edit freely; see docs/PLATE_FORMATS.md. mode: three = three groups as printed; prefix = blue strip code + two groups; mixed = three groups as printed, or strip code + two groups; region = US / Canada (pick state / province). fixed = digit/letter lengths used when the plate is typed without spaces. three_ok = a plate that already has three groups is kept as it is.",
+ "countries": [
+  {
+   "code": "AT",
+   "strip": "A",
+   "name": {
+    "en": "Austria",
+    "nl": "Oostenrijk"
+   },
+   "mode": "three",
+   "format": "XX 123 AB",
+   "examples": [
+    {
+     "plate": "W 123 AB",
+     "words": "w 123 ab"
+    },
+    {
+     "plate": "GU 12 ABC",
+     "words": "gu 12 abc"
+    }
+   ],
+   "rule": {
+    "en": "District code, then the numbers, then the letters (or for a personalised plate: district code, letters, number).",
+    "nl": "Districtcode, dan de cijfers, dan de letters (bij een wunschkennzeichen: districtcode, letters, cijfer)."
+   },
+   "source": "https://en.wikipedia.org/wiki/Vehicle_registration_plates_of_Austria",
+   "note": {
+    "en": "The exact split of the serial (how many digits and letters) varies by district; the rule \"district · digits · letters\" is our own convention.",
+    "nl": "Hoe het serienummer verdeeld is (aantal cijfers en letters) verschilt per district; de regel \"district · cijfers · letters\" is onze eigen afspraak."
+   },
+   "uncertain": true
+  },
+  {
+   "code": "BE",
+   "strip": "B",
+   "name": {
+    "en": "Belgium",
+    "nl": "België"
+   },
+   "mode": "mixed",
+   "format": "1-ABC-234",
+   "examples": [
+    {
+     "plate": "1-ABC-234",
+     "words": "1 abc 234"
+    },
+    {
+     "plate": "ABC-123",
+     "words": "b abc 123"
+    }
+   ],
+   "rule": {
+    "en": "Current plates (since 2010) have three groups: digit, letters, digits. Older six-character plates (ABC-123 or 123-ABC) have two groups: put B in front.",
+    "nl": "Huidige kentekens (sinds 2010) hebben drie groepen: cijfer, letters, cijfers. Oude kentekens van zes tekens (ABC-123 of 123-ABC) hebben twee groepen: zet B ervoor."
+   },
+   "source": "https://en.wikipedia.org/wiki/Vehicle_registration_plates_of_Belgium",
+   "note": {
+    "en": "Personalised Belgian plates do not follow a fixed notation and may not fit this rule.",
+    "nl": "Gepersonaliseerde Belgische kentekens volgen geen vaste notatie en passen misschien niet in deze regel."
+   }
+  },
+  {
+   "code": "BG",
+   "strip": "BG",
+   "name": {
+    "en": "Bulgaria",
+    "nl": "Bulgarije"
+   },
+   "mode": "three",
+   "format": "A[A] 1234 AA",
+   "examples": [
+    {
+     "plate": "CA 1234 AB",
+     "words": "ca 1234 ab"
+    },
+    {
+     "plate": "B 1234 KM",
+     "words": "b 1234 km"
+    }
+   ],
+   "rule": {
+    "en": "Region code, four digits, two letters. Bulgarian plates use Cyrillic letters that look like Latin ones: type the Latin letter that looks the same.",
+    "nl": "Regiocode, vier cijfers, twee letters. Bulgaarse kentekens gebruiken Cyrillische letters die op Latijnse lijken: typ de Latijnse letter die er hetzelfde uitziet."
+   },
+   "source": "https://en.wikipedia.org/wiki/Vehicle_registration_plates_of_Bulgaria"
+  },
+  {
+   "code": "CA",
+   "strip": "CDN",
+   "name": {
+    "en": "Canada",
+    "nl": "Canada"
+   },
+   "mode": "region",
+   "format": "[province] ABCD 123",
+   "examples": [
+    {
+     "plate": "ON|ABCD 123",
+     "words": "on abcd 123"
+    },
+    {
+     "plate": "QC|123ABC",
+     "words": "cdn qc 123abc"
+    }
+   ],
+   "rule": {
+    "en": "Pick the province or territory. One block becomes CDN [province] [plate]. Two groups become [province] [group 1] [group 2].",
+    "nl": "Kies de provincie of het territorium. Eén blok wordt CDN [provincie] [kenteken]. Twee groepen worden [provincie] [groep 1] [groep 2]."
+   },
+   "source": "https://en.wikipedia.org/wiki/Vehicle_registration_plates_of_Canada",
+   "note": {
+    "en": "We use CDN (Canada's international vehicle code) instead of CA, because CA is also the code of California.",
+    "nl": "We gebruiken CDN (de internationale autocode van Canada) in plaats van CA, omdat CA ook de code van Californië is."
+   },
+   "regions": {
+    "AB": "Alberta",
+    "BC": "British Columbia",
+    "MB": "Manitoba",
+    "NB": "New Brunswick",
+    "NL": "Newfoundland and Labrador",
+    "NS": "Nova Scotia",
+    "NT": "Northwest Territories",
+    "NU": "Nunavut",
+    "ON": "Ontario",
+    "PE": "Prince Edward Island",
+    "QC": "Quebec",
+    "SK": "Saskatchewan",
+    "YT": "Yukon"
+   }
+  },
+  {
+   "code": "HR",
+   "strip": "HR",
+   "name": {
+    "en": "Croatia",
+    "nl": "Kroatië"
+   },
+   "mode": "three",
+   "format": "ZG 123-AB",
+   "examples": [
+    {
+     "plate": "ZG 1234-AB",
+     "words": "zg 1234 ab"
+    },
+    {
+     "plate": "ST 123-A",
+     "words": "st 123 a"
+    }
+   ],
+   "rule": {
+    "en": "City code, digits, letters (the coat of arms between the city code and the digits is left out).",
+    "nl": "Stadscode, cijfers, letters (het wapen tussen de stadscode en de cijfers laat je weg)."
+   },
+   "source": "https://en.wikipedia.org/wiki/Vehicle_registration_plates_of_Croatia",
+   "note": {
+    "en": "City codes with Č or Ž (e.g. ČK) are typed without the accent: ck.",
+    "nl": "Stadscodes met Č of Ž (bijv. ČK) typ je zonder accent: ck."
+   }
+  },
+  {
+   "code": "CY",
+   "strip": "CY",
+   "name": {
+    "en": "Cyprus",
+    "nl": "Cyprus"
+   },
+   "mode": "prefix",
+   "format": "ABC 123",
+   "examples": [
+    {
+     "plate": "ABC 123",
+     "words": "cy abc 123"
+    }
+   ],
+   "rule": {
+    "en": "The plate has two groups: put the country letters from the blue strip (CY) in front.",
+    "nl": "Het kenteken heeft twee groepen: zet de landletters uit de blauwe strook (CY) ervoor."
+   },
+   "source": "https://en.wikipedia.org/wiki/Vehicle_registration_plates_of_Cyprus"
+  },
+  {
+   "code": "CZ",
+   "strip": "CZ",
+   "name": {
+    "en": "Czechia",
+    "nl": "Tsjechië"
+   },
+   "mode": "prefix",
+   "format": "1A2 3456",
+   "examples": [
+    {
+     "plate": "1A2 3456",
+     "words": "cz 1a2 3456"
+    }
+   ],
+   "rule": {
+    "en": "The plate has two groups: put the country letters from the blue strip (CZ) in front. Keep the first group (digit, region letter, character) together.",
+    "nl": "Het kenteken heeft twee groepen: zet de landletters uit de blauwe strook (CZ) ervoor. Houd de eerste groep (cijfer, regioletter, teken) bij elkaar."
+   },
+   "source": "https://en.wikipedia.org/wiki/Vehicle_registration_plates_of_the_Czech_Republic",
+   "note": {
+    "en": "Personalised Czech plates can look different.",
+    "nl": "Gepersonaliseerde Tsjechische kentekens kunnen er anders uitzien."
+   }
+  },
+  {
+   "code": "DK",
+   "strip": "DK",
+   "name": {
+    "en": "Denmark",
+    "nl": "Denemarken"
+   },
+   "mode": "three",
+   "format": "AB 12 345",
+   "examples": [
+    {
+     "plate": "AB 12 345",
+     "words": "ab 12 345"
+    }
+   ],
+   "rule": {
+    "en": "Two letters, then the five digits as printed in two groups (2 + 3).",
+    "nl": "Twee letters, dan de vijf cijfers zoals ze gedrukt zijn in twee groepen (2 + 3)."
+   },
+   "source": "https://en.wikipedia.org/wiki/Vehicle_registration_plates_of_Denmark",
+   "note": {
+    "en": "Danish plates print the digits as \"12 345\"; if a plate shows them as one block, split them 2 + 3.",
+    "nl": "Deense kentekens tonen de cijfers als \"12 345\"; staan ze als één blok, splits dan 2 + 3."
+   },
+   "fixed": [
+    2,
+    2,
+    3
+   ]
+  },
+  {
+   "code": "EE",
+   "strip": "EST",
+   "name": {
+    "en": "Estonia",
+    "nl": "Estland"
+   },
+   "mode": "prefix",
+   "format": "123 ABC",
+   "examples": [
+    {
+     "plate": "123 ABC",
+     "words": "est 123 abc"
+    }
+   ],
+   "rule": {
+    "en": "The plate has two groups: put the country letters from the blue strip (EST) in front.",
+    "nl": "Het kenteken heeft twee groepen: zet de landletters uit de blauwe strook (EST) ervoor."
+   },
+   "source": "https://en.wikipedia.org/wiki/Vehicle_registration_plates_of_Estonia"
+  },
+  {
+   "code": "FI",
+   "strip": "FIN",
+   "name": {
+    "en": "Finland",
+    "nl": "Finland"
+   },
+   "mode": "prefix",
+   "format": "ABC-123",
+   "examples": [
+    {
+     "plate": "ABC-123",
+     "words": "fin abc 123"
+    }
+   ],
+   "rule": {
+    "en": "The plate has two groups: put the country letters from the blue strip (FIN) in front.",
+    "nl": "Het kenteken heeft twee groepen: zet de landletters uit de blauwe strook (FIN) ervoor."
+   },
+   "source": "https://en.wikipedia.org/wiki/Vehicle_registration_plates_of_Finland"
+  },
+  {
+   "code": "FR",
+   "strip": "F",
+   "name": {
+    "en": "France",
+    "nl": "Frankrijk"
+   },
+   "mode": "three",
+   "format": "AB-123-CD",
+   "examples": [
+    {
+     "plate": "AB-123-CD",
+     "words": "ab 123 cd"
+    },
+    {
+     "plate": "1234 AB 75",
+     "words": "1234 ab 75"
+    }
+   ],
+   "rule": {
+    "en": "The plate already has three groups: type them as printed, with a space between the groups. Old plates (until 2009, e.g. 1234 AB 75) also have three groups.",
+    "nl": "Het kenteken heeft al drie groepen: typ ze zoals ze op de plaat staan, met een spatie ertussen. Oude kentekens (tot 2009, bijv. 1234 AB 75) hebben ook drie groepen."
+   },
+   "source": "https://en.wikipedia.org/wiki/Vehicle_registration_plates_of_France"
+  },
+  {
+   "code": "DE",
+   "strip": "D",
+   "name": {
+    "en": "Germany",
+    "nl": "Duitsland"
+   },
+   "mode": "three",
+   "format": "M AB 1234",
+   "examples": [
+    {
+     "plate": "M AB 1234",
+     "words": "m ab 1234"
+    },
+    {
+     "plate": "B XY 123E",
+     "words": "b xy 123e"
+    }
+   ],
+   "rule": {
+    "en": "City/district code, letters, digits (leave out the seals between them). An E (electric) or H (historic) at the end stays with the digits.",
+    "nl": "Stads-/districtcode, letters, cijfers (de stempels ertussen laat je weg). Een E (elektrisch) of H (oldtimer) aan het eind hoort bij de cijfers."
+   },
+   "source": "https://en.wikipedia.org/wiki/Vehicle_registration_plates_of_Germany"
+  },
+  {
+   "code": "GR",
+   "strip": "GR",
+   "name": {
+    "en": "Greece",
+    "nl": "Griekenland"
+   },
+   "mode": "prefix",
+   "format": "ABC-1234",
+   "examples": [
+    {
+     "plate": "ABC-1234",
+     "words": "gr abc 1234"
+    }
+   ],
+   "rule": {
+    "en": "The plate has two groups: put the country letters from the blue strip (GR) in front. Greek plates only use letters that look like Latin ones: type the Latin letter.",
+    "nl": "Het kenteken heeft twee groepen: zet de landletters uit de blauwe strook (GR) ervoor. Griekse kentekens gebruiken alleen letters die op Latijnse lijken: typ de Latijnse letter."
+   },
+   "source": "https://en.wikipedia.org/wiki/Vehicle_registration_plates_of_Greece"
+  },
+  {
+   "code": "HU",
+   "strip": "H",
+   "name": {
+    "en": "Hungary",
+    "nl": "Hongarije"
+   },
+   "mode": "prefix",
+   "format": "AA AA-123",
+   "examples": [
+    {
+     "plate": "AA BC-123",
+     "words": "h aabc 123"
+    },
+    {
+     "plate": "ABC-123",
+     "words": "h abc 123"
+    }
+   ],
+   "rule": {
+    "en": "Put H in front, then all letters as one word, then the digits. New plates (since 2022, AA AA-123) and old ones (ABC-123) follow the same rule.",
+    "nl": "Zet H ervoor, dan alle letters als één woord, dan de cijfers. Nieuwe kentekens (sinds 2022, AA AA-123) en oude (ABC-123) volgen dezelfde regel."
+   },
+   "source": "https://en.wikipedia.org/wiki/Vehicle_registration_plates_of_Hungary",
+   "note": {
+    "en": "Joining the four letters of the new format into one word is our own convention.",
+    "nl": "De vier letters van het nieuwe formaat samenvoegen tot één woord is onze eigen afspraak."
+   },
+   "uncertain": true
+  },
+  {
+   "code": "IE",
+   "strip": "IRL",
+   "name": {
+    "en": "Ireland",
+    "nl": "Ierland"
+   },
+   "mode": "three",
+   "format": "251-D-12345",
+   "examples": [
+    {
+     "plate": "251-D-12345",
+     "words": "251 d 12345"
+    },
+    {
+     "plate": "08-KY-1234",
+     "words": "08 ky 1234"
+    }
+   ],
+   "rule": {
+    "en": "Year (and half-year), county letters, number: three groups as printed.",
+    "nl": "Jaar (en halfjaar), provincieletters, nummer: drie groepen zoals gedrukt."
+   },
+   "source": "https://en.wikipedia.org/wiki/Vehicle_registration_plates_of_the_Republic_of_Ireland"
+  },
+  {
+   "code": "IT",
+   "strip": "I",
+   "name": {
+    "en": "Italy",
+    "nl": "Italië"
+   },
+   "mode": "three",
+   "format": "AB 123 CD",
+   "examples": [
+    {
+     "plate": "AB 123 CD",
+     "words": "ab 123 cd"
+    }
+   ],
+   "rule": {
+    "en": "The plate already has three groups: type them as printed, with a space between the groups.",
+    "nl": "Het kenteken heeft al drie groepen: typ ze zoals ze op de plaat staan, met een spatie ertussen."
+   },
+   "source": "https://en.wikipedia.org/wiki/Vehicle_registration_plates_of_Italy"
+  },
+  {
+   "code": "LV",
+   "strip": "LV",
+   "name": {
+    "en": "Latvia",
+    "nl": "Letland"
+   },
+   "mode": "prefix",
+   "format": "AB-1234",
+   "examples": [
+    {
+     "plate": "AB-1234",
+     "words": "lv ab 1234"
+    }
+   ],
+   "rule": {
+    "en": "The plate has two groups: put the country letters from the blue strip (LV) in front.",
+    "nl": "Het kenteken heeft twee groepen: zet de landletters uit de blauwe strook (LV) ervoor."
+   },
+   "source": "https://en.wikipedia.org/wiki/Vehicle_registration_plates_of_Latvia"
+  },
+  {
+   "code": "LT",
+   "strip": "LT",
+   "name": {
+    "en": "Lithuania",
+    "nl": "Litouwen"
+   },
+   "mode": "prefix",
+   "format": "ABC 123",
+   "examples": [
+    {
+     "plate": "ABC 123",
+     "words": "lt abc 123"
+    }
+   ],
+   "rule": {
+    "en": "The plate has two groups: put the country letters from the blue strip (LT) in front.",
+    "nl": "Het kenteken heeft twee groepen: zet de landletters uit de blauwe strook (LT) ervoor."
+   },
+   "source": "https://en.wikipedia.org/wiki/Vehicle_registration_plates_of_Lithuania"
+  },
+  {
+   "code": "LU",
+   "strip": "L",
+   "name": {
+    "en": "Luxembourg",
+    "nl": "Luxemburg"
+   },
+   "mode": "prefix",
+   "format": "AB 1234",
+   "examples": [
+    {
+     "plate": "AB 1234",
+     "words": "l ab 1234"
+    },
+    {
+     "plate": "12345",
+     "words": "l 12 345"
+    }
+   ],
+   "rule": {
+    "en": "The plate has two groups: put the country letters from the blue strip (L) in front. Plates with only digits: L, the first two digits, the rest.",
+    "nl": "Het kenteken heeft twee groepen: zet de landletters uit de blauwe strook (L) ervoor. Kentekens met alleen cijfers: L, de eerste twee cijfers, de rest."
+   },
+   "source": "https://en.wikipedia.org/wiki/Vehicle_registration_plates_of_Luxembourg",
+   "note": {
+    "en": "The digits-only split (2 + rest) is our own convention.",
+    "nl": "Het splitsen van alleen-cijfers (2 + rest) is onze eigen afspraak."
+   },
+   "uncertain": true
+  },
+  {
+   "code": "MT",
+   "strip": "M",
+   "name": {
+    "en": "Malta",
+    "nl": "Malta"
+   },
+   "mode": "prefix",
+   "format": "ABC 123",
+   "examples": [
+    {
+     "plate": "ABC 123",
+     "words": "m abc 123"
+    }
+   ],
+   "rule": {
+    "en": "The plate has two groups: put the country letters from the blue strip (M) in front.",
+    "nl": "Het kenteken heeft twee groepen: zet de landletters uit de blauwe strook (M) ervoor."
+   },
+   "source": "https://en.wikipedia.org/wiki/Vehicle_registration_plates_of_Malta"
+  },
+  {
+   "code": "NL",
+   "strip": "NL",
+   "name": {
+    "en": "Netherlands",
+    "nl": "Nederland"
+   },
+   "mode": "three",
+   "format": "AB-123-C",
+   "examples": [
+    {
+     "plate": "AB-123-C",
+     "words": "ab 123 c"
+    },
+    {
+     "plate": "1-KBB-00",
+     "words": "1 kbb 00"
+    },
+    {
+     "plate": "GZ-12-KL",
+     "words": "gz 12 kl"
+    }
+   ],
+   "rule": {
+    "en": "Always three groups: type the groups between the dashes, with a space instead of each dash.",
+    "nl": "Altijd drie groepen: typ de groepen tussen de streepjes, met een spatie in plaats van elk streepje."
+   },
+   "source": "https://en.wikipedia.org/wiki/Vehicle_registration_plates_of_the_Netherlands",
+   "note": {
+    "en": "Dutch plates can be checked in the RDW register (yes/no only).",
+    "nl": "Nederlandse kentekens kunnen in het RDW-register gecontroleerd worden (alleen ja/nee)."
+   }
+  },
+  {
+   "code": "PL",
+   "strip": "PL",
+   "name": {
+    "en": "Poland",
+    "nl": "Polen"
+   },
+   "mode": "prefix",
+   "format": "WA 12345",
+   "examples": [
+    {
+     "plate": "WA 12345",
+     "words": "pl wa 12345"
+    },
+    {
+     "plate": "KR 1234A",
+     "words": "pl kr 1234a"
+    }
+   ],
+   "rule": {
+    "en": "The plate has two groups: put the country letters from the blue strip (PL) in front. Keep the district code and the rest as printed.",
+    "nl": "Het kenteken heeft twee groepen: zet de landletters uit de blauwe strook (PL) ervoor. Houd de districtcode en de rest zoals gedrukt."
+   },
+   "source": "https://en.wikipedia.org/wiki/Vehicle_registration_plates_of_Poland"
+  },
+  {
+   "code": "PT",
+   "strip": "P",
+   "name": {
+    "en": "Portugal",
+    "nl": "Portugal"
+   },
+   "mode": "three",
+   "format": "AB-12-CD",
+   "examples": [
+    {
+     "plate": "AB-12-CD",
+     "words": "ab 12 cd"
+    },
+    {
+     "plate": "12-AB-34",
+     "words": "12 ab 34"
+    }
+   ],
+   "rule": {
+    "en": "The plate already has three groups: type them as printed, with a space between the groups.",
+    "nl": "Het kenteken heeft al drie groepen: typ ze zoals ze op de plaat staan, met een spatie ertussen."
+   },
+   "source": "https://en.wikipedia.org/wiki/Vehicle_registration_plates_of_Portugal"
+  },
+  {
+   "code": "RO",
+   "strip": "RO",
+   "name": {
+    "en": "Romania",
+    "nl": "Roemenië"
+   },
+   "mode": "three",
+   "format": "CJ 12 ABC",
+   "examples": [
+    {
+     "plate": "CJ 12 ABC",
+     "words": "cj 12 abc"
+    },
+    {
+     "plate": "B 123 ABC",
+     "words": "b 123 abc"
+    }
+   ],
+   "rule": {
+    "en": "County code, digits, letters.",
+    "nl": "Provinciecode, cijfers, letters."
+   },
+   "source": "https://en.wikipedia.org/wiki/Vehicle_registration_plates_of_Romania"
+  },
+  {
+   "code": "SK",
+   "strip": "SK",
+   "name": {
+    "en": "Slovakia",
+    "nl": "Slowakije"
+   },
+   "mode": "three",
+   "format": "AB 123 CD",
+   "examples": [
+    {
+     "plate": "AB 123 CD",
+     "words": "ab 123 cd"
+    },
+    {
+     "plate": "BA-123AB",
+     "words": "ba 123 ab"
+    }
+   ],
+   "rule": {
+    "en": "Letters, digits, letters. Older plates (until 2023, district code first) follow the same three groups.",
+    "nl": "Letters, cijfers, letters. Oudere kentekens (tot 2023, districtcode voorop) volgen dezelfde drie groepen."
+   },
+   "source": "https://en.wikipedia.org/wiki/Vehicle_registration_plates_of_Slovakia"
+  },
+  {
+   "code": "SI",
+   "strip": "SLO",
+   "name": {
+    "en": "Slovenia",
+    "nl": "Slovenië"
+   },
+   "mode": "three",
+   "format": "LJ 123-AB",
+   "examples": [
+    {
+     "plate": "LJ 123-AB",
+     "words": "lj 123 ab"
+    },
+    {
+     "plate": "KR 12-ABC",
+     "words": "kr 12 abc"
+    }
+   ],
+   "rule": {
+    "en": "Area code, then the two groups around the dash (leave out the coat of arms).",
+    "nl": "Gebiedscode, dan de twee groepen rond het streepje (het wapen laat je weg)."
+   },
+   "source": "https://en.wikipedia.org/wiki/Vehicle_registration_plates_of_Slovenia"
+  },
+  {
+   "code": "ES",
+   "strip": "E",
+   "name": {
+    "en": "Spain",
+    "nl": "Spanje"
+   },
+   "mode": "prefix",
+   "format": "1234 BCD",
+   "examples": [
+    {
+     "plate": "1234 BCD",
+     "words": "e 1234 bcd"
+    },
+    {
+     "plate": "M-1234-AB",
+     "words": "m 1234 ab"
+    }
+   ],
+   "rule": {
+    "en": "The plate has two groups: put the country letters from the blue strip (E) in front. Old provincial plates (until 2000, e.g. M-1234-AB) already have three groups.",
+    "nl": "Het kenteken heeft twee groepen: zet de landletters uit de blauwe strook (E) ervoor. Oude provinciale kentekens (tot 2000, bijv. M-1234-AB) hebben al drie groepen."
+   },
+   "source": "https://en.wikipedia.org/wiki/Vehicle_registration_plates_of_Spain",
+   "three_ok": true
+  },
+  {
+   "code": "SE",
+   "strip": "S",
+   "name": {
+    "en": "Sweden",
+    "nl": "Zweden"
+   },
+   "mode": "prefix",
+   "format": "ABC 12A",
+   "examples": [
+    {
+     "plate": "ABC 123",
+     "words": "s abc 123"
+    },
+    {
+     "plate": "ABC 12A",
+     "words": "s abc 12a"
+    }
+   ],
+   "rule": {
+    "en": "The plate has two groups: put the country letters from the blue strip (S) in front.",
+    "nl": "Het kenteken heeft twee groepen: zet de landletters uit de blauwe strook (S) ervoor."
+   },
+   "source": "https://en.wikipedia.org/wiki/Vehicle_registration_plates_of_Sweden"
+  },
+  {
+   "code": "US",
+   "strip": "US",
+   "name": {
+    "en": "United States",
+    "nl": "Verenigde Staten"
+   },
+   "mode": "region",
+   "format": "[state] ABC 1234",
+   "examples": [
+    {
+     "plate": "CA|7ABC123",
+     "words": "us ca 7abc123"
+    },
+    {
+     "plate": "NY|ABC-1234",
+     "words": "ny abc 1234"
+    }
+   ],
+   "rule": {
+    "en": "Pick the state. A plate printed as one block becomes US [state] [plate]. A plate printed in two groups (with a space or dash) becomes [state] [group 1] [group 2].",
+    "nl": "Kies de staat. Een kenteken in één blok wordt US [staat] [kenteken]. Een kenteken in twee groepen (met spatie of streepje) wordt [staat] [groep 1] [groep 2]."
+   },
+   "source": "https://en.wikipedia.org/wiki/Vehicle_registration_plates_of_the_United_States",
+   "note": {
+    "en": "Each state has its own formats and many vanity plates; the state is not printed as a code, so pick it from the list.",
+    "nl": "Elke staat heeft eigen formaten en veel vanity plates; de staat staat niet als code op de plaat, kies hem dus uit de lijst."
+   },
+   "regions": {
+    "AL": "Alabama",
+    "AK": "Alaska",
+    "AZ": "Arizona",
+    "AR": "Arkansas",
+    "CA": "California",
+    "CO": "Colorado",
+    "CT": "Connecticut",
+    "DE": "Delaware",
+    "DC": "District of Columbia",
+    "FL": "Florida",
+    "GA": "Georgia",
+    "HI": "Hawaii",
+    "ID": "Idaho",
+    "IL": "Illinois",
+    "IN": "Indiana",
+    "IA": "Iowa",
+    "KS": "Kansas",
+    "KY": "Kentucky",
+    "LA": "Louisiana",
+    "ME": "Maine",
+    "MD": "Maryland",
+    "MA": "Massachusetts",
+    "MI": "Michigan",
+    "MN": "Minnesota",
+    "MS": "Mississippi",
+    "MO": "Missouri",
+    "MT": "Montana",
+    "NE": "Nebraska",
+    "NV": "Nevada",
+    "NH": "New Hampshire",
+    "NJ": "New Jersey",
+    "NM": "New Mexico",
+    "NY": "New York",
+    "NC": "North Carolina",
+    "ND": "North Dakota",
+    "OH": "Ohio",
+    "OK": "Oklahoma",
+    "OR": "Oregon",
+    "PA": "Pennsylvania",
+    "RI": "Rhode Island",
+    "SC": "South Carolina",
+    "SD": "South Dakota",
+    "TN": "Tennessee",
+    "TX": "Texas",
+    "UT": "Utah",
+    "VT": "Vermont",
+    "VA": "Virginia",
+    "WA": "Washington",
+    "WV": "West Virginia",
+    "WI": "Wisconsin",
+    "WY": "Wyoming"
+   }
+  }
+ ]
+}
