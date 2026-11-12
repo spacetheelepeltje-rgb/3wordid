@@ -21,8 +21,8 @@
 require_once 'php/functions.php';
 require_once 'login/config.php';
 
-const EXISTS_CHECK_MAX = 120;     // checks per session ... (it runs while typing)
-const EXISTS_CHECK_WINDOW = 300;  // ... per 5 minutes
+// Limit: EXISTS_CHECK_MAX checks per EXISTS_CHECK_WINDOW seconds per session (exists_check_allowed()
+// in php/functions.php, shared with bumperchat/claim.php)
 
 header('Cache-Control: no-store, max-age=0');
 header('X-Robots-Tag: noindex');
@@ -51,27 +51,13 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
 }
 
 // Rate limit per session (sliding window), then release the session lock.
-$now = time();
-$hits = array_values(array_filter(
-    (array) ($_SESSION['exists_checks'] ?? []),
-    function ($t) use ($now) { return is_int($t) && $t > $now - EXISTS_CHECK_WINDOW; }
-));
-if (count($hits) >= EXISTS_CHECK_MAX) {
-    $_SESSION['exists_checks'] = $hits;
-    // One log line per limited window, not one per refused check
-    $log = (int) ($_SESSION['exists_limit_logged'] ?? 0) <= $now - EXISTS_CHECK_WINDOW;
-    if ($log) { $_SESSION['exists_limit_logged'] = $now; }
-    session_write_close();
-    if ($log && function_exists('app_log')) {
-        app_log('exists check: limit reached', 'warn', true);
-    }
+$allowed = exists_check_allowed();
+session_write_close();
+if (!$allowed) {
     header('Retry-After: ' . EXISTS_CHECK_WINDOW);
     http_response_code(429);
     exit;
 }
-$hits[] = $now;
-$_SESSION['exists_checks'] = $hits;
-session_write_close();
 
 // Only complete three words, exact match
 $words = trim(preg_replace('/\s+/u', ' ', is_string($_POST['threewords'] ?? null) ? $_POST['threewords'] : ''));

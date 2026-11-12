@@ -3,6 +3,7 @@ require_once 'config.php';
 require_once __DIR__ . '/../php/session_boot.php';
 start_app_session();
 require_once __DIR__ . '/../php/i18n.php'; // t(), current_lang(), lang_switcher()
+require_once __DIR__ . '/../php/email_auth.php'; // email_auth_login()
 
 if (current_user_from_session($conn)) {
     header('Location: ../3wid_list.php');
@@ -23,30 +24,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!hash_equals($_SESSION['csrf_token'], $posted_csrf)) {
         $error = t_plain('common.session_expired');
-    } elseif (!filter_var($email_value, FILTER_VALIDATE_EMAIL) || $password === '') {
-        $error = t_plain('elogin.invalid');
     } else {
-        $email_hash = md5($email_value);
-
-        $stmt = $conn->prepare('SELECT id, password_hash FROM google_users WHERE email = ? LIMIT 1');
-        $stmt->bind_param('s', $email_hash);
-        $stmt->execute();
-        $user = $stmt->get_result()->fetch_assoc();
-
-        if (!$user || empty($user['password_hash']) || !password_verify($password, $user['password_hash'])) {
-            if ($user && empty($user['password_hash'])) {
-                $error = t_plain('elogin.google_account');
-            } else {
-                $error = t_plain('elogin.invalid');
-            }
-        } else {
-           establish_user_session($conn, (int)$user['id'], $email_value);
-
-
-            
+        // Checks live in php/email_auth.php (also used by bumperchat/claim.php)
+        $result = email_auth_login($conn, $email_value, $password);
+        if ($result['user_id'] > 0) {
+            establish_user_session($conn, $result['user_id'], $email_value);
             header('Location: ../3wid_list.php');
             exit;
         }
+        $error = t_plain($result['error']);
     }
 }
 ?>

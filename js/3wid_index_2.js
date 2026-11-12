@@ -115,7 +115,8 @@ var existsRequest = 0; // only the newest answer may change the lock
               if(nr_words == 3) {
                       $.ajax({
                         type: 'POST',
-                        url: '3wid_exists.php',
+                        // Pages in a sub folder (bumperchat/index.php) set window.T3_EXISTS_URL
+                        url: window.T3_EXISTS_URL || '3wid_exists.php',
                         dataType: 'json',
                         data: {
                             'threewords': threewords,

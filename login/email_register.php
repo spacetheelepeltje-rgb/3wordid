@@ -4,6 +4,7 @@ require_once __DIR__ . '/../php/session_boot.php';
 start_app_session();
 require_once __DIR__ . '/../php/i18n.php'; // t(), current_lang(), lang_switcher()
 require_once __DIR__ . '/../php/functions.php'; // botcheck_fields(), botcheck_failed(), app_log()
+require_once __DIR__ . '/../php/email_auth.php'; // email_auth_register()
 
 if (current_user_from_session($conn)) {
     header('Location: ../3wid_list.php');
@@ -28,60 +29,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif (botcheck_failed('register') !== '') {
         // Honeypot filled in, sent too fast, or an old/forged form: logged with the IP, the reason is not shown.
         $error = t_plain('bot.rejected');
-    } elseif (!filter_var($email_value, FILTER_VALIDATE_EMAIL)) {
-        $error = t_plain('reg.bad_email');
-    } elseif (strlen($password) < 10) {
-        $error = t_plain('reg.short');
-    } elseif ($password !== $confirm) {
-        $error = t_plain('reg.mismatch');
     } else {
-        $email_hash = md5($email_value);
-
-        $stmt = $conn->prepare('SELECT id, password_hash FROM google_users WHERE email = ? LIMIT 1');
-        $stmt->bind_param('s', $email_hash);
-        $stmt->execute();
-        $existing = $stmt->get_result()->fetch_assoc();
-
-        if ($existing && !empty($existing['password_hash'])) {
-            $error = t_plain('reg.exists');
-        } elseif ($existing && empty($existing['password_hash'])) {
-            $error = t_plain('reg.google');
-        } else {
-            $hash = password_hash($password, PASSWORD_DEFAULT);
-            $token = bin2hex(random_bytes(32));
-            $provider = 'password';
-            $verified = 0;
-            $empty = '';
-
-            $ins = $conn->prepare(
-                'INSERT INTO google_users
-                    (email, password_hash, first_name, last_name, gender, full_name, picture, verifiedEmail, token, auth_provider)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
-            );
-            $ins->bind_param(
-                'sssssssiss',
-                $email_hash,
-                $hash,
-                $empty,
-                $empty,
-                $empty,
-                $empty,
-                $empty,
-                $verified,
-                $token,
-                $provider
-            );
-
-            if ($ins->execute()) {
-                $userId = (int)$ins->insert_id;
-                $ins->close();
-                establish_user_session($conn, $userId, $email_value);
-                header('Location: ../3wid_list.php');
-                exit;
-            }
-
-            $error = t_plain('reg.failed');
+        // Checks and the INSERT live in php/email_auth.php (also used by bumperchat/claim.php)
+        $result = email_auth_register($conn, $email_value, $password, $confirm);
+        if ($result['user_id'] > 0) {
+            establish_user_session($conn, $result['user_id'], $email_value);
+            header('Location: ../3wid_list.php');
+            exit;
         }
+        $error = t_plain($result['error']);
     }
 }
 ?>

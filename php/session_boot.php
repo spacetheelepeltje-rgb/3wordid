@@ -55,6 +55,8 @@ function establish_user_session(mysqli $conn, int $userId, ?string $plainEmail =
 
     // A chat login (member) session in this browser ends when the owner logs in
     unset($_SESSION['chat_member']);
+    // A normal login is never a Bumperchat session (bumperchat/claim.php sets the flag again after this)
+    unset($_SESSION['bumperchat']);
 
     $_SESSION['user_id']    = $userId;
     $_SESSION['user_token'] = $rawToken;

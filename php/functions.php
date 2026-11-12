@@ -2003,6 +2003,37 @@ function user_is_paying($user): bool
 }
 
 /**
+ * Rate limit for the public "does this 3WordID exist?" checks, per session (sliding window):
+ * 3wid_exists.php (search box, while typing) and bumperchat/claim.php share one counter.
+ * Records this check and returns true, or returns false when the limit is reached (logged
+ * once per window). Does not close the session: the caller does that when it is done with it.
+ */
+if (!defined('EXISTS_CHECK_MAX')) { define('EXISTS_CHECK_MAX', 120); }      // checks per session ...
+if (!defined('EXISTS_CHECK_WINDOW')) { define('EXISTS_CHECK_WINDOW', 300); } // ... per 5 minutes
+function exists_check_allowed(): bool
+{
+    $now = time();
+    $hits = array_values(array_filter(
+        (array) ($_SESSION['exists_checks'] ?? []),
+        function ($t) use ($now) { return is_int($t) && $t > $now - EXISTS_CHECK_WINDOW; }
+    ));
+    if (count($hits) >= EXISTS_CHECK_MAX) {
+        $_SESSION['exists_checks'] = $hits;
+        // One log line per limited window, not one per refused check
+        if ((int) ($_SESSION['exists_limit_logged'] ?? 0) <= $now - EXISTS_CHECK_WINDOW) {
+            $_SESSION['exists_limit_logged'] = $now;
+            if (function_exists('app_log')) {
+                app_log('exists check: limit reached', 'warn', true);
+            }
+        }
+        return false;
+    }
+    $hits[] = $now;
+    $_SESSION['exists_checks'] = $hits;
+    return true;
+}
+
+/**
  * Lookup for the search lock (3wid_exists.php): does this exact 3WordID exist, and is its
  * owner a paying account? Returns null when not found, else ['paying' => bool].
  * Switched-off 3WordIDs count as existing. Nothing else about the 3WordID or owner leaves here.
@@ -3461,3 +3492,4 @@ require_once __DIR__ . '/chat_login.php';
 require_once __DIR__ . '/car_chat.php';
 require_once __DIR__ . '/account_settings.php';
 require_once __DIR__ . '/message_delete.php';
+require_once __DIR__ . '/bumperchat.php';

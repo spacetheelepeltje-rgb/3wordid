@@ -13,6 +13,12 @@ if ($data == NULL) {
     exit;
 }
 
+// Logged in through Bumperchat (bumperchat/claim.php): chat only, no list page
+if (!empty($_SESSION['bumperchat'])) {
+    header('Location: bumperchat/chat.php');
+    exit;
+}
+
 if ((int)$data['privacy_consent'] === 0) {
     header('Location: 3wid_privacy_consent.php');
     exit;
