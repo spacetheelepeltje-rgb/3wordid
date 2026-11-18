@@ -7,6 +7,7 @@
 
 require_once __DIR__ . '/../php/functions.php';
 require_once __DIR__ . '/../login/config.php';
+require_once __DIR__ . '/../php/plate_billing.php';
 
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('X-Robots-Tag: noindex, nofollow');
@@ -45,9 +46,8 @@ if ($wanted !== '') {
         $wanted_state = 'mine';
     } elseif (db_3wordid_exists_status($wanted) !== null) {
         $wanted_state = 'taken';
-    } elseif (wid_threeword_error($wanted, $paying) !== null) {
-        $wanted_state = 'needs_paid';   // digits: existing rule, paid accounts only
     } else {
+        // Still free: claim it on the claim page (trial starts there).
         $wanted_state = 'free';
     }
 }
@@ -63,7 +63,7 @@ if ($wanted !== '') {
     <link rel="icon" type="image/x-icon" href="../img/favicon.ico">
     <link href="/css/inter.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/newstyle.css">
-    <link rel="stylesheet" href="../css/bumperchat.css?v=1">
+    <link rel="stylesheet" href="../css/bumperchat.css?v=2">
 </head>
 <body class="bc-body">
     <?php echo bumperchat_header($user); ?>
@@ -78,10 +78,8 @@ if ($wanted !== '') {
             <p class="bc-p"><?php echo t_raw('bc.wanted_' . $wanted_state . '_p', ['words' => bc_e($wanted)]); ?></p>
             <?php if ($wanted_state === 'taken'): ?>
                 <a class="btn btn-ghost" href="../3wid_forward.php?threewords=<?php echo rawurlencode($wanted); ?>"><?php echo t('bc.send_message'); ?></a>
-            <?php elseif ($wanted_state === 'needs_paid'): ?>
-                <a class="btn btn-ghost" href="../plans.php"><?php echo t('bc.see_plans'); ?></a>
             <?php elseif ($wanted_state === 'free'): ?>
-                <a class="btn btn-ghost" href="../3wid_add.php"><?php echo t('bc.create_it'); ?></a>
+                <a class="btn btn-ghost" href="claim.php?words=<?php echo rawurlencode($wanted); ?>"><?php echo t('bc.claim_now'); ?></a>
             <?php endif; ?>
         </div>
         <?php endif; ?>
@@ -95,12 +93,20 @@ if ($wanted !== '') {
                 <?php foreach ($rows as $r):
                     $m = $summary[(int) $r['id']] ?? ['in' => 0, 'unread' => 0, 'sent' => 0];
                     $has = ($m['in'] + $m['sent']) > 0;
+                    $bill = plate_access_state($r);
+                    $days = plate_days_remaining($r);
+                    $expired = $bill === 'expired';
                 ?>
                 <li class="bc-chat-row">
                     <span class="bc-chat-name"><?php echo bc_e($r['threeword']); ?></span>
                     <?php if ((int) $r['enabled'] !== 1): ?><span class="bc-pill"><?php echo t('bc.off'); ?></span><?php endif; ?>
-                    <?php if ($m['unread'] > 0): ?><span class="bc-pill bc-unread"><?php echo t('bc.unread', ['n' => (int) $m['unread']]); ?></span><?php endif; ?>
-                    <?php if ($has): ?>
+                    <?php if ($bill === 'trial' && $days !== null): ?><span class="bc-pill bc-trial"><?php echo t('bc.trial_days', ['n' => (int) $days]); ?></span><?php endif; ?>
+                    <?php if ($bill === 'paid' && !empty($r['paid_until'])): ?><span class="bc-pill"><?php echo t('bc.paid_until', ['date' => bc_e(substr((string) $r['paid_until'], 0, 10))]); ?></span><?php endif; ?>
+                    <?php if ($expired): ?><span class="bc-pill bc-unread"><?php echo t('bc.expired_h'); ?></span><?php endif; ?>
+                    <?php if ($m['unread'] > 0 && !$expired): ?><span class="bc-pill bc-unread"><?php echo t('bc.unread', ['n' => (int) $m['unread']]); ?></span><?php endif; ?>
+                    <?php if ($expired): ?>
+                        <a class="btn btn-primary bc-open" href="pay.php?words=<?php echo rawurlencode($r['threeword']); ?>"><?php echo t('bc.pay_now'); ?></a>
+                    <?php elseif ($has): ?>
                         <a class="btn btn-primary bc-open" href="../3wid_list_messages.php?wid_id=<?php echo (int) $r['id']; ?>"><?php echo t('bc.open_chat'); ?></a>
                     <?php else: ?>
                         <span class="bc-meta"><?php echo t('bc.no_messages'); ?></span>
@@ -128,7 +134,7 @@ if ($wanted !== '') {
     </main>
 
     <footer class="site-footer">
-        <span><a href="../terms.php"><?php echo t('nav.terms'); ?></a> · <a href="../index.php">3WordID.com</a></span>
+        <span><a href="../terms.php#bumperchat"><?php echo t('nav.terms'); ?></a> · <a href="../index.php">3WordID.com</a></span>
         <?php echo site_copyright(); ?>
     </footer>
 </body>

@@ -103,3 +103,9 @@
   .bc-inline { flex-direction: column; }
   .bc-pick { margin-left: 0; }
 }
+
+.bc-check-row { display: flex; gap: 10px; align-items: flex-start; margin: 4px 0 14px; font-size: 13px; line-height: 1.45; color: var(--slate); font-weight: 500; }
+.bc-check-row input { margin-top: 3px; flex: 0 0 auto; }
+.bc-check-row a { color: var(--navy); }
+.bc-price { font-size: 20px; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 8px; }
+.bc-trial { background: #ecfdf3; color: #16794A; }

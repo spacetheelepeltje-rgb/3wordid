@@ -39,6 +39,13 @@
   // use the name from the database, not from the link
   $threeword = $owned_3wid['threeword'];
 
+  // Bumperchat-billed plates whose trial or paid year has ended: owner is sent to pay.
+  // Messages are kept. Visitors can still send; only the owner's chat access is paused.
+  if (function_exists('plate_billing_requires_payment') && plate_billing_requires_payment($owned_3wid)) {
+    header('Location: bumperchat/pay.php?words=' . rawurlencode((string) $threeword));
+    exit;
+  }
+
   $action_token = get_action_token();
 
   $messages = db_3wordid_list_messages($threeword_id);
