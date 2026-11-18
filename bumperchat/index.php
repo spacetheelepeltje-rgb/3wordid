@@ -69,6 +69,12 @@ function bc_e($s): string { return htmlspecialchars((string) $s, ENT_QUOTES, 'UT
 
         <section class="how bc-how" id="how-it-works">
             <h2 class="section-title"><?php echo t('bc.steps_title'); ?></h2>
+            <!--
+              EDIT THE ONBOARDING CARDS HERE (or their strings in lang/*.php).
+              Keys: bc.steps_title, bc.step1_title / _text / _link … bc.step4_title / _text.
+              The trial and payment copy lives on claim.php, chat.php, pay.php and terms.php,
+              not in these cards — change the card wording yourself if you want it mentioned here.
+            -->
             <div class="steps bc-steps">
                 <div class="step">
                     <div class="step-num">1</div>

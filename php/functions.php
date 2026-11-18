@@ -491,6 +491,9 @@ function db_3wordid_messageform_insert($from_id,$to_3wordid,$from_3wid_id,$to_us
     // Execute the statement
     if ($stmt->execute()) {
         $stmt->close();
+        if (function_exists('notify_on_new_message')) {
+            notify_on_new_message((int) $to_3wordid, (int) $from_id);
+        }
         $conn->close();
         return true; // Success
     } else {
@@ -1543,7 +1546,11 @@ function db_3wordid_list($user_id) {
 	
 	//$query = "SELECT JSON_ARRAYAGG(JSON_OBJECT(id,threeword,linkthru,linkthruflag)) as json_result FROM 3wordid WHERE user_id= ?";
 	
-	$query = "SELECT id,threeword,linkthru,linkthruflag,emailform,notification,enabled,views,creation_date FROM 3wordid WHERE user_id=? ORDER BY threeword ASC";
+	$cols = "id,threeword,linkthru,linkthruflag,emailform,notification,enabled,views,creation_date";
+	if (function_exists('billing_schema_ready') && billing_schema_ready()) {
+		$cols .= ",claim_source,billing_product,trial_start,trial_expires,paid_until,notify_phone,notify_sms_consent";
+	}
+	$query = "SELECT " . $cols . " FROM 3wordid WHERE user_id=? ORDER BY threeword ASC";
 
 	$stmt = $conn->prepare($query);
 
@@ -3493,3 +3500,4 @@ require_once __DIR__ . '/car_chat.php';
 require_once __DIR__ . '/account_settings.php';
 require_once __DIR__ . '/message_delete.php';
 require_once __DIR__ . '/bumperchat.php';
+require_once __DIR__ . '/plate_billing.php';

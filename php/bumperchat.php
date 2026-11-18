@@ -80,3 +80,17 @@ function bumperchat_header($user): string
     }
     return $out . '</div></header>';
 }
+
+/** Optional mobile number + SMS consent fields for the claim form. */
+function bumperchat_notify_fields(string $phone_value = '', bool $consent = false): string
+{
+    $e = function ($s) { return htmlspecialchars((string) $s, ENT_QUOTES, 'UTF-8'); };
+    $checked = $consent ? ' checked' : '';
+    return '<label class="bc-label" for="notify_phone">' . t('bc.phone_label') . '</label>'
+        . '<input id="notify_phone" name="notify_phone" class="bc-input" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="' . $e(t('bc.phone_ph')) . '" value="' . $e($phone_value) . '">'
+        . '<p class="bc-meta">' . t('bc.phone_hint') . '</p>'
+        . '<label class="bc-check-row">'
+        . '<input type="checkbox" name="notify_sms_consent" value="1"' . $checked . '>'
+        . '<span>' . t_raw('bc.sms_consent') . '</span></label>';
+}
+

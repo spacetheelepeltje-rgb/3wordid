@@ -1,5 +1,6 @@
 # Credentials - never commit these
 /login/config.php
+/login/payments.config.php
 config.local.php
 .env
 .env.*
