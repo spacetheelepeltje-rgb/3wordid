@@ -29,6 +29,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $result = email_auth_login($conn, $email_value, $password);
         if ($result['user_id'] > 0) {
             establish_user_session($conn, $result['user_id'], $email_value);
+            if (!empty($_POST['remember_me'])) {
+                remember_issue($conn, $result['user_id'], '');
+            }
             header('Location: ../3wid_list.php');
             exit;
         }
@@ -67,6 +70,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         input:focus{outline:2px solid var(--navy);outline-offset:1px}
         .btn{width:100%;height:44px;border:0;border-radius:10px;background:var(--navy);color:#fff;font-weight:600;cursor:pointer;font-size:14px}
         .btn:hover{background:var(--navy-hover)}
+        .remember{display:flex;gap:10px;align-items:flex-start;margin:0 0 16px;font-size:14px;font-weight:500;color:var(--navy);cursor:pointer}
+        .remember input{width:auto;height:auto;margin:3px 0 0;flex:0 0 auto}
+        .remember small{display:block;color:var(--muted);font-size:12px;font-weight:400;margin-top:4px;line-height:1.4}
         .hint{color:var(--muted);font-size:13px;text-align:center;margin-top:20px}
         .hint a{color:var(--navy);font-weight:600;text-decoration:none}
         footer{text-align:center;color:var(--muted);font-size:13px;padding:24px}
@@ -96,6 +102,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <label for="password"><?php echo t('login.password'); ?></label>
             <input id="password" name="password" type="password" required placeholder="<?php echo t('elogin.password_ph'); ?>">
+
+            <label class="remember">
+                <input type="checkbox" name="remember_me" value="1">
+                <span><?php echo t('login.remember'); ?><small><?php echo t('login.remember_hint'); ?></small></span>
+            </label>
 
             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8'); ?>">
             <button class="btn" type="submit"><?php echo t('elogin.submit'); ?></button>

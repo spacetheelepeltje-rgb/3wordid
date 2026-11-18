@@ -7,6 +7,16 @@
  */
 
 require_once __DIR__ . '/log.php'; // app_log(): daily log files
+require_once __DIR__ . '/remember.php'; // stay-logged-in cookie (optional, needs SQL migration)
+
+function request_is_https(): bool
+{
+    return (
+        (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+        || ((int)($_SERVER['SERVER_PORT'] ?? 0) === 443)
+        || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
+    );
+}
 
 function start_app_session(): void
 {
@@ -14,16 +24,12 @@ function start_app_session(): void
         return;
     }
 
-    $secure = (
-        (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
-        || ((int)($_SERVER['SERVER_PORT'] ?? 0) === 443)
-        || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
-    );
+    $secure = request_is_https();
 
     session_name('3WIDSESS');
 
     session_set_cookie_params([
-        'lifetime' => 0,      // browser session; use 60 * 60 * 24 * 14 for 14 days
+        'lifetime' => 0,      // browser session. Stay-logged-in uses cookie 3WIDREM (~30 days), not a longer session cookie.
         'path'     => '/',
         'domain'   => '',     // current host only
         'secure'   => $secure,
@@ -236,7 +242,7 @@ function current_user_from_session(mysqli $conn): ?array
 
     $token = $_SESSION['user_token'] ?? '';
     if ($token === '') {
-        return null;
+        return remember_resume_session($conn);
     }
 
     $stmt = $conn->prepare('SELECT * FROM google_users WHERE token = ? LIMIT 1');
@@ -246,7 +252,8 @@ function current_user_from_session(mysqli $conn): ?array
     $stmt->close();
 
     if (!$user || (int)$user['user_type'] === 9) {
-        return null;
+        unset($_SESSION['user_token'], $_SESSION['user_id']);
+        return remember_resume_session($conn);
     }
 
     $_SESSION['user_id'] = (int)$user['id'];
@@ -257,6 +264,12 @@ function destroy_app_session(?mysqli $conn = null): void
 {
     if (session_status() !== PHP_SESSION_ACTIVE) {
         start_app_session();
+    }
+
+    if ($conn instanceof mysqli) {
+        remember_revoke_current($conn);
+    } else {
+        remember_clear_cookie();
     }
 
     $token = $_SESSION['user_token'] ?? '';

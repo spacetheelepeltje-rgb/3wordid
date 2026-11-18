@@ -13,7 +13,9 @@ header('X-Frame-Options: DENY');
 
 $user = current_user_from_session($conn);
 if (!$user) {
-    header('Location: claim.php#login');
+    $qs = (string) ($_SERVER['QUERY_STRING'] ?? '');
+    $next = 'pay_return.php' . ($qs !== '' ? ('?' . $qs) : '');
+    header('Location: login.php?next=' . rawurlencode(bumperchat_safe_next($next, 'chat.php')));
     exit;
 }
 
@@ -56,7 +58,7 @@ if ($words !== '') {
     <link rel="icon" type="image/x-icon" href="../img/favicon.ico">
     <link href="/css/inter.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/newstyle.css">
-    <link rel="stylesheet" href="../css/bumperchat.css?v=2">
+    <link rel="stylesheet" href="../css/bumperchat.css?v=3">
 </head>
 <body class="bc-body">
     <?php echo bumperchat_header($user); ?>

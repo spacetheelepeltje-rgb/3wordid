@@ -33,7 +33,7 @@ function bc_e($s): string { return htmlspecialchars((string) $s, ENT_QUOTES, 'UT
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link rel="stylesheet" href="../css/newstyle.css">
     <link rel="stylesheet" href="../css/home.css?v=2">
-    <link rel="stylesheet" href="../css/bumperchat.css?v=1">
+    <link rel="stylesheet" href="../css/bumperchat.css?v=3">
 </head>
 <body class="bc-body">
     <?php echo bumperchat_header($user); ?>
@@ -92,7 +92,7 @@ function bc_e($s): string { return htmlspecialchars((string) $s, ENT_QUOTES, 'UT
                     <div class="step-num">3</div>
                     <h3><?php echo t('bc.step3_title'); ?></h3>
                     <p><?php echo t('bc.step3_text'); ?></p>
-                    <a class="bc-step-link" href="claim.php#login"><?php echo t('bc.step3_link'); ?></a>
+                    <a class="bc-step-link" href="login.php?next=claim.php"><?php echo t('bc.step3_link'); ?></a>
                 </div>
                 <div class="step">
                     <div class="step-num">4</div>
@@ -129,7 +129,7 @@ function bc_e($s): string { return htmlspecialchars((string) $s, ENT_QUOTES, 'UT
                 <div class="bc-result">
                     <span class="bc-result-label"><?php echo t('bc.your_words'); ?></span>
                     <output id="bcWords" class="bc-words" for="bcPlate" aria-live="polite"></output>
-                    <a class="btn btn-primary" id="bcUse" href="claim.php" data-claim="claim.php" hidden><?php echo t('bc.use_words'); ?></a>
+                    <a class="btn btn-primary" id="bcUse" href="claim.php" data-claim="claim_plate.php" hidden><?php echo t('bc.use_words'); ?></a>
                 </div>
             </div>
 
@@ -188,22 +188,7 @@ function bc_e($s): string { return htmlspecialchars((string) $s, ENT_QUOTES, 'UT
     window.BC_FORMATS = <?php echo json_encode($formats, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;
 </script>
 <script src="../js/3wid_index_2.js?v=5"></script>
-<script src="../js/bumperchat.js?v=1"></script>
-<script>
-    // "Claim" link follows what is typed in the search box
-    (function () {
-        var input = document.getElementById('threewords');
-        var link = document.getElementById('bcClaimLink');
-        function sync() {
-            var w = input.value.trim().replace(/\s+/g, ' ');
-            link.setAttribute('href', w ? 'claim.php?words=' + encodeURIComponent(w) : 'claim.php');
-        }
-        input.addEventListener('input', sync);
-        input.addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') { e.preventDefault(); document.getElementById('searchform').submit(); }
-        });
-        sync();
-    })();
-</script>
+<script src="../js/bumperchat.js?v=2"></script>
+
 </body>
 </html>
