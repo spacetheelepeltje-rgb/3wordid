@@ -93,6 +93,12 @@
 	   // Keep what was typed, so a typo in the three words doesn't lose the message
 	   $_SESSION['chat_draft'] = $message;
    }
+   // Unregistered but plate-like 3WordID: offer the pending-message form.
+   if ($error === 'chat.err_recipient' && $threeword !== '' && function_exists('car_plate_pattern') && car_plate_pattern($threeword)) {
+	   $_SESSION['chat_draft'] = $message;
+	   header('Location: bumperchat/pending_send.php?words=' . rawurlencode($threeword) . '&from_id=' . $from_id);
+	   exit;
+   }
    if ($error === '') {
 	   // Spam protection: too many messages in a short time (limits in php/functions.php)
 	   $error = db_3wordid_message_rate_error((int) $threeword_data['id'], $from_id);

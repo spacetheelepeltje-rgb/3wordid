@@ -33,7 +33,7 @@ function bc_e($s): string { return htmlspecialchars((string) $s, ENT_QUOTES, 'UT
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link rel="stylesheet" href="../css/newstyle.css">
     <link rel="stylesheet" href="../css/home.css?v=2">
-    <link rel="stylesheet" href="../css/bumperchat.css?v=4">
+    <link rel="stylesheet" href="../css/bumperchat.css?v=5">
 </head>
 <body class="bc-body">
     <?php echo bumperchat_header($user); ?>
@@ -59,10 +59,14 @@ function bc_e($s): string { return htmlspecialchars((string) $s, ENT_QUOTES, 'UT
                     <input id="threewords" name="threewords" type="text" class="search-bar" placeholder="<?php echo t('bc.placeholder'); ?>" autocomplete="off" aria-label="<?php echo t('bc.search_label'); ?>">
                     <button type="submit" id="submitBtn"><?php echo t('bc.lookup'); ?></button>
                 </div>
+                <input type="hidden" name="from" value="bumperchat">
                 <input type="hidden" name="csrf_token" value="<?php echo bc_e($_SESSION['csrf_token']); ?>">
             </form>
             <div class="bc-hero-links">
                 <a class="btn btn-ghost" id="bcClaimLink" href="claim.php"><?php echo t('bc.claim_link'); ?></a>
+                <?php if ($user): ?>
+                <a class="btn btn-ghost" href="pending_send.php"><?php echo t('pending.leave_message'); ?></a>
+                <?php endif; ?>
                 <a class="bc-textlink" href="#formats"><?php echo t('bc.how_plate'); ?></a>
             </div>
         </section>
@@ -130,6 +134,7 @@ function bc_e($s): string { return htmlspecialchars((string) $s, ENT_QUOTES, 'UT
                     <span class="bc-result-label"><?php echo t('bc.your_words'); ?></span>
                     <output id="bcWords" class="bc-words" for="bcPlate" aria-live="polite"></output>
                     <a class="btn btn-primary" id="bcUse" href="claim.php" data-claim="claim.php" hidden><?php echo t('bc.use_words'); ?></a>
+                    <a class="btn btn-ghost" id="bcLeaveMsg" href="<?php echo $user ? 'pending_send.php' : 'login.php?next=' . rawurlencode('pending_send.php'); ?>" data-pending="pending_send.php" data-login="login.php" hidden><?php echo t('pending.leave_message'); ?></a>
                 </div>
             </div>
 
@@ -186,9 +191,10 @@ function bc_e($s): string { return htmlspecialchars((string) $s, ENT_QUOTES, 'UT
     window.T3_EXISTS_URL = '../3wid_exists.php';
     window.BC_LANG = <?php echo json_encode(current_lang()); ?>;
     window.BC_FORMATS = <?php echo json_encode($formats, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;
+    window.BC_LOGGED_IN = <?php echo $user ? 'true' : 'false'; ?>;
 </script>
 <script src="../js/3wid_index_2.js?v=5"></script>
-<script src="../js/bumperchat.js?v=3"></script>
+<script src="../js/bumperchat.js?v=4"></script>
 
 </body>
 </html>

@@ -138,7 +138,7 @@
     function $(id) { return document.getElementById(id); }
 
     document.addEventListener('DOMContentLoaded', function () {
-        if (root.BC_CLAIM_FORM) { initClaimForm(); return; }
+        if (root.BC_CLAIM_FORM || root.BC_PENDING_FORM) { initClaimForm(); return; }
         var data = root.BC_FORMATS || {};
         var list = data.countries || [];
         var lang = root.BC_LANG || 'en';
@@ -148,7 +148,10 @@
 
         var select = $('bcCountry'), region = $('bcRegion'), regionWrap = $('bcRegionWrap');
         var plate = $('bcPlate'), out = $('bcWords'), rule = $('bcRule'), useBtn = $('bcUse');
+        var leaveBtn = $('bcLeaveMsg');
         var claimBase = (useBtn && useBtn.getAttribute('data-claim')) || 'claim.php';
+        var pendingBase = (leaveBtn && leaveBtn.getAttribute('data-pending')) || 'pending_send.php';
+        var loginBase = (leaveBtn && leaveBtn.getAttribute('data-login')) || 'login.php';
 
         function fillRegions(c) {
             if (!region) return;
@@ -182,12 +185,19 @@
                     out.classList.add('is-bad'); out.classList.remove('is-ok');
                 }
             }
-            if (useBtn) {
-                useBtn.hidden = !words;
+            if (useBtn || leaveBtn) {
                 var q = '?country=' + encodeURIComponent(c.code);
                 if (region && region.value) q += '&region=' + encodeURIComponent(region.value);
                 if (plate && plate.value) q += '&plate=' + encodeURIComponent(plate.value);
-                useBtn.setAttribute('href', claimBase + q);
+                if (useBtn) {
+                    useBtn.hidden = !words;
+                    useBtn.setAttribute('href', claimBase + q);
+                }
+                if (leaveBtn) {
+                    leaveBtn.hidden = !words;
+                    var pendingHref = pendingBase + q;
+                    leaveBtn.setAttribute('href', root.BC_LOGGED_IN ? pendingHref : (loginBase + '?next=' + encodeURIComponent(pendingHref)));
+                }
             }
         }
 
@@ -321,6 +331,11 @@
                 }
             }
             if (next) next.disabled = !ok;
+            if (root.BC_PENDING_FORM) {
+                var msg = $('bcPendingMsg');
+                var hasMsg = !msg || String(msg.value || '').trim() !== '';
+                if (next) next.disabled = !ok || !hasMsg;
+            }
 
             if (suggest) {
                 suggest.hidden = true;
@@ -383,6 +398,8 @@
             plate.addEventListener('input', validate);
             plate.addEventListener('blur', validate);
         }
+        var pendingMsg = $('bcPendingMsg');
+        if (pendingMsg) pendingMsg.addEventListener('input', validate);
         fillRegions(current(), region && region.value);
         update();
     }
