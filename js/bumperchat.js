@@ -87,8 +87,18 @@
             if (at < compact.length) parts.push(compact.substr(at));
             return parts.join(sep);
         }
-        var r = runs(compact);
-        return r.length >= 2 ? r.join(sep) : compact;
+        // Respect separators the user typed (92-ZD-NG): each typed group is kept, and
+        // inside a group we still split where letters and digits change (92ZD -> 92-ZD).
+        var typed = String(raw || '').toUpperCase();
+        var trailing = /[^A-Z0-9]$/.test(typed);
+        var parts2 = [];
+        typed.split(/[^A-Z0-9]+/).forEach(function (g) {
+            if (g !== '') runs(g).forEach(function (x) { parts2.push(x); });
+        });
+        var out = parts2.join(sep);
+        // Keep a separator the user just typed, so the next group can follow it
+        if (trailing && parts2.length > 0) out += sep;
+        return out;
     }
 
     function plateExample(entry) {
@@ -115,8 +125,10 @@
 
     function setFormattedValue(input, formatted) {
         if (!input || input.value === formatted) return;
+        var atEnd = (input.selectionStart || 0) >= input.value.length;
         var before = String(input.value.slice(0, input.selectionStart || 0)).replace(/[^A-Za-z0-9]/g, '').length;
         input.value = formatted;
+        if (atEnd) { try { input.setSelectionRange(formatted.length, formatted.length); } catch (err) {} return; }
         var seen = 0, i = 0;
         for (; i < formatted.length; i++) {
             if (/[A-Z0-9]/.test(formatted[i])) seen++;
