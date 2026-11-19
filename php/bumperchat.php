@@ -8,6 +8,7 @@
  *   bumperchat/claim_plate.php    redirect to claim.php (old links)
  *   bumperchat/claim_register.php register (email + optional mobile); skipped if logged in
  *   bumperchat/login.php          top-right email login (no login form inside the claim flow)
+ *   bumperchat/dispute.php        ownership-dispute info (email only; no upload or payment yet)
  *   bumperchat/chat.php           the chats of a Bumperchat user (no list / admin pages)
  *
  * No new database columns: a Bumperchat login is marked in the session only
@@ -15,6 +16,15 @@
  * With that flag 3wid_list.php sends the user to bumperchat/chat.php. Every normal login
  * (establish_user_session) removes the flag again. See docs/BUMPERCHAT.md.
  */
+
+/**
+ * Public contact address used in terms (terms.s14_p2) and the Bumperchat
+ * dispute mailto. Same address the site already publishes; not a new inbox.
+ * A later config.php may define this first.
+ */
+if (!defined('SITE_CONTACT_EMAIL')) {
+    define('SITE_CONTACT_EMAIL', 'frits@rincker.nl');
+}
 
 /** The plate rules (bumperchat/plate_formats.json), cached per request. */
 function bumperchat_formats(): array
@@ -233,6 +243,46 @@ function bumperchat_csrf_field(): string
     return '<input type="hidden" name="csrf_token" value="' . $t . '">';
 }
 
+/** Subtle "Dispute ownership" link to dispute.php?words=… */
+function bumperchat_dispute_link(string $words): string
+{
+    $words = bumperchat_normalize_words($words);
+    if ($words === '') {
+        return '';
+    }
+    return '<p class="bc-dispute"><a href="dispute.php?words=' . rawurlencode($words) . '">'
+        . t('bc.dispute_link') . '</a></p>';
+}
+
+/**
+ * Next steps when a plate is already claimed.
+ * Send-message goes to the existing 3wid_forward.php route used by the
+ * Bumperchat homepage and chat page for a claimed plate.
+ * $opts: logged_in (bool), retry (bool, default true).
+ */
+function bumperchat_taken_actions(string $words, array $opts = []): string
+{
+    $words = bumperchat_normalize_words($words);
+    if ($words === '') {
+        return '';
+    }
+    $logged_in = !empty($opts['logged_in']);
+    $retry = array_key_exists('retry', $opts) ? !empty($opts['retry']) : true;
+    $out = '<div class="bc-taken-actions">';
+    $out .= '<a class="btn btn-primary" href="../3wid_forward.php?threewords=' . rawurlencode($words) . '">'
+        . t('bc.send_to_plate') . '</a>';
+    if (!$logged_in) {
+        $next = 'claim.php?words=' . rawurlencode($words);
+        $out .= '<a class="btn btn-ghost" href="login.php?next=' . rawurlencode($next) . '">'
+            . t('bc.taken_login') . '</a>';
+    }
+    if ($retry) {
+        $out .= '<a class="btn btn-ghost" href="claim.php?new=1">' . t('bc.try_another') . '</a>';
+    }
+    $out .= '</div>' . bumperchat_dispute_link($words);
+    return $out;
+}
+
 /** Claim-flow state kept in the session (country, region, plate, words). */
 function bumperchat_claim_state(): array
 {
@@ -262,7 +312,7 @@ function bumperchat_safe_next(?string $next, string $fallback = 'chat.php'): str
     if ($next === '') {
         return $fallback;
     }
-    if (!preg_match('/^(claim|claim_plate|claim_register|chat|pay|pay_return|index|login|pending_send)\.php(?:\?[A-Za-z0-9_\-=.+&%]*)?$/', $next)) {
+    if (!preg_match('/^(claim|claim_plate|claim_register|chat|pay|pay_return|index|login|pending_send|dispute)\.php(?:\?[A-Za-z0-9_\-=.+&%]*)?$/', $next)) {
         return $fallback;
     }
     return $next;
@@ -272,7 +322,7 @@ function bumperchat_safe_next(?string $next, string $fallback = 'chat.php'): str
 function bumperchat_current_return(): string
 {
     $script = basename((string) ($_SERVER['SCRIPT_NAME'] ?? ''));
-    if ($script === 'pending_send.php') {
+    if (in_array($script, ['pending_send.php', 'claim.php', 'dispute.php'], true)) {
         $qs = (string) ($_SERVER['QUERY_STRING'] ?? '');
         if ($qs !== '') {
             $script .= '?' . $qs;
@@ -292,7 +342,21 @@ function bumperchat_after_login_redirect(array $user, string $next = 'chat.php')
     $words = bumperchat_normalize_words((string) ($state['words'] ?? ''));
     bumperchat_mark_session($words);
     if ($words !== '') {
-        bumperchat_try_claim_and_redirect($user, $words, $state['notify_post'] ?? []);
+        $own = function_exists('db_3wordid_get_threeword') ? db_3wordid_get_threeword($words) : null;
+        if (is_array($own) && (int) ($own['user_id'] ?? 0) === (int) ($user['id'] ?? 0)) {
+            if (function_exists('plate_billing_requires_payment') && plate_billing_requires_payment($own)) {
+                header('Location: pay.php?words=' . rawurlencode($words));
+                exit;
+            }
+            bumperchat_claim_state_clear();
+            header('Location: chat.php');
+            exit;
+        }
+        $taken = is_array($own) || (function_exists('db_3wordid_exists') && db_3wordid_exists($words));
+        if (!$taken) {
+            bumperchat_try_claim_and_redirect($user, $words, $state['notify_post'] ?? []);
+        }
+        // Already claimed by someone else: fall through to $next (the claim page).
     }
     header('Location: ' . bumperchat_safe_next($next, 'chat.php'));
     exit;

@@ -15,6 +15,13 @@ header('X-Frame-Options: DENY');
 
 $user = current_user_from_session($conn);
 
+// "Try another plate": drop the stored claim and show an empty form.
+if (isset($_GET['new'])) {
+    bumperchat_claim_state_clear();
+    header('Location: claim.php');
+    exit;
+}
+
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
@@ -135,6 +142,32 @@ if ($is_next) {
 $show_words = ($chosen && $plate !== '') ? bumperchat_plate_to_words($chosen, $plate, $region) : '';
 $plate_ok = $show_words !== '';
 $example = $chosen ? bumperchat_plate_example($chosen) : '';
+
+// Login return and prefilled GET: show the taken card, or send the owner to chat/pay.
+if ($check === null && $error === '' && $plate_ok && !$is_next && function_exists('db_3wordid_exists_status')) {
+    $status = db_3wordid_exists_status($show_words);
+    if ($status !== null) {
+        if ($user) {
+            $own = db_3wordid_get_threeword($show_words);
+            if (is_array($own) && (int) ($own['user_id'] ?? 0) === (int) $user['id']) {
+                if (plate_billing_requires_payment($own)) {
+                    header('Location: pay.php?words=' . rawurlencode($show_words));
+                    exit;
+                }
+                bumperchat_mark_session($show_words);
+                bumperchat_claim_state_clear();
+                header('Location: chat.php');
+                exit;
+            }
+        }
+        $check = [
+            'exists' => true,
+            'paying' => (bool) ($status['paying'] ?? false),
+            'plate'  => car_plate_pattern($show_words) ? car_plate_known($show_words) : null,
+            'digits' => (bool) preg_match('/[0-9]/', $show_words),
+        ];
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo current_lang(); ?>">
@@ -147,7 +180,7 @@ $example = $chosen ? bumperchat_plate_example($chosen) : '';
     <link rel="icon" type="image/x-icon" href="../img/favicon.ico">
     <link href="/css/inter.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/newstyle.css">
-    <link rel="stylesheet" href="../css/bumperchat.css?v=4">
+    <link rel="stylesheet" href="../css/bumperchat.css?v=6">
 </head>
 <body class="bc-body">
     <?php echo bumperchat_header($user); ?>
@@ -240,14 +273,15 @@ $example = $chosen ? bumperchat_plate_example($chosen) : '';
                 ?></output>
             </div>
             <p class="bc-suggest" id="bcSuggest" hidden></p>
+            <div id="bcTakenActions" class="bc-taken-actions" hidden></div>
             <?php echo bumperchat_csrf_field(); ?>
         </form>
 
         <?php if ($check && !empty($check['exists'])): ?>
-        <div class="bc-card bc-status is-taken" role="status">
+        <div class="bc-card bc-status is-taken" id="bcTakenCard" data-words="<?php echo bc_e($show_words); ?>" role="status">
             <h2><?php echo t('bc.status_taken', ['words' => $show_words]); ?></h2>
             <p><?php echo t('bc.status_taken_p'); ?></p>
-            <a class="btn btn-ghost" href="../3wid_forward.php?threewords=<?php echo rawurlencode($show_words); ?>"><?php echo t('bc.send_message'); ?></a>
+            <?php echo bumperchat_taken_actions($show_words, ['logged_in' => (bool) $user]); ?>
         </div>
         <?php endif; ?>
 
@@ -269,13 +303,18 @@ $example = $chosen ? bumperchat_plate_example($chosen) : '';
     'bc_err_region'     => 'bc.err_region',
     'bc_taken'          => 'bc.status_taken',
     'bc_taken_p'        => 'bc.status_taken_p',
+    'bc_send_to_plate'  => 'bc.send_to_plate',
+    'bc_taken_login'    => 'bc.taken_login',
+    'bc_dispute_link'   => 'bc.dispute_link',
+    'bc_try_another'    => 'bc.try_another',
 ]); ?>
 <script>
     window.BC_LANG = <?php echo json_encode(current_lang()); ?>;
     window.BC_FORMATS = <?php echo json_encode($formats, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;
     window.BC_CLAIM_FORM = true;
+    window.BC_LOGGED_IN = <?php echo $user ? 'true' : 'false'; ?>;
     window.BC_DEFAULT_COUNTRY = <?php echo json_encode($default_country); ?>;
 </script>
-<script src="../js/bumperchat.js?v=5"></script>
+<script src="../js/bumperchat.js?v=6"></script>
 </body>
 </html>

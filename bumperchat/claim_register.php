@@ -96,7 +96,7 @@ if ($exists && $user) {
     <link rel="icon" type="image/x-icon" href="../img/favicon.ico">
     <link href="/css/inter.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/newstyle.css">
-    <link rel="stylesheet" href="../css/bumperchat.css?v=4">
+    <link rel="stylesheet" href="../css/bumperchat.css?v=6">
 </head>
 <body class="bc-body">
     <?php echo bumperchat_header($user); ?>
@@ -138,7 +138,7 @@ if ($exists && $user) {
             <?php elseif ($exists): ?>
                 <h2><?php echo t('bc.status_taken', ['words' => $words]); ?></h2>
                 <p><?php echo t('bc.status_taken_p'); ?></p>
-                <a class="btn btn-ghost" href="../3wid_forward.php?threewords=<?php echo rawurlencode($words); ?>"><?php echo t('bc.send_message'); ?></a>
+                <?php echo bumperchat_taken_actions($words, ['logged_in' => (bool) $user]); ?>
             <?php else: ?>
                 <h2><?php echo t('bc.status_free', ['words' => $words]); ?></h2>
                 <p><?php echo t('bc.status_free_p'); ?></p>

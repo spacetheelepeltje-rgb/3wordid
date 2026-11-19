@@ -112,6 +112,22 @@ expect('next reject path', bumperchat_safe_next('../login/email_login.php'), 'ch
 expect('next reject scheme', bumperchat_safe_next('//evil.example/'), 'chat.php');
 expect('next empty fallback', bumperchat_safe_next('', 'index.php'), 'index.php');
 expect('next login', bumperchat_safe_next('login.php'), 'login.php');
+expect('next dispute', bumperchat_safe_next('dispute.php'), 'dispute.php');
+expect('next dispute qs', bumperchat_safe_next('dispute.php?words=ab%20123%20c'), 'dispute.php?words=ab%20123%20c');
+expect('next claim words', bumperchat_safe_next('claim.php?words=ab%20123%20c'), 'claim.php?words=ab%20123%20c');
+expect('contact email', SITE_CONTACT_EMAIL, 'frits@rincker.nl');
+
+$actions = bumperchat_taken_actions('ab 123 c', ['logged_in' => false]);
+expect('actions send href', strpos($actions, '../3wid_forward.php?threewords=ab%20123%20c') !== false, true);
+expect('actions login href', strpos($actions, 'login.php?next=' . rawurlencode('claim.php?words=' . rawurlencode('ab 123 c'))) !== false, true);
+expect('actions retry', strpos($actions, 'claim.php?new=1') !== false, true);
+expect('actions dispute', strpos($actions, 'dispute.php?words=ab%20123%20c') !== false, true);
+$actions_in = bumperchat_taken_actions('ab 123 c', ['logged_in' => true]);
+expect('logged-in hides login', strpos($actions_in, 'login.php?next=') === false, true);
+expect('empty words no actions', bumperchat_taken_actions('not-three-words'), '');
+expect('dispute link empty', bumperchat_dispute_link(''), '');
+expect('dispute link href', strpos(bumperchat_dispute_link('ab 123 c'), 'dispute.php?words=ab%20123%20c') !== false, true);
+
 
 // --- plate auto-format (separators added, junk stripped, already-spaced input accepted) ---
 expect('format NL compact', bumperchat_format_plate($by['NL'], 'ab123c'), 'AB-123-C');

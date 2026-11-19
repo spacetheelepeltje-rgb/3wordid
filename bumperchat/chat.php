@@ -63,7 +63,7 @@ if ($wanted !== '') {
     <link rel="icon" type="image/x-icon" href="../img/favicon.ico">
     <link href="/css/inter.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/newstyle.css">
-    <link rel="stylesheet" href="../css/bumperchat.css?v=5">
+    <link rel="stylesheet" href="../css/bumperchat.css?v=6">
 </head>
 <body class="bc-body">
     <?php echo bumperchat_header($user); ?>
@@ -78,6 +78,7 @@ if ($wanted !== '') {
             <p class="bc-p"><?php echo t_raw('bc.wanted_' . $wanted_state . '_p', ['words' => bc_e($wanted)]); ?></p>
             <?php if ($wanted_state === 'taken'): ?>
                 <a class="btn btn-ghost" href="../3wid_forward.php?threewords=<?php echo rawurlencode($wanted); ?>"><?php echo t('bc.send_message'); ?></a>
+                <?php echo bumperchat_dispute_link($wanted); ?>
             <?php elseif ($wanted_state === 'free'): ?>
                 <a class="btn btn-ghost" href="claim.php?words=<?php echo rawurlencode($wanted); ?>"><?php echo t('bc.claim_now'); ?></a>
             <?php endif; ?>

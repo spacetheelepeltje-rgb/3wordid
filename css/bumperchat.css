@@ -172,3 +172,10 @@
 .bc-pill.bc-pending-delivered { background: #E7F0FF; color: #1A4D9E; }
 .bc-pill.bc-pending-read { background: #E6F6EA; color: #1B6B34; }
 .bc-pill.bc-pending-expired { background: #F0F0F0; color: #555; }
+
+/* Taken-plate next steps + subtle dispute link */
+.bc-taken-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 4px 0 0; }
+.bc-taken-actions .btn { text-decoration: none; }
+.bc-dispute { margin: 12px 0 0; font-size: 12px; line-height: 1.4; }
+.bc-dispute a { color: var(--muted); font-weight: 500; text-decoration: underline; text-underline-offset: 2px; }
+.bc-dispute a:hover { color: var(--slate); }
