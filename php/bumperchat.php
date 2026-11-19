@@ -4,9 +4,9 @@
  * ---------------------------------------------------------------------------
  * A second front door for 3WordID: licence plates as three words, and chat only.
  *   bumperchat/index.php          search box, onboarding steps, plate -> three words lookup
- *   bumperchat/claim.php          step 1: choose country, show that country's plate rules
- *   bumperchat/claim_plate.php    step 2: enter the plate, validate, check if the words are free
- *   bumperchat/claim_register.php step 3: register (email + optional mobile); skipped if logged in
+ *   bumperchat/claim.php          country + plate on one page (format, validate, then Next)
+ *   bumperchat/claim_plate.php    redirect to claim.php (old links)
+ *   bumperchat/claim_register.php register (email + optional mobile); skipped if logged in
  *   bumperchat/login.php          top-right email login (no login form inside the claim flow)
  *   bumperchat/chat.php           the chats of a Bumperchat user (no list / admin pages)
  *
@@ -386,5 +386,390 @@ function bumperchat_country_rules_html(array $c): string
     if (!empty($c['note'])) {
         $html .= '<p class="bc-format-note">' . $e(bumperchat_text($c['note'])) . '</p>';
     }
+    return $html;
+}
+
+/** Primary separator in a country's format string (dash or space). */
+function bumperchat_plate_separator(array $entry): string
+{
+    $format = preg_replace('/\[[^\]]*\]/', '', (string) ($entry['format'] ?? ''));
+    return (is_string($format) && strpos($format, '-') !== false) ? '-' : ' ';
+}
+
+/**
+ * Upper-case the typed plate, drop illegal characters, and insert the country's
+ * usual dashes or spaces (letter/digit runs, or a fixed split when the country
+ * has one). Input with or without separators is accepted.
+ */
+function bumperchat_format_plate(array $entry, string $raw): string
+{
+    $compact = strtoupper((string) preg_replace('/[^A-Za-z0-9]/', '', $raw));
+    if ($compact === '') {
+        return '';
+    }
+    $sep = bumperchat_plate_separator($entry);
+    if (!empty($entry['fixed']) && is_array($entry['fixed'])) {
+        $parts = [];
+        $at = 0;
+        $len = strlen($compact);
+        foreach ($entry['fixed'] as $n) {
+            $n = (int) $n;
+            if ($n < 1 || $at >= $len) {
+                break;
+            }
+            $parts[] = substr($compact, $at, $n);
+            $at += $n;
+        }
+        if ($at < $len) {
+            $parts[] = substr($compact, $at);
+        }
+        return implode($sep, $parts);
+    }
+    $runs = bumperchat_plate_runs($compact);
+    if (count($runs) >= 2) {
+        return implode($sep, $runs);
+    }
+    return $compact;
+}
+
+/** First example plate of a country, without a "STATE|" prefix. */
+function bumperchat_plate_example(array $entry): string
+{
+    $ex = (string) ($entry['examples'][0]['plate'] ?? $entry['format'] ?? '');
+    $parts = explode('|', $ex, 2);
+    return count($parts) === 2 ? $parts[1] : $ex;
+}
+
+/** Visual style for the plate input: nl (yellow), na (US/Canada white), eu (white + blue band). */
+function bumperchat_plate_style(string $code): string
+{
+    $code = strtoupper($code);
+    if ($code === 'NL') {
+        return 'nl';
+    }
+    if ($code === 'US' || $code === 'CA') {
+        return 'na';
+    }
+    return 'eu';
+}
+
+/**
+ * Country codes whose rules accept this plate (and region, for US/CA).
+ * Used to auto-detect or suggest a country when the pattern is distinctive.
+ */
+function bumperchat_infer_countries(string $plate, string $region = ''): array
+{
+    $hits = [];
+    if (trim($plate) === '') {
+        return $hits;
+    }
+    foreach (bumperchat_formats()['countries'] as $c) {
+        $code = (string) ($c['code'] ?? '');
+        if ($code === '') {
+            continue;
+        }
+        $reg = $region;
+        if (($c['mode'] ?? '') === 'region' && $reg === '') {
+            continue;
+        }
+        if (bumperchat_plate_to_words($c, $plate, $reg) !== '') {
+            $hits[] = $code;
+        }
+    }
+    return $hits;
+}
+
+/** The only matching country code, or '' when none or more than one match. */
+function bumperchat_infer_country(string $plate, string $region = ''): string
+{
+    $hits = bumperchat_infer_countries($plate, $region);
+    return count($hits) === 1 ? $hits[0] : '';
+}
+
+/**
+ * From a 3WordID ("e 1234 bcd", "tx abc 1234", "ab 123 c"), recover a country,
+ * optional US/CA region, and a formatted plate. When the first word is not a
+ * known country or region prefix, country is left empty and the three words
+ * are returned as the plate for the caller to format with a default country.
+ *
+ * @return array{country:string,region:string,plate:string,words:string}
+ */
+
+/** First words of non-region country examples, so "ab 123 c" is not treated as Alberta. */
+function bumperchat_common_first_words(): array
+{
+    static $set = null;
+    if ($set !== null) {
+        return $set;
+    }
+    $set = [];
+    foreach (bumperchat_formats()['countries'] as $c) {
+        if (($c['mode'] ?? '') === 'region') {
+            continue;
+        }
+        foreach ($c['examples'] ?? [] as $ex) {
+            $w = bumperchat_normalize_words((string) ($ex['words'] ?? ''));
+            if ($w === '') {
+                continue;
+            }
+            $set[explode(' ', $w)[0]] = true;
+        }
+    }
+    return $set;
+}
+
+function bumperchat_prefill_from_words(string $words): array
+{
+    $empty = ['country' => '', 'region' => '', 'plate' => '', 'words' => ''];
+    $words = bumperchat_normalize_words($words);
+    if ($words === '') {
+        return $empty;
+    }
+    $parts = explode(' ', $words);
+    $first = $parts[0];
+
+    // US/CA region codes (TX, QC, ...) as the first word. Skip when that word
+    // is also a common first group of an EU plate ("ab 123 c" is Dutch, not Alberta).
+    $common_first = bumperchat_common_first_words();
+    foreach (['US', 'CA'] as $code) {
+        $c = bumperchat_country($code);
+        if (!$c || empty($c['regions']) || !is_array($c['regions'])) {
+            continue;
+        }
+        foreach ($c['regions'] as $reg => $_label) {
+            if (strtoupper($first) !== strtoupper((string) $reg)) {
+                continue;
+            }
+            if (isset($common_first[$first])) {
+                break 2;
+            }
+            $rest = implode('', array_slice($parts, 1));
+            return [
+                'country' => $code,
+                'region'  => strtoupper((string) $reg),
+                'plate'   => bumperchat_format_plate($c, $rest),
+                'words'   => $words,
+            ];
+        }
+    }
+
+    $matched = [];
+    foreach (bumperchat_formats()['countries'] as $c) {
+        $strip = strtolower((string) ($c['strip'] ?? ''));
+        if ($strip !== '' && $strip === $first) {
+            $matched[] = $c;
+        }
+    }
+    if (count($matched) === 1) {
+        $c = $matched[0];
+        $mode = (string) ($c['mode'] ?? '');
+        $rest = array_slice($parts, 1);
+        $region = '';
+        if ($mode === 'region' && $rest) {
+            $maybe = strtoupper((string) $rest[0]);
+            if (isset($c['regions'][$maybe])) {
+                $region = $maybe;
+                $rest = array_slice($rest, 1);
+            }
+        }
+        return [
+            'country' => (string) $c['code'],
+            'region'  => $region,
+            'plate'   => bumperchat_format_plate($c, implode('', $rest)),
+            'words'   => $words,
+        ];
+    }
+
+    return [
+        'country' => '',
+        'region'  => '',
+        'plate'   => strtoupper(implode(' ', $parts)),
+        'words'   => $words,
+    ];
+}
+
+/**
+ * Country code from server headers that already hold a lookup done at the
+ * edge or in Apache (Cloudflare, mod_geoip, MaxMind). Never logs the value.
+ */
+function bumperchat_country_from_geo_headers(array $server): string
+{
+    $keys = [
+        'HTTP_CF_IPCOUNTRY',
+        'HTTP_GEOIP_COUNTRY_CODE',
+        'GEOIP_COUNTRY_CODE',
+        'HTTP_MM_COUNTRY_CODE',
+        'MM_COUNTRY_CODE',
+        'GEOIP2_COUNTRY_CODE',
+        'HTTP_GEOIP2_COUNTRY_CODE',
+    ];
+    foreach ($keys as $key) {
+        $raw = strtoupper(trim((string) ($server[$key] ?? '')));
+        // Cloudflare: XX = unknown, T1 = Tor. Ignore placeholders.
+        if ($raw === '' || $raw === 'XX' || $raw === 'T1' || $raw === 'A1' || $raw === 'A2') {
+            continue;
+        }
+        if (preg_match('/^[A-Z]{2}$/', $raw)) {
+            return $raw;
+        }
+    }
+    return '';
+}
+
+/**
+ * Country from Accept-Language: a region subtag (nl-NL, en-US) first, then a
+ * language code that is also a country in the plate list (de → DE).
+ */
+function bumperchat_country_from_accept_language(?string $header): string
+{
+    if ($header === null || $header === '') {
+        return '';
+    }
+    $ranked = [];
+    foreach (explode(',', $header) as $part) {
+        $bits = explode(';', trim($part));
+        $tag = strtolower(trim((string) ($bits[0] ?? '')));
+        if ($tag === '' || $tag === '*') {
+            continue;
+        }
+        $q = 1.0;
+        foreach (array_slice($bits, 1) as $param) {
+            $param = trim((string) $param);
+            if (stripos($param, 'q=') === 0) {
+                $q = (float) substr($param, 2);
+            }
+        }
+        $sub = preg_split('/[-_]/', $tag);
+        $lang = strtoupper((string) ($sub[0] ?? ''));
+        $region = '';
+        foreach (array_slice($sub, 1) as $piece) {
+            if (preg_match('/^[a-z]{2}$/', $piece)) {
+                $region = strtoupper($piece);
+            }
+        }
+        $ranked[] = ['region' => $region, 'lang' => $lang, 'q' => $q];
+    }
+    usort($ranked, function ($a, $b) { return $b['q'] <=> $a['q']; });
+    foreach ($ranked as $row) {
+        if ($row['region'] !== '' && bumperchat_country($row['region'])) {
+            return $row['region'];
+        }
+    }
+    foreach ($ranked as $row) {
+        if ($row['lang'] !== '' && bumperchat_country($row['lang'])) {
+            return $row['lang'];
+        }
+    }
+    return '';
+}
+
+/**
+ * Local IP-to-country lookup only: configured .mmdb (GEOIP_COUNTRY_DB) or the
+ * legacy PHP geoip extension. The IP is not sent anywhere and is not logged.
+ */
+function bumperchat_country_from_ip_lookup(): string
+{
+    $ip = function_exists('geoip_client_ip')
+        ? geoip_client_ip()
+        : (string) ($_SERVER['REMOTE_ADDR'] ?? '');
+    if ($ip === '' || !filter_var($ip, FILTER_VALIDATE_IP)) {
+        return '';
+    }
+    if (function_exists('geoip_country')) {
+        $code = geoip_country($ip);
+        if (is_string($code) && $code !== '') {
+            return $code;
+        }
+    }
+    if (function_exists('geoip_country_code_by_name')) {
+        $code = @geoip_country_code_by_name($ip);
+        if (is_string($code) && preg_match('/^[A-Za-z]{2}$/', $code)) {
+            return strtoupper($code);
+        }
+    }
+    return '';
+}
+
+/**
+ * Default country for the Bumperchat converter and claim form.
+ * Privacy-first, server-side only: no browser geo API, no third-party call,
+ * nothing stored or logged. Order:
+ *   1. CF-IPCountry / GEOIP_COUNTRY_CODE / MM_COUNTRY_CODE (and aliases)
+ *   2. Local MaxMind/DB-IP .mmdb or PHP geoip extension
+ *   3. Accept-Language region (or language that matches a country)
+ *   4. NL
+ * The code is used only when it exists in plate_formats.json.
+ *
+ * $server / $accept_language / $lookup_ip are injectable for tests.
+ */
+function bumperchat_default_country(?array $server = null, $accept_language = false, bool $lookup_ip = true): string
+{
+    $server = $server ?? $_SERVER;
+    $code = bumperchat_country_from_geo_headers($server);
+    if ($code !== '' && bumperchat_country($code)) {
+        return $code;
+    }
+    if ($lookup_ip) {
+        $code = bumperchat_country_from_ip_lookup();
+        if ($code !== '' && bumperchat_country($code)) {
+            return $code;
+        }
+    }
+    if ($accept_language === false) {
+        $accept_language = (string) ($server['HTTP_ACCEPT_LANGUAGE'] ?? '');
+    }
+    $code = bumperchat_country_from_accept_language(is_string($accept_language) ? $accept_language : '');
+    if ($code !== '' && bumperchat_country($code)) {
+        return $code;
+    }
+    return bumperchat_country('NL') ? 'NL' : '';
+}
+
+/**
+ * Small original SVG of 12 gold stars (not a copyrighted EU-flag image),
+ * used in the blue band of the licence-plate input.
+ */
+function bumperchat_eu_stars_svg(): string
+{
+    $pts = '';
+    for ($i = 0; $i < 12; $i++) {
+        $a = deg2rad(-90 + $i * 30);
+        $x = 10 + 6.2 * cos($a);
+        $y = 9 + 6.2 * sin($a);
+        $pts .= '<circle cx="' . round($x, 2) . '" cy="' . round($y, 2) . '" r="1.05" fill="#FFCC00"/>';
+    }
+    return '<svg class="bc-plate-stars" width="22" height="22" viewBox="0 0 20 20" aria-hidden="true" focusable="false">' . $pts . '</svg>';
+}
+
+/**
+ * Licence-plate face: EU blue band + input (or a read-only value).
+ * $opts: value, region, id, name, placeholder, readonly, example.
+ */
+function bumperchat_plate_face_html(array $country, array $opts = []): string
+{
+    $e = function ($s) { return htmlspecialchars((string) $s, ENT_QUOTES, 'UTF-8'); };
+    $code = (string) ($country['code'] ?? '');
+    $style = bumperchat_plate_style($code);
+    $strip = (string) ($country['strip'] ?? $code);
+    $value = (string) ($opts['value'] ?? '');
+    $id = (string) ($opts['id'] ?? 'bcPlate');
+    $name = (string) ($opts['name'] ?? 'plate');
+    $ph = (string) ($opts['placeholder'] ?? bumperchat_plate_example($country));
+    $readonly = !empty($opts['readonly']);
+    $cls = 'bc-plate-shell is-' . $style;
+    if ($readonly) {
+        $cls .= ' is-readonly';
+    }
+    $html = '<div class="' . $cls . '" id="bcPlateShell" data-style="' . $e($style) . '" data-code="' . $e($code) . '">';
+    $html .= '<span class="bc-plate-band" id="bcPlateBand" aria-hidden="true">'
+        . bumperchat_eu_stars_svg()
+        . '<span class="bc-plate-cc" id="bcPlateCc">' . $e($strip) . '</span></span>';
+    $html .= '<span class="bc-plate-legend" id="bcPlateLegend">' . $e((string) ($opts['region'] ?? '')) . '</span>';
+    if ($readonly) {
+        $html .= '<span class="bc-plate-value" id="' . $e($id) . '">' . $e($value) . '</span>';
+    } else {
+        $html .= '<input id="' . $e($id) . '" name="' . $e($name) . '" class="bc-plate-field" type="text" maxlength="20" autocomplete="off" autocapitalize="characters" spellcheck="false" inputmode="text" aria-label="' . $e(t('bc.plate')) . '" placeholder="' . $e($ph) . '" value="' . $e($value) . '">';
+    }
+    $html .= '</div>';
     return $html;
 }

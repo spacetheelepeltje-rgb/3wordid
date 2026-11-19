@@ -58,7 +58,7 @@ if ($words !== '') {
     <link rel="icon" type="image/x-icon" href="../img/favicon.ico">
     <link href="/css/inter.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/newstyle.css">
-    <link rel="stylesheet" href="../css/bumperchat.css?v=3">
+    <link rel="stylesheet" href="../css/bumperchat.css?v=4">
 </head>
 <body class="bc-body">
     <?php echo bumperchat_header($user); ?>

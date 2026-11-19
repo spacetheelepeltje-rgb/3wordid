@@ -113,5 +113,55 @@ expect('next reject scheme', bumperchat_safe_next('//evil.example/'), 'chat.php'
 expect('next empty fallback', bumperchat_safe_next('', 'index.php'), 'index.php');
 expect('next login', bumperchat_safe_next('login.php'), 'login.php');
 
+// --- plate auto-format (separators added, junk stripped, already-spaced input accepted) ---
+expect('format NL compact', bumperchat_format_plate($by['NL'], 'ab123c'), 'AB-123-C');
+expect('format NL runs', bumperchat_format_plate($by['NL'], '12abc3'), '12-ABC-3');
+expect('format NL spaced', bumperchat_format_plate($by['NL'], 'ab 123 c'), 'AB-123-C');
+expect('format NL junk', bumperchat_format_plate($by['NL'], 'AB--123--C!'), 'AB-123-C');
+expect('format FR', bumperchat_format_plate($by['FR'], 'AB123CD'), 'AB-123-CD');
+expect('format DK fixed', bumperchat_format_plate($by['DK'], 'AB12345'), 'AB 12 345');
+expect('format ES', bumperchat_format_plate($by['ES'], '1234bcd'), '1234 BCD');
+expect('format empty', bumperchat_format_plate($by['NL'], '---'), '');
+expect('example NL', bumperchat_plate_example($by['NL']), 'AB-123-C');
+expect('style NL', bumperchat_plate_style('NL'), 'nl');
+expect('style FR', bumperchat_plate_style('FR'), 'eu');
+expect('style US', bumperchat_plate_style('US'), 'na');
+
+// --- prefill from 3WordID words ---
+$p = bumperchat_prefill_from_words('e 1234 bcd');
+expect('prefill ES country', $p['country'], 'ES');
+expect('prefill ES plate', $p['plate'], '1234 BCD');
+$p = bumperchat_prefill_from_words('tx abc 1234');
+expect('prefill TX country', $p['country'], 'US');
+expect('prefill TX region', $p['region'], 'TX');
+expect('prefill TX plate', $p['plate'], 'ABC 1234');
+$p = bumperchat_prefill_from_words('qc abc 123');
+expect('prefill QC country', $p['country'], 'CA');
+expect('prefill QC region', $p['region'], 'QC');
+$p = bumperchat_prefill_from_words('cdn qc 123abc');
+expect('prefill CDN country', $p['country'], 'CA');
+expect('prefill CDN region', $p['region'], 'QC');
+$p = bumperchat_prefill_from_words('ab 123 c');
+expect('prefill NL-like no prefix country', $p['country'], '');
+expect('prefill NL-like plate', $p['plate'], 'AB 123 C');
+expect('prefill empty', bumperchat_prefill_from_words('not three')['words'], '');
+
+// Prefix-mode rules are loose, so a plate often matches several countries; only a unique hit is used.
+expect('infer many not unique', bumperchat_infer_country('1234 BCD'), '');
+expect('infer ES among hits', in_array('ES', bumperchat_infer_countries('1234 BCD'), true), true);
+expect('infer empty', bumperchat_infer_country(''), '');
+
+// --- default country: headers, Accept-Language, fallback (no IP lookup in tests) ---
+expect('default CF-IPCountry', bumperchat_default_country(['HTTP_CF_IPCOUNTRY' => 'FR'], '', false), 'FR');
+expect('default GEOIP header', bumperchat_default_country(['GEOIP_COUNTRY_CODE' => 'DE'], '', false), 'DE');
+expect('default MM header', bumperchat_default_country(['MM_COUNTRY_CODE' => 'IT'], '', false), 'IT');
+expect('default CF unknown falls through', bumperchat_default_country(['HTTP_CF_IPCOUNTRY' => 'XX'], 'de-DE', false), 'DE');
+expect('default GB not in list', bumperchat_default_country(['HTTP_CF_IPCOUNTRY' => 'GB'], '', false), 'NL');
+expect('default accept nl-BE uses region', bumperchat_default_country([], 'nl-BE,en;q=0.8', false), 'BE');
+expect('default accept de', bumperchat_default_country([], 'de,en;q=0.5', false), 'DE');
+expect('default empty is NL', bumperchat_default_country([], '', false), 'NL');
+expect('header ignored if not in plate list then accept', bumperchat_default_country(['HTTP_CF_IPCOUNTRY' => 'NO'], 'es-ES', false), 'ES');
+
+
 echo count($countries) . " countries, $n conversions checked, $fail problem(s)\n";
 exit($fail ? 1 : 0);

@@ -7,10 +7,10 @@ Bumperchat is a second front door to 3WordID for licence plates: **chat only**, 
 
 | File | What it does |
 |---|---|
-| `bumperchat/index.php` | Banner "Bumperchat.com", the homepage search box (same `js/3wid_index_2.js` + `3wid_exists.php`, so the lock / car icon and RDW yes/no work the same), four onboarding step cards, and the plate → three words lookup (country dropdown + converter + searchable list of all 27 EU countries, US and Canada). |
-| `bumperchat/claim.php` | Claim flow step 1: choose country. Selecting a country shows that country's plate formatting rules and examples (in the page, also works without JavaScript via "Show rules"). State is stored in the session. |
-| `bumperchat/claim_plate.php` | Step 2: enter the plate number, validate it against the chosen country's rules (same code as `js/bumperchat.js`, also in `php/bumperchat.php`), then check whether the three words are free. |
-| `bumperchat/claim_register.php` | Step 3: register with email + password and an optional mobile number (E.164 + SMS consent, same as before). No login form here. A user who is already logged in skips this step and the plate is claimed immediately. After registration the user is logged in and sent to chat (or to pay if the free month was already used). |
+| `bumperchat/index.php` | Banner "Bumperchat.com", the homepage search box (same `js/3wid_index_2.js` + `3wid_exists.php`, so the lock / car icon and RDW yes/no work the same), four onboarding step cards, and the plate → three words lookup (country dropdown + converter + searchable list of all 27 EU countries, US and Canada). The country dropdown is preselected with `bumperchat_default_country()` (see below). |
+| `bumperchat/claim.php` | Country dropdown and a large licence-plate input on one page. Rules and an example stay visible. The plate is auto-formatted (uppercase, dashes/spaces) and validated live; Next stays off until the plate fits the country (the server checks again on submit). A logged-in user is then claimed immediately; otherwise they go to registration. Works without JavaScript. |
+| `bumperchat/claim_plate.php` | Redirects to `claim.php`, keeping country, plate, region and words query parameters (old links). |
+| `bumperchat/claim_register.php` | Register with email + password and an optional mobile number (E.164 + SMS consent). The confirmed plate is shown read-only, with an Edit link back to `claim.php`. No login form here. A user who is already logged in skips this step and the plate is claimed immediately. After registration the user is logged in and sent to chat (or to pay if the free month was already used). |
 | `bumperchat/login.php` | Top-right email + password login, with an optional "Stay logged in" checkbox. After login, return to the claim flow or to chat. |
 | `bumperchat/chat.php` | "My chats": the user's 3WordIDs with their message counts; "Open chat" opens the existing chat (`3wid_list_messages.php`). Shows the status of the plate they came for and a box to message another car. |
 | `bumperchat/logout.php` | Log out (also deletes the remember-me cookie), back to the Bumperchat page. |
@@ -25,9 +25,9 @@ Bumperchat is a second front door to 3WordID for licence plates: **chat only**, 
   `botcheck_failed()`) and CSRF token, and `establish_user_session()` for the login itself.
 - **Exists check**: `db_3wordid_exists_status()`; the per-session limit lives in
   `exists_check_allowed()` (php/functions.php) so the search box and the claim flow share one counter.
-- **Plate validation**: `bumperchat_plate_to_words()` in `php/bumperchat.php` is the PHP equivalent of
-  `plateToWords()` in `js/bumperchat.js`. Both are checked against `plate_formats.json` by the tests
-  in `tools/`.
+- **Plate validation and formatting**: `bumperchat_plate_to_words()` / `bumperchat_format_plate()` in
+  `php/bumperchat.php` match `plateToWords()` / `formatPlate()` in `js/bumperchat.js`. Tests in `tools/`
+  check them against `plate_formats.json`.
 - **RDW**: `car_plate_pattern()` / `car_plate_known()`: yes/no only, never make or colour.
 - **Rules for the 3WordID itself**: `wid_threeword_error()` / `user_is_paying()` (digits = paid account).
 - **Privacy consent**: `chat.php` sends users without consent to `3wid_privacy_consent.php` (same as `3wid_list.php`).
@@ -75,7 +75,7 @@ Upload every file in the list below. A missing include is enough for a blank HTT
 
 **Changed (this change):**
 - `bumperchat/index.php`
-- `bumperchat/claim.php` (now only step 1, choose country)
+- `bumperchat/claim.php` (country + plate on one page)
 - `bumperchat/chat.php`
 - `bumperchat/pay.php`
 - `bumperchat/pay_return.php`
@@ -168,3 +168,53 @@ harmful: login still works as a normal session.
 Google login does not set this cookie (there is no checkbox on that screen).
 PHP 8 is required (`str_starts_with` is already used in `php/notify.php`; the new
 code uses typed arguments and `hash_equals`).
+
+## Default country (IP, headers, language)
+
+The homepage converter and `claim.php` preselect a country with
+`bumperchat_default_country()`. The visitor can always change it. A code is
+used only when it exists in `plate_formats.json`. The lookup is **server-side
+only**: the IP is never sent to a third-party API from the browser, and it is
+not stored or logged.
+
+Order:
+
+1. **Server headers that already contain a country** (no extra lookup):
+   `CF-IPCountry` (`HTTP_CF_IPCOUNTRY`), `GEOIP_COUNTRY_CODE`,
+   `MM_COUNTRY_CODE` (and the `HTTP_*` / `GEOIP2_*` aliases). Cloudflare’s
+   `XX` (unknown) and `T1` (Tor) are ignored.
+2. **Local IP-to-country database**, if configured: the existing
+   `GEOIP_COUNTRY_DB` path in `login/config.php` (pure-PHP MaxMind/DB-IP
+   `.mmdb` reader in `php/geoip.php`, same as car chat) or the legacy PHP
+   `geoip` extension. See `docs/CAR_CHAT.md` for how to install a monthly
+   DB-IP or GeoLite2 Country file. That file is not in the repo.
+3. **Accept-Language**: a region subtag first (`nl-NL` → NL, `nl-BE` → BE,
+   `en-US` → US), otherwise a language code that is also a country in the
+   plate list (`de` → DE).
+4. **NL**.
+
+### What works on a Plesk / Apache host
+
+- **If the site is behind Cloudflare** (common with Plesk): `CF-IPCountry` is
+  set automatically. This is the easiest option and needs no server setup.
+- **If there is no Cloudflare**: the most reliable option on a normal Plesk
+  box is the **local `.mmdb` file** already documented for car chat. In
+  `login/config.php` (not in the repo) add:
+  `define('GEOIP_COUNTRY_DB', '/home/USER/geoip/country.mmdb');`
+  and place a DB-IP “IP to Country Lite” or MaxMind GeoLite2 Country file
+  there. No Apache module and no Composer package are required.
+- **Optional Apache modules** on Plesk: `mod_maxminddb` or `mod_geoip` can
+  set `MM_COUNTRY_CODE` / `GEOIP_COUNTRY_CODE` for every request. That needs
+  the module installed by the host and a country database on disk. Only do
+  this if you already use those modules.
+- **Without any of the above**, the dropdown falls back to the browser
+  language region, then to the Netherlands. That still works; it is just
+  less precise for visitors abroad who use an English browser.
+
+Incoming `?words=` (or `?country=` / `?plate=`) from the homepage converter
+or an old link still prefill the form. When the three words start with a
+country or US/CA region prefix (`e 1234 bcd`, `tx abc 1234`), that country
+is preselected and the rest is shown as the plate. A three-word plate
+without a prefix (`ab 123 c`) is filled into the plate field of the default
+country, not treated as a Canadian province.
+
