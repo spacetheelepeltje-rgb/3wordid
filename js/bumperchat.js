@@ -123,7 +123,10 @@
             }
             if (useBtn) {
                 useBtn.hidden = !words;
-                useBtn.setAttribute('href', claimBase + '?words=' + encodeURIComponent(words));
+                var q = '?country=' + encodeURIComponent(c.code);
+                if (region && region.value) q += '&region=' + encodeURIComponent(region.value);
+                if (plate && plate.value) q += '&plate=' + encodeURIComponent(plate.value);
+                useBtn.setAttribute('href', claimBase + q);
             }
         }
 
@@ -163,4 +166,32 @@
             });
         });
     });
+
+    // Live preview on the claim flow plate step (bumperchat/claim_plate.php)
+    if (root.BC_CLAIM_PLATE) {
+        document.addEventListener('DOMContentLoaded', function () {
+            var data = root.BC_FORMATS || {};
+            var list = data.countries || [];
+            var c = list[0];
+            var plate = $('bcPlate'), region = $('bcRegion'), out = $('bcWords');
+            if (!c || !plate || !out) return;
+            function tr2(key, fallback) { return (root.T3 && root.T3[key]) || fallback; }
+            function preview() {
+                var words = plate.value.trim() !== '' ? plateToWords(c, plate.value, region && region.value) : '';
+                if (plate.value.trim() === '') {
+                    out.textContent = tr2('bc_type_plate', 'Type your plate to see its three words.');
+                    out.classList.remove('is-ok', 'is-bad');
+                } else if (words) {
+                    out.textContent = words;
+                    out.classList.add('is-ok'); out.classList.remove('is-bad');
+                } else {
+                    out.textContent = tr2('bc_no_fit', 'This plate does not fit the rule. Type it as printed, with spaces or dashes between the groups.');
+                    out.classList.add('is-bad'); out.classList.remove('is-ok');
+                }
+            }
+            plate.addEventListener('input', preview);
+            if (region) region.addEventListener('change', preview);
+            preview();
+        });
+    }
 })(typeof window !== 'undefined' ? window : globalThis);

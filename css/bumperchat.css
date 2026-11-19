@@ -109,3 +109,19 @@
 .bc-check-row a { color: var(--navy); }
 .bc-price { font-size: 20px; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 8px; }
 .bc-trial { background: #ecfdf3; color: #16794A; }
+
+/* Multi-step claim flow */
+.bc-flow { list-style: none; display: flex; gap: 8px 18px; flex-wrap: wrap; margin: 0 0 18px; padding: 0; font-size: 13px; font-weight: 600; color: var(--muted); }
+.bc-flow-step a { color: var(--navy); text-decoration: none; }
+.bc-flow-step a:hover { text-decoration: underline; }
+.bc-flow-step.is-current span { color: var(--navy); }
+.bc-flow-step.is-current span::after { content: ""; }
+.bc-continue { margin: 8px 0 0; }
+.bc-country-rules[hidden] { display: none !important; }
+.bc-country-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
+.bc-wrap-narrow { max-width: 520px; }
+.bc-result { margin: 12px 0 16px; }
+
+@media (max-width: 800px) {
+  .bc-flow { font-size: 12px; }
+}

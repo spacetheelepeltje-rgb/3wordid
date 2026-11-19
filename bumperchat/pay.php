@@ -14,7 +14,8 @@ header('X-Frame-Options: DENY');
 $user = current_user_from_session($conn);
 if (!$user) {
     $words = bumperchat_normalize_words((string) ($_GET['words'] ?? $_POST['words'] ?? ''));
-    header('Location: claim.php' . ($words !== '' ? ('?words=' . rawurlencode($words)) : '') . '#login');
+    $next = 'pay.php' . ($words !== '' ? ('?words=' . rawurlencode($words)) : '');
+    header('Location: login.php?next=' . rawurlencode($next));
     exit;
 }
 
@@ -78,7 +79,7 @@ $days = $wid ? plate_days_remaining($wid) : null;
     <link rel="icon" type="image/x-icon" href="../img/favicon.ico">
     <link href="/css/inter.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/newstyle.css">
-    <link rel="stylesheet" href="../css/bumperchat.css?v=2">
+    <link rel="stylesheet" href="../css/bumperchat.css?v=3">
 </head>
 <body class="bc-body">
     <?php echo bumperchat_header($user); ?>

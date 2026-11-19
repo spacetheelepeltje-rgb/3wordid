@@ -139,8 +139,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $new_password = (string)($_POST['new_password'] ?? '');
+    $password_changed = false;
     if ($new_password !== '' && array_key_exists('password_hash', $existing)) {
         $changes['password_hash'] = password_hash($new_password, PASSWORD_DEFAULT);
+        $password_changed = true;
     }
 
     if ($errors) {
@@ -149,6 +151,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $note = t_plain('ue.nothing');
     } else {
         $ok = db_3wordid_admin_update_user($edit_id, $changes, $editable);
+        if ($ok && $password_changed && function_exists('remember_revoke_user')) {
+            remember_revoke_user($conn, $edit_id);
+        }
         $note = $ok ? t_plain('ue.saved') : t_plain('ue.failed');
     }
 

@@ -14,7 +14,7 @@ header('X-Robots-Tag: noindex, nofollow');
 
 $user = current_user_from_session($conn);
 if (!$user) {
-    header('Location: claim.php#login');
+    header('Location: login.php?next=chat.php');
     exit;
 }
 // Same rule as 3wid_list.php: privacy consent first (that page comes back here afterwards)
@@ -63,7 +63,7 @@ if ($wanted !== '') {
     <link rel="icon" type="image/x-icon" href="../img/favicon.ico">
     <link href="/css/inter.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/newstyle.css">
-    <link rel="stylesheet" href="../css/bumperchat.css?v=2">
+    <link rel="stylesheet" href="../css/bumperchat.css?v=3">
 </head>
 <body class="bc-body">
     <?php echo bumperchat_header($user); ?>

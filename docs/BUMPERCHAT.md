@@ -8,20 +8,26 @@ Bumperchat is a second front door to 3WordID for licence plates: **chat only**, 
 | File | What it does |
 |---|---|
 | `bumperchat/index.php` | Banner "Bumperchat.com", the homepage search box (same `js/3wid_index_2.js` + `3wid_exists.php`, so the lock / car icon and RDW yes/no work the same), four onboarding step cards, and the plate → three words lookup (country dropdown + converter + searchable list of all 27 EU countries, US and Canada). |
-| `bumperchat/claim.php` | Type the three words, see if the 3WordID is free (same lookup and the same per-session limit as the search box), then create an account (email + password) or log in. |
+| `bumperchat/claim.php` | Claim flow step 1: choose country. Selecting a country shows that country's plate formatting rules and examples (in the page, also works without JavaScript via "Show rules"). State is stored in the session. |
+| `bumperchat/claim_plate.php` | Step 2: enter the plate number, validate it against the chosen country's rules (same code as `js/bumperchat.js`, also in `php/bumperchat.php`), then check whether the three words are free. |
+| `bumperchat/claim_register.php` | Step 3: register with email + password and an optional mobile number (E.164 + SMS consent, same as before). No login form here. A user who is already logged in skips this step and the plate is claimed immediately. After registration the user is logged in and sent to chat (or to pay if the free month was already used). |
+| `bumperchat/login.php` | Top-right email + password login, with an optional "Stay logged in" checkbox. After login, return to the claim flow or to chat. |
 | `bumperchat/chat.php` | "My chats": the user's 3WordIDs with their message counts; "Open chat" opens the existing chat (`3wid_list_messages.php`). Shows the status of the plate they came for and a box to message another car. |
-| `bumperchat/logout.php` | Log out, back to the Bumperchat page. |
+| `bumperchat/logout.php` | Log out (also deletes the remember-me cookie), back to the Bumperchat page. |
 | `bumperchat/plate_formats.json` | The plate rules (see `docs/PLATE_FORMATS.md`). |
 
 ## What is reused (no copied logic)
 
-- **Accounts**: `php/email_auth.php` now holds the email + password checks and the `INSERT INTO google_users`
-  that were inside `login/email_register.php` / `login/email_login.php`. Those two pages and `claim.php` call
-  the same functions: md5 email, `password_hash()`, at least 10 characters, same error texts. No verification
-  email is sent (same as before). `claim.php` uses the same bot check (`botcheck_fields()` / `botcheck_failed()`)
-  and CSRF token, and `establish_user_session()` for the login itself.
-- **Exists check**: `db_3wordid_exists_status()`; the per-session limit moved from `3wid_exists.php` into
-  `exists_check_allowed()` (php/functions.php) so the search box and `claim.php` share one counter.
+- **Accounts**: `php/email_auth.php` holds the email + password checks and the `INSERT INTO google_users`
+  used by `login/email_register.php`, `login/email_login.php`, `bumperchat/login.php` and
+  `bumperchat/claim_register.php`. md5 email, `password_hash()`, at least 10 characters, same error texts.
+  No verification email is sent. Registration uses the same bot check (`botcheck_fields()` /
+  `botcheck_failed()`) and CSRF token, and `establish_user_session()` for the login itself.
+- **Exists check**: `db_3wordid_exists_status()`; the per-session limit lives in
+  `exists_check_allowed()` (php/functions.php) so the search box and the claim flow share one counter.
+- **Plate validation**: `bumperchat_plate_to_words()` in `php/bumperchat.php` is the PHP equivalent of
+  `plateToWords()` in `js/bumperchat.js`. Both are checked against `plate_formats.json` by the tests
+  in `tools/`.
 - **RDW**: `car_plate_pattern()` / `car_plate_known()`: yes/no only, never make or colour.
 - **Rules for the 3WordID itself**: `wid_threeword_error()` / `user_is_paying()` (digits = paid account).
 - **Privacy consent**: `chat.php` sends users without consent to `3wid_privacy_consent.php` (same as `3wid_list.php`).
@@ -29,11 +35,13 @@ Bumperchat is a second front door to 3WordID for licence plates: **chat only**, 
 ## Chat only, session flag (schema was added later for billing)
 
 A Bumperchat login is marked **in the session only**: `$_SESSION['bumperchat'] = ['words' => ..., 'at' => ...]`
-(set by `claim.php` right after `establish_user_session()`). With that flag `3wid_list.php` redirects to
-`bumperchat/chat.php`, so every existing "My 3WordIDs" / back link and every redirect to the list
-(chat top bar, delete, toggle, consent) lands on the Bumperchat chats page instead. Any normal login
-(Google, `/login/email_login.php`, register) clears the flag, so the same account logging in on 3wordid.com
-gets the normal list. No new column, so nothing to add to `google_users_deleted`.
+(set by `bumperchat/login.php` and `claim_register.php` right after `establish_user_session()`). With that
+flag `3wid_list.php` redirects to `bumperchat/chat.php`, so every existing "My 3WordIDs" / back link and
+every redirect to the list (chat top bar, delete, toggle, consent) lands on the Bumperchat chats page
+instead. Any normal login (Google, `/login/email_login.php`, register) clears the flag, so the same
+account logging in on 3wordid.com gets the normal list. No new column, so nothing to add to
+`google_users_deleted`. A remember-me cookie issued from `bumperchat/login.php` restores this flag
+when the session is gone (its `context` column is `bumperchat`).
 
 If a permanent "Bumperchat account" is wanted later (for example to always hide the list), add a column such as
 `google_users.signup_source` **and the same column to `google_users_deleted`**.
@@ -45,18 +53,54 @@ If a permanent "Bumperchat account" is wanted later (for example to always hide 
 2. **claim.php now creates the plate 3WordID** (with the trial). Car chat is still turned on from the edit page
    with the existing RDW + Dutch IP check; one-click Car chat is still later work.
 3. **Who owns a plate**: only Dutch plates are checked (RDW: exists yes/no). Nobody checks the claimer is the owner.
-4. **Login**: email + password only on the Bumperchat pages. Google login works on 3wordid.com, but then lands on the
-   normal list (not marked as Bumperchat).
+4. **Login**: email + password only on the Bumperchat pages (top-right corner, `bumperchat/login.php`).
+   There is no login form inside the claim flow. Google login works on 3wordid.com, but then lands on the
+   normal list (not marked as Bumperchat). Optional "Stay logged in" is a 30-day remember-me cookie,
+   also on `/login/email_login.php`. The PHP session cookie stays a browser session; the remember-me
+   cookie starts a new session when the visitor comes back.
 5. **Canada prefix is `cdn`**, not `ca` (California's code). Cross-country plate collisions are possible, see PLATE_FORMATS.md.
 
 ## Upload
 
-New: `bumperchat/` (all 5 files), `php/bumperchat.php`, `php/email_auth.php`, `js/bumperchat.js`, `css/bumperchat.css`.
-Changed: `php/functions.php`, `php/session_boot.php`, `3wid_exists.php`, `3wid_list.php`, `index.php`,
-`js/3wid_index_2.js`, `login/email_login.php`, `login/email_register.php`, `lang/en.php`, `lang/nl.php`,
-`lang/fr.php`, `lang/es.php`. Not needed on the server: `docs/*`, `tools/test_bumperchat_plates.js`.
-SQL to run once: `sql/2026-11-18_bumperchat_trial_payments.sql`. Upload `php/functions.php` together with
-`php/bumperchat.php`, `php/email_auth.php`, `php/plate_billing.php`, `php/notify.php` and `php/payments/`.
+Upload every file in the list below. A missing include is enough for a blank HTTP 500
+(that is what happened on `claim.php` after the trial/payment work if
+`php/plate_billing.php`, `php/notify.php` or `php/payments/` did not go up).
+
+**New (this change):**
+- `bumperchat/claim_plate.php`
+- `bumperchat/claim_register.php`
+- `bumperchat/login.php`
+- `php/remember.php`
+- `sql/2026-11-18_auth_remember_tokens.sql` (run once; see below)
+
+**Changed (this change):**
+- `bumperchat/index.php`
+- `bumperchat/claim.php` (now only step 1, choose country)
+- `bumperchat/chat.php`
+- `bumperchat/pay.php`
+- `bumperchat/pay_return.php`
+- `php/bumperchat.php`
+- `php/session_boot.php`
+- `login/email_login.php`
+- `3wid_user_edit.php`
+- `3wid_list.php`
+- `js/bumperchat.js`
+- `css/bumperchat.css`
+- `lang/en.php`, `lang/nl.php`, `lang/fr.php`, `lang/es.php`
+
+**Also required on the server if they are not there yet** (trial, Mollie, phone; from PR #64):
+- `bumperchat/logout.php`, `bumperchat/plate_formats.json`
+- `php/functions.php`, `php/email_auth.php`, `php/plate_billing.php`, `php/notify.php`
+- `php/payments/config.php`, `php/payments/mollie.php`, `php/payments/orders.php`
+- `payments/webhook.php` (and the other files in `payments/` if you use live payments)
+- `login/payments.config.example.php` (copy to `login/payments.config.php` on the server; do not put secrets in the repo)
+- `sql/2026-11-18_bumperchat_trial_payments.sql` (run once if you have not already)
+
+Not needed on the web server: `docs/*`, `tools/*`.
+
+SQL to run once, in this order if neither has been run:
+1. `sql/2026-11-18_bumperchat_trial_payments.sql` (trial + payments + phone; skip if already run)
+2. `sql/2026-11-18_auth_remember_tokens.sql` (stay logged in; until this runs, the checkbox is shown but login stays a browser session)
 
 ## Trial, payment and SMS consent (added 18 November 2026)
 
@@ -88,5 +132,39 @@ The four step cards are in `bumperchat/index.php`, in the section
 `#how-it-works`, inside the clearly marked `<!-- EDIT THE ONBOARDING CARDS HERE -->`
 block (around the `<div class="steps bc-steps">`). Their wording comes from
 `lang/*.php` keys `bc.step1_title` / `_text` / `_link` through `bc.step4_title`
-/ `_text`. This work does not change those card texts; edit them yourself if
-you want the trial or the price mentioned on the homepage.
+/ `_text`.
+
+Two strings on the landing page were changed on request:
+- `bc.step3_title` (onboarding card 3 title): "Add your email and a password" /
+  "Voeg je e-mail en een wachtwoord toe" is now "Register" / "Registreer"
+  (FR "S’inscrire", ES "Registrarse"). The card body (`bc.step3_text`) was left as it is.
+- `bc.claim_link` (hero button under the search box, not a card): "Claim this plate" /
+  "Claim dit kenteken" is now "This is my license plate!" / "Dit is mijn kenteken!"
+  (FR "Voici ma plaque !", ES "¡Esta es mi matrícula!").
+  The similar heading `bc.claim_h1` / `bc.claim_title` ("Claim your plate" /
+  "Claim je kenteken") is the old claim-page title and was left as it is; the new
+  flow pages have their own titles ("Choose country", and so on).
+
+The "Log in" link on card 3 (`bc.step3_link`) now goes to `login.php` (top-right
+login), not into a login form on the claim page. Edit the other card texts yourself
+if you want the trial or the price mentioned on the homepage.
+
+## Stay logged in (added 18 November 2026)
+
+`login/email_login.php` and `bumperchat/login.php` have an optional "Stay logged in"
+/ "Ingelogd blijven" checkbox. It uses a separate cookie `3WIDREM` (HttpOnly,
+Secure on HTTPS, SameSite=Lax, 30 days) with a random selector + validator. Only
+the SHA-256 hash of the validator is stored in `auth_remember_tokens`. The token
+is rotated on each use, deleted on logout, and all of a user's tokens are deleted
+when their password is changed in `3wid_user_edit.php`.
+
+The PHP session cookie (`3WIDSESS`) stays a browser session (`lifetime` 0). When
+that session is gone, `current_user_from_session()` calls `remember_resume_session()`
+in `php/remember.php` (loaded from `php/session_boot.php`) and
+`establish_user_session()` starts a fresh session. Until
+`sql/2026-11-18_auth_remember_tokens.sql` has been run, the checkbox does nothing
+harmful: login still works as a normal session.
+
+Google login does not set this cookie (there is no checkbox on that screen).
+PHP 8 is required (`str_starts_with` is already used in `php/notify.php`; the new
+code uses typed arguments and `hash_equals`).
