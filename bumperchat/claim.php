@@ -267,6 +267,8 @@ $example = $chosen ? bumperchat_plate_example($chosen) : '';
     'bc_suggest'        => 'bc.suggest_country',
     'bc_choose_region'  => 'bc.choose_region_ph',
     'bc_err_region'     => 'bc.err_region',
+    'bc_taken'          => 'bc.status_taken',
+    'bc_taken_p'        => 'bc.status_taken_p',
 ]); ?>
 <script>
     window.BC_LANG = <?php echo json_encode(current_lang()); ?>;
@@ -274,6 +276,6 @@ $example = $chosen ? bumperchat_plate_example($chosen) : '';
     window.BC_CLAIM_FORM = true;
     window.BC_DEFAULT_COUNTRY = <?php echo json_encode($default_country); ?>;
 </script>
-<script src="../js/bumperchat.js?v=3"></script>
+<script src="../js/bumperchat.js?v=5"></script>
 </body>
 </html>

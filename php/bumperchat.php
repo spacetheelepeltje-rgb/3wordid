@@ -431,11 +431,16 @@ function bumperchat_format_plate(array $entry, string $raw): string
         }
         return implode($sep, $parts);
     }
-    $runs = bumperchat_plate_runs($compact);
-    if (count($runs) >= 2) {
-        return implode($sep, $runs);
+    // Respect separators the user typed (92-ZD-NG): each typed group stays a group, and
+    // inside a group we still split where letters and digits change (92ZD -> 92-ZD).
+    // Same logic as formatPlate() in js/bumperchat.js.
+    $parts = [];
+    foreach (preg_split('/[^A-Z0-9]+/', strtoupper($raw), -1, PREG_SPLIT_NO_EMPTY) as $g) {
+        foreach (bumperchat_plate_runs($g) as $r) {
+            $parts[] = $r;
+        }
     }
-    return $compact;
+    return $parts ? implode($sep, $parts) : $compact;
 }
 
 /** First example plate of a country, without a "STATE|" prefix. */
@@ -549,7 +554,7 @@ function bumperchat_prefill_from_words(string $words): array
             if (isset($common_first[$first])) {
                 break 2;
             }
-            $rest = implode('', array_slice($parts, 1));
+            $rest = implode(' ', array_slice($parts, 1));
             return [
                 'country' => $code,
                 'region'  => strtoupper((string) $reg),
@@ -581,7 +586,7 @@ function bumperchat_prefill_from_words(string $words): array
         return [
             'country' => (string) $c['code'],
             'region'  => $region,
-            'plate'   => bumperchat_format_plate($c, implode('', $rest)),
+            'plate'   => bumperchat_format_plate($c, implode(' ', $rest)),
             'words'   => $words,
         ];
     }
