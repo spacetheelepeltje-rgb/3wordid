@@ -23,19 +23,22 @@ $state = bumperchat_claim_state();
 $country = bumperchat_country((string) ($state['country'] ?? ''));
 $words = bumperchat_normalize_words((string) ($state['words'] ?? ''));
 if (!$country || $words === '') {
-    header('Location: ' . ($country ? 'claim_plate.php' : 'claim.php'));
+    header('Location: claim.php');
     exit;
 }
 
 // Recheck that the words are still free (and still match the stored plate).
 $recalc = bumperchat_plate_to_words($country, (string) ($state['plate'] ?? ''), (string) ($state['region'] ?? ''));
 if ($recalc !== $words) {
-    header('Location: claim_plate.php');
+    header('Location: claim.php');
     exit;
 }
 
 $error = '';
-$email_value = '';
+$email_value = (string) ($_POST['email'] ?? '');
+if ($email_value === '' && function_exists('get_session_email')) {
+    $email_value = (string) (get_session_email() ?? '');
+}
 $phone_value = (string) ($_POST['notify_phone'] ?? '');
 $consent_value = !empty($_POST['notify_sms_consent']);
 
@@ -93,16 +96,35 @@ if ($exists && $user) {
     <link rel="icon" type="image/x-icon" href="../img/favicon.ico">
     <link href="/css/inter.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/newstyle.css">
-    <link rel="stylesheet" href="../css/bumperchat.css?v=3">
+    <link rel="stylesheet" href="../css/bumperchat.css?v=4">
 </head>
 <body class="bc-body">
     <?php echo bumperchat_header($user); ?>
 
     <main class="bc-wrap">
         <div class="bc-eyebrow">Bumperchat.com</div>
-        <?php echo bumperchat_flow_steps(3); ?>
         <h1 class="bc-h1"><?php echo t('bc.reg_step_h1'); ?></h1>
         <p class="bc-lede"><?php echo t('bc.reg_step_sub'); ?></p>
+
+        <div class="bc-card bc-confirmed">
+            <div class="bc-confirmed-head">
+                <h2><?php echo t('bc.confirmed_plate'); ?></h2>
+                <a class="bc-textlink" href="claim.php"><?php echo t('bc.edit_plate'); ?></a>
+            </div>
+            <?php echo bumperchat_plate_face_html($country, [
+                'value' => bumperchat_format_plate($country, (string) ($state['plate'] ?? '')),
+                'region' => (string) ($state['region'] ?? ''),
+                'readonly' => true,
+                'id' => 'bcPlateDone',
+            ]); ?>
+            <p class="bc-confirmed-meta"><?php echo t('bc.confirmed_words', ['words' => $words]); ?>
+                · <?php echo bc_e(bumperchat_text($country['name'])); ?><?php
+                $reg = (string) ($state['region'] ?? '');
+                if ($reg !== '') {
+                    echo ' · ' . bc_e($reg);
+                }
+            ?></p>
+        </div>
 
         <div class="bc-card bc-status <?php echo $exists ? 'is-taken' : 'is-free'; ?>" role="status">
             <?php if ($owned): ?>
@@ -160,7 +182,7 @@ if ($exists && $user) {
         </form>
         <?php endif; ?>
 
-        <p class="bc-back"><a href="claim_plate.php"><?php echo t('bc.back_plate'); ?></a></p>
+        <p class="bc-back"><a href="claim.php"><?php echo t('bc.edit_plate'); ?></a></p>
     </main>
 
     <footer class="site-footer">

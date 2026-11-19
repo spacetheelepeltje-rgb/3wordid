@@ -67,9 +67,69 @@
         return out.join(' ').toLowerCase();
     }
 
+    function plateSeparator(entry) {
+        var format = String((entry && entry.format) || '').replace(/\[[^\]]*\]/g, '');
+        return format.indexOf('-') !== -1 ? '-' : ' ';
+    }
+
+    function formatPlate(entry, raw) {
+        var compact = String(raw || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+        if (!compact) return '';
+        var sep = plateSeparator(entry || {});
+        if (entry && entry.fixed && entry.fixed.length) {
+            var parts = [], at = 0, i;
+            for (i = 0; i < entry.fixed.length; i++) {
+                var n = parseInt(entry.fixed[i], 10);
+                if (!n || at >= compact.length) break;
+                parts.push(compact.substr(at, n));
+                at += n;
+            }
+            if (at < compact.length) parts.push(compact.substr(at));
+            return parts.join(sep);
+        }
+        var r = runs(compact);
+        return r.length >= 2 ? r.join(sep) : compact;
+    }
+
+    function plateExample(entry) {
+        var ex = (entry && entry.examples && entry.examples[0] && entry.examples[0].plate) || (entry && entry.format) || '';
+        return String(ex).indexOf('|') !== -1 ? String(ex).split('|')[1] : String(ex);
+    }
+
+    function plateStyle(code) {
+        code = String(code || '').toUpperCase();
+        if (code === 'NL') return 'nl';
+        if (code === 'US' || code === 'CA') return 'na';
+        return 'eu';
+    }
+
+    function inferCountry(list, plate, region) {
+        var hits = [];
+        if (!String(plate || '').trim()) return '';
+        (list || []).forEach(function (c) {
+            if (c.mode === 'region' && !region) return;
+            if (plateToWords(c, plate, region || '')) hits.push(c.code);
+        });
+        return hits.length === 1 ? hits[0] : '';
+    }
+
+    function setFormattedValue(input, formatted) {
+        if (!input || input.value === formatted) return;
+        var before = String(input.value.slice(0, input.selectionStart || 0)).replace(/[^A-Za-z0-9]/g, '').length;
+        input.value = formatted;
+        var seen = 0, i = 0;
+        for (; i < formatted.length; i++) {
+            if (/[A-Z0-9]/.test(formatted[i])) seen++;
+            if (seen >= before) { i++; break; }
+        }
+        try { input.setSelectionRange(i, i); } catch (err) {}
+    }
+
     root.plateToWords = plateToWords;
+    root.formatPlate = formatPlate;
+    root.inferCountry = inferCountry;
     if (typeof module !== 'undefined' && module.exports) {
-        module.exports = { plateToWords: plateToWords };
+        module.exports = { plateToWords: plateToWords, formatPlate: formatPlate, inferCountry: inferCountry };
         return;
     }
 
@@ -78,6 +138,7 @@
     function $(id) { return document.getElementById(id); }
 
     document.addEventListener('DOMContentLoaded', function () {
+        if (root.BC_CLAIM_FORM) { initClaimForm(); return; }
         var data = root.BC_FORMATS || {};
         var list = data.countries || [];
         var lang = root.BC_LANG || 'en';
@@ -167,31 +228,163 @@
         });
     });
 
-    // Live preview on the claim flow plate step (bumperchat/claim_plate.php)
-    if (root.BC_CLAIM_PLATE) {
-        document.addEventListener('DOMContentLoaded', function () {
-            var data = root.BC_FORMATS || {};
-            var list = data.countries || [];
-            var c = list[0];
-            var plate = $('bcPlate'), region = $('bcRegion'), out = $('bcWords');
-            if (!c || !plate || !out) return;
-            function tr2(key, fallback) { return (root.T3 && root.T3[key]) || fallback; }
-            function preview() {
-                var words = plate.value.trim() !== '' ? plateToWords(c, plate.value, region && region.value) : '';
-                if (plate.value.trim() === '') {
-                    out.textContent = tr2('bc_type_plate', 'Type your plate to see its three words.');
+    function initClaimForm() {
+        var data = root.BC_FORMATS || {};
+        var list = data.countries || [];
+        var lang = root.BC_LANG || 'en';
+        var byCode = {};
+        list.forEach(function (c) { byCode[c.code] = c; });
+        function txt(o) { return (o && (o[lang] || o.en)) || ''; }
+        function trv(key, fallback, vars) {
+            var s = tr(key, fallback);
+            Object.keys(vars || {}).forEach(function (k) {
+                s = s.split('{' + k + '}').join(vars[k]);
+            });
+            return s;
+        }
+
+        var select = $('bcCountry'), region = $('bcRegion'), regionWrap = $('bcRegionWrap');
+        var plate = $('bcPlate'), out = $('bcWords'), hint = $('bcPlateHint');
+        var shell = $('bcPlateShell'), cc = $('bcPlateCc'), legend = $('bcPlateLegend');
+        var next = $('bcNext'), showBtn = $('bcShowCountry'), suggest = $('bcSuggest');
+
+        if (showBtn) showBtn.hidden = true;
+
+        function fillRegions(c, keep) {
+            if (!region || !regionWrap) return;
+            var prev = keep || region.value;
+            region.innerHTML = '';
+            var opt0 = document.createElement('option');
+            opt0.value = '';
+            opt0.textContent = tr('bc_choose_region', 'Select a state or province');
+            region.appendChild(opt0);
+            if (!c || !c.regions) { regionWrap.hidden = true; return; }
+            regionWrap.hidden = false;
+            Object.keys(c.regions).forEach(function (k) {
+                var o = document.createElement('option');
+                o.value = k; o.textContent = k + ' \u00b7 ' + c.regions[k];
+                if (k === prev) o.selected = true;
+                region.appendChild(o);
+            });
+        }
+
+        function applyStyle(c) {
+            if (!shell) return;
+            var code = c ? c.code : '';
+            shell.setAttribute('data-style', plateStyle(code));
+            shell.setAttribute('data-code', code);
+            shell.classList.remove('is-eu', 'is-nl', 'is-na');
+            shell.classList.add('is-' + plateStyle(code));
+            if (cc) cc.textContent = c ? (c.strip || c.code) : '';
+            if (legend) legend.textContent = (c && c.regions && region && region.value) ? region.value : '';
+            if (plate) plate.setAttribute('placeholder', c ? plateExample(c) : '');
+        }
+
+        function revealRules(code) {
+            document.querySelectorAll('.bc-country-rules').forEach(function (el) {
+                var on = el.getAttribute('data-country') === code && code !== '';
+                el.hidden = !on;
+                el.classList.toggle('is-on', on);
+            });
+        }
+
+        function current() { return byCode[select && select.value]; }
+
+        function validate() {
+            var c = current();
+            var formatted = c && plate ? formatPlate(c, plate.value) : (plate ? plate.value.toUpperCase().replace(/[^A-Z0-9]/g, '') : '');
+            if (plate && formatted !== plate.value) setFormattedValue(plate, formatted);
+            var words = (c && plate && plate.value.trim() !== '') ? plateToWords(c, plate.value, region && region.value) : '';
+            var needsRegion = !!(c && c.regions && region && !region.value);
+            var ok = !!words && !needsRegion;
+
+            if (shell) {
+                shell.classList.toggle('is-ok', ok);
+                shell.classList.toggle('is-bad', !!(plate && plate.value.trim() !== '' && !ok));
+            }
+            if (out) {
+                if (!plate || plate.value.trim() === '') {
+                    out.textContent = tr('bc_type_plate', 'Type your plate to see its three words.');
                     out.classList.remove('is-ok', 'is-bad');
-                } else if (words) {
+                } else if (ok) {
                     out.textContent = words;
                     out.classList.add('is-ok'); out.classList.remove('is-bad');
-                } else {
-                    out.textContent = tr2('bc_no_fit', 'This plate does not fit the rule. Type it as printed, with spaces or dashes between the groups.');
+                } else if (needsRegion) {
+                    out.textContent = tr('bc_err_region', 'Choose a state or province.');
+                    out.classList.add('is-bad'); out.classList.remove('is-ok');
+                } else if (c) {
+                    out.textContent = trv('bc_plate_invalid', 'This does not look like a {country} plate. {country} plates look like {example}.', {
+                        country: txt(c.name) || c.code,
+                        example: plateExample(c)
+                    });
                     out.classList.add('is-bad'); out.classList.remove('is-ok');
                 }
             }
-            plate.addEventListener('input', preview);
-            if (region) region.addEventListener('change', preview);
-            preview();
-        });
+            if (next) next.disabled = !ok;
+
+            if (suggest) {
+                suggest.hidden = true;
+                suggest.textContent = '';
+                if (plate && plate.value.trim() !== '' && !ok) {
+                    var guess = inferCountry(list, plate.value, region && region.value);
+                    if (guess && (!c || guess !== c.code)) {
+                        var g = byCode[guess];
+                        suggest.hidden = false;
+                        suggest.innerHTML = '';
+                        suggest.appendChild(document.createTextNode(trv('bc_suggest', 'This looks like a {country} plate. Use {country}?', { country: txt(g && g.name) || guess })));
+                        var btn = document.createElement('button');
+                        btn.type = 'button';
+                        btn.className = 'btn btn-ghost';
+                        btn.textContent = txt(g && g.name) || guess;
+                        btn.addEventListener('click', function () {
+                            if (select) select.value = guess;
+                            fillRegions(byCode[guess], region && region.value);
+                            update();
+                        });
+                        suggest.appendChild(btn);
+                    }
+                } else if (plate && plate.value.trim() !== '' && (!select || !select.value)) {
+                    var auto = inferCountry(list, plate.value, region && region.value);
+                    if (auto && select) {
+                        select.value = auto;
+                        fillRegions(byCode[auto], region && region.value);
+                        update();
+                    }
+                }
+            }
+        }
+
+        function updateHint(c) {
+            if (!hint) return;
+            if (!c) { hint.textContent = ''; return; }
+            hint.textContent = trv('bc_format_inline', 'Format: {format}  ·  e.g. {example}', {
+                format: c.format || '',
+                example: plateExample(c)
+            });
+        }
+
+        function update() {
+            var c = current();
+            revealRules(c ? c.code : '');
+            applyStyle(c);
+            updateHint(c);
+            validate();
+        }
+
+        if (select) {
+            select.addEventListener('change', function () {
+                fillRegions(byCode[select.value]);
+                update();
+                if (plate) plate.focus({ preventScroll: true });
+            });
+        }
+        if (region) region.addEventListener('change', update);
+        if (plate) {
+            plate.addEventListener('input', validate);
+            plate.addEventListener('blur', validate);
+        }
+        fillRegions(current(), region && region.value);
+        update();
     }
+
 })(typeof window !== 'undefined' ? window : globalThis);

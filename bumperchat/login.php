@@ -15,7 +15,7 @@ if ($next === '' || $next === 'login.php') {
     $state = bumperchat_claim_state();
     $next = bumperchat_normalize_words((string) ($state['words'] ?? '')) !== ''
         ? 'claim_register.php'
-        : ((string) ($state['country'] ?? '') !== '' ? 'claim_plate.php' : 'chat.php');
+        : ((string) ($state['country'] ?? '') !== '' ? 'claim.php' : 'chat.php');
 }
 
 $user = current_user_from_session($conn);
@@ -68,7 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="icon" type="image/x-icon" href="../img/favicon.ico">
     <link href="/css/inter.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/newstyle.css">
-    <link rel="stylesheet" href="../css/bumperchat.css?v=3">
+    <link rel="stylesheet" href="../css/bumperchat.css?v=4">
 </head>
 <body class="bc-body">
     <?php echo bumperchat_header($user); ?>

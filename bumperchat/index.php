@@ -14,8 +14,8 @@ if (empty($_SESSION['csrf_token'])) {
 
 $formats = bumperchat_formats();
 $countries = $formats['countries'];
-// Default country in the converter: the visitor's language, else the Netherlands
-$default_country = ['nl' => 'NL', 'fr' => 'FR', 'es' => 'ES'][current_lang()] ?? 'NL';
+// Default country: geo header / local GeoIP, else Accept-Language, else NL.
+$default_country = bumperchat_default_country();
 
 function bc_e($s): string { return htmlspecialchars((string) $s, ENT_QUOTES, 'UTF-8'); }
 ?>
@@ -33,7 +33,7 @@ function bc_e($s): string { return htmlspecialchars((string) $s, ENT_QUOTES, 'UT
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link rel="stylesheet" href="../css/newstyle.css">
     <link rel="stylesheet" href="../css/home.css?v=2">
-    <link rel="stylesheet" href="../css/bumperchat.css?v=3">
+    <link rel="stylesheet" href="../css/bumperchat.css?v=4">
 </head>
 <body class="bc-body">
     <?php echo bumperchat_header($user); ?>
@@ -129,7 +129,7 @@ function bc_e($s): string { return htmlspecialchars((string) $s, ENT_QUOTES, 'UT
                 <div class="bc-result">
                     <span class="bc-result-label"><?php echo t('bc.your_words'); ?></span>
                     <output id="bcWords" class="bc-words" for="bcPlate" aria-live="polite"></output>
-                    <a class="btn btn-primary" id="bcUse" href="claim.php" data-claim="claim_plate.php" hidden><?php echo t('bc.use_words'); ?></a>
+                    <a class="btn btn-primary" id="bcUse" href="claim.php" data-claim="claim.php" hidden><?php echo t('bc.use_words'); ?></a>
                 </div>
             </div>
 
@@ -188,7 +188,7 @@ function bc_e($s): string { return htmlspecialchars((string) $s, ENT_QUOTES, 'UT
     window.BC_FORMATS = <?php echo json_encode($formats, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;
 </script>
 <script src="../js/3wid_index_2.js?v=5"></script>
-<script src="../js/bumperchat.js?v=2"></script>
+<script src="../js/bumperchat.js?v=3"></script>
 
 </body>
 </html>

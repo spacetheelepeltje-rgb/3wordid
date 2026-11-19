@@ -1,8 +1,10 @@
 <?php
-// Bumperchat claim flow, step 1: choose the country of the plate.
-// On choice the formatting rules and examples for that country are shown
-// (client-side, and also after a GET submit so it works without JavaScript).
-// Continue stores the country in the session and goes to claim_plate.php.
+// Bumperchat claim: choose the country and type the plate on one page.
+// The country's rules stay visible. The plate field is formatted as the user
+// types, validated live (and again on the server), and Next stays off until
+// the plate fits. A logged-in user then claims immediately; otherwise they
+// go to claim_register.php. Works without JavaScript (Next is then always
+// available and the server validates).
 
 require_once __DIR__ . '/../php/functions.php';
 require_once __DIR__ . '/../login/config.php';
@@ -21,48 +23,118 @@ function bc_e($s): string { return htmlspecialchars((string) $s, ENT_QUOTES, 'UT
 
 $formats = bumperchat_formats();
 $countries = $formats['countries'];
-$default_country = ['nl' => 'NL', 'fr' => 'FR', 'es' => 'ES'][current_lang()] ?? 'NL';
-
+$default_country = bumperchat_default_country();
 $state = bumperchat_claim_state();
-$selected = strtoupper(trim((string) (
-    $_POST['country']
-    ?? $_GET['country']
-    ?? ($state['country'] ?? '')
-)));
+
+$prefill = ['country' => '', 'region' => '', 'plate' => '', 'words' => ''];
+$raw_words = (string) ($_POST['words'] ?? $_GET['words'] ?? $_GET['threewords'] ?? ($state['words'] ?? ''));
+if ($raw_words !== '') {
+    $prefill = bumperchat_prefill_from_words($raw_words);
+}
+
+$selected = strtoupper(trim((string) ($_POST['country'] ?? $_GET['country'] ?? '')));
+if ($selected === '' && $prefill['country'] !== '') {
+    $selected = $prefill['country'];
+}
+if ($selected === '' && !empty($state['country'])) {
+    $selected = strtoupper((string) $state['country']);
+}
 if ($selected === '') {
     $selected = $default_country;
 }
 $chosen = bumperchat_country($selected);
 if (!$chosen) {
-    $selected = '';
+    $selected = $default_country;
+    $chosen = bumperchat_country($selected);
+}
+
+$region = strtoupper(trim((string) ($_POST['region'] ?? $_GET['region'] ?? '')));
+if ($region === '' && $prefill['region'] !== '' && $prefill['country'] === $selected) {
+    $region = $prefill['region'];
+}
+if ($region === '' && !empty($state['region']) && (string) ($state['country'] ?? '') === $selected) {
+    $region = strtoupper((string) $state['region']);
+}
+if ($chosen && !empty($chosen['regions']) && $region !== '' && !isset($chosen['regions'][$region])) {
+    $region = '';
+}
+
+$plate = (string) ($_POST['plate'] ?? $_GET['plate'] ?? '');
+if ($plate === '' && $prefill['plate'] !== '') {
+    $plate = $prefill['plate'];
+}
+if ($plate === '' && !empty($state['plate']) && (string) ($state['country'] ?? '') === $selected) {
+    $plate = (string) $state['plate'];
+}
+if ($chosen && $plate !== '') {
+    $plate = bumperchat_format_plate($chosen, $plate);
 }
 
 $error = '';
+$check = null;
+$check_error = '';
+$words = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+$is_next = ($_SERVER['REQUEST_METHOD'] === 'POST' && (string) ($_POST['do'] ?? 'next') === 'next');
+
+if ($is_next) {
     if (!bumperchat_csrf_ok()) {
         $error = 'common.session_expired';
+    } elseif (!$chosen) {
+        $error = 'bc.err_country';
     } else {
-        $posted = bumperchat_country((string) ($_POST['country'] ?? ''));
-        if (!$posted) {
-            $error = 'bc.err_country';
+        $words = bumperchat_plate_to_words($chosen, $plate, $region);
+        if ($words === '') {
+            $error = 'bc.plate_invalid';
+        } elseif (!empty($chosen['regions']) && $region === '') {
+            $error = 'bc.err_region';
+        } elseif (!exists_check_allowed()) {
+            $check_error = 'bc.err_limit';
         } else {
-            $region = strtoupper(trim((string) ($_POST['region'] ?? '')));
-            if (!empty($posted['regions']) && $region !== '' && !isset($posted['regions'][$region])) {
-                $region = '';
-            }
             bumperchat_claim_state_set([
-                'country' => $posted['code'],
+                'country' => $chosen['code'],
                 'region'  => $region,
-                // A new country means the previous plate/words may no longer apply.
-                'plate'   => '',
-                'words'   => '',
+                'plate'   => $plate,
+                'words'   => $words,
             ]);
-            header('Location: claim_plate.php');
-            exit;
+            $status = db_3wordid_exists_status($words);
+            $exists = $status !== null;
+            if ($exists && $user) {
+                $own = db_3wordid_get_threeword($words);
+                if (is_array($own) && (int) ($own['user_id'] ?? 0) === (int) $user['id']) {
+                    if (plate_billing_requires_payment($own)) {
+                        header('Location: pay.php?words=' . rawurlencode($words));
+                        exit;
+                    }
+                    bumperchat_mark_session($words);
+                    bumperchat_claim_state_clear();
+                    header('Location: chat.php');
+                    exit;
+                }
+            }
+            if (!$exists && $user) {
+                bumperchat_try_claim_and_redirect($user, $words);
+                if (!empty($GLOBALS['error'])) {
+                    $error = (string) $GLOBALS['error'];
+                }
+            } elseif (!$exists) {
+                header('Location: claim_register.php');
+                exit;
+            } else {
+                $check = [
+                    'exists' => true,
+                    'paying' => (bool) ($status['paying'] ?? false),
+                    'plate'  => car_plate_pattern($words) ? car_plate_known($words) : null,
+                    'digits' => (bool) preg_match('/[0-9]/', $words),
+                ];
+            }
         }
     }
 }
+
+$show_words = ($chosen && $plate !== '') ? bumperchat_plate_to_words($chosen, $plate, $region) : '';
+$plate_ok = $show_words !== '';
+$example = $chosen ? bumperchat_plate_example($chosen) : '';
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo current_lang(); ?>">
@@ -71,26 +143,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
-    <title><?php echo t('bc.choose_country_title'); ?></title>
+    <title><?php echo t('bc.claim_page_title'); ?></title>
     <link rel="icon" type="image/x-icon" href="../img/favicon.ico">
     <link href="/css/inter.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/newstyle.css">
-    <link rel="stylesheet" href="../css/bumperchat.css?v=3">
+    <link rel="stylesheet" href="../css/bumperchat.css?v=4">
 </head>
 <body class="bc-body">
     <?php echo bumperchat_header($user); ?>
 
     <main class="bc-wrap">
         <div class="bc-eyebrow">Bumperchat.com</div>
-        <?php echo bumperchat_flow_steps(1); ?>
-        <h1 class="bc-h1"><?php echo t('bc.choose_country_h1'); ?></h1>
-        <p class="bc-lede"><?php echo t('bc.choose_country_sub'); ?></p>
+        <h1 class="bc-h1"><?php echo t('bc.claim_page_h1'); ?></h1>
+        <p class="bc-lede"><?php echo t('bc.claim_page_sub'); ?></p>
 
         <?php if ($error !== ''): ?>
-            <div class="bc-flash" role="alert"><?php echo t($error); ?></div>
+            <div class="bc-flash" role="alert"><?php
+                if ($error === 'bc.plate_invalid' && $chosen) {
+                    echo t('bc.plate_invalid', [
+                        'country' => bumperchat_text($chosen['name']),
+                        'example' => $example,
+                    ]);
+                } else {
+                    echo t($error);
+                }
+            ?></div>
+        <?php endif; ?>
+        <?php if ($check_error !== ''): ?>
+            <div class="bc-flash" role="alert"><?php echo t($check_error); ?></div>
         <?php endif; ?>
 
-        <form class="bc-card" id="bcCountryForm" method="get" action="claim.php">
+        <form class="bc-card bc-claim-form" method="post" action="claim.php" id="bcClaimForm" autocomplete="off">
             <label class="bc-label" for="bcCountry"><?php echo t('bc.country'); ?></label>
             <div class="bc-inline">
                 <select id="bcCountry" name="country" class="bc-input">
@@ -99,27 +182,74 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <option value="<?php echo bc_e($c['code']); ?>"<?php echo $c['code'] === $selected ? ' selected' : ''; ?>><?php echo bc_e(bumperchat_text($c['name'])); ?> (<?php echo bc_e($c['strip']); ?>)</option>
                     <?php endforeach; ?>
                 </select>
-                <button class="btn btn-ghost" type="submit" id="bcShowRules"><?php echo t('bc.show_rules'); ?></button>
+                <button class="btn btn-ghost" type="submit" name="do" value="show" id="bcShowCountry"><?php echo t('bc.show_rules'); ?></button>
             </div>
-            <p class="bc-meta"><?php echo t('bc.choose_country_hint'); ?></p>
-        </form>
 
-        <?php foreach ($countries as $c):
-            $is_on = ($c['code'] === $selected);
-        ?>
-        <div class="bc-card bc-country-rules<?php echo $is_on ? ' is-on' : ''; ?>" data-country="<?php echo bc_e($c['code']); ?>"<?php echo $is_on ? '' : ' hidden'; ?>>
-            <?php echo bumperchat_country_rules_html($c); ?>
-            <?php if (!empty($c['regions'])): ?>
-                <p class="bc-meta"><?php echo t('bc.region_later'); ?></p>
-            <?php endif; ?>
-        </div>
-        <?php endforeach; ?>
+            <?php foreach ($countries as $c):
+                $is_on = ($chosen && $c['code'] === $selected);
+            ?>
+            <div class="bc-country-rules<?php echo $is_on ? ' is-on' : ''; ?>" data-country="<?php echo bc_e($c['code']); ?>"<?php echo $is_on ? '' : ' hidden'; ?>>
+                <?php echo bumperchat_country_rules_html($c); ?>
+            </div>
+            <?php endforeach; ?>
 
-        <form class="bc-continue" method="post" action="claim.php" id="bcCountryContinue">
-            <input type="hidden" name="country" id="bcCountryHidden" value="<?php echo bc_e($selected); ?>">
+            <div id="bcRegionWrap"<?php echo ($chosen && !empty($chosen['regions'])) ? '' : ' hidden'; ?>>
+                <label class="bc-label" for="bcRegion"><?php echo t('bc.region'); ?></label>
+                <select id="bcRegion" name="region" class="bc-input">
+                    <option value=""><?php echo t('bc.choose_region_ph'); ?></option>
+                    <?php if ($chosen && !empty($chosen['regions'])): ?>
+                        <?php foreach ($chosen['regions'] as $code => $label): ?>
+                        <option value="<?php echo bc_e($code); ?>"<?php echo $code === $region ? ' selected' : ''; ?>><?php echo bc_e($code . ' · ' . $label); ?></option>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </select>
+            </div>
+
+            <label class="bc-label" for="bcPlate"><?php echo t('bc.plate'); ?></label>
+            <p class="bc-plate-hint" id="bcPlateHint"><?php
+                if ($chosen) {
+                    echo t('bc.plate_format_inline', [
+                        'format' => (string) ($chosen['format'] ?? ''),
+                        'example' => $example,
+                    ]);
+                }
+            ?></p>
+
+            <div class="bc-plate-row">
+                <?php echo bumperchat_plate_face_html($chosen ?: ['code' => 'NL', 'strip' => 'NL', 'examples' => [['plate' => 'AB-123-C']]], [
+                    'value' => $plate,
+                    'region' => $region,
+                    'placeholder' => $example !== '' ? $example : t('bc.plate_ph'),
+                ]); ?>
+                <button class="btn btn-primary bc-next" type="submit" name="do" value="next" id="bcNext"><?php echo t('bc.next'); ?></button>
+            </div>
+            <noscript><p class="bc-meta"><?php echo t('bc.claim_nojs'); ?></p></noscript>
+            <div class="bc-result" id="bcResult">
+                <span class="bc-result-label"><?php echo t('bc.your_words'); ?></span>
+                <output id="bcWords" class="bc-words<?php echo $plate_ok ? ' is-ok' : ($plate !== '' ? ' is-bad' : ''); ?>" for="bcPlate" aria-live="polite"><?php
+                    if ($plate_ok) {
+                        echo bc_e($show_words);
+                    } elseif ($plate !== '' && $chosen) {
+                        echo t('bc.plate_invalid', [
+                            'country' => bumperchat_text($chosen['name']),
+                            'example' => $example,
+                        ]);
+                    } else {
+                        echo t('bc.js_type_plate');
+                    }
+                ?></output>
+            </div>
+            <p class="bc-suggest" id="bcSuggest" hidden></p>
             <?php echo bumperchat_csrf_field(); ?>
-            <button class="btn btn-primary bc-full" type="submit" id="bcContinue"<?php echo $chosen ? '' : ' disabled'; ?>><?php echo t('bc.continue'); ?></button>
         </form>
+
+        <?php if ($check && !empty($check['exists'])): ?>
+        <div class="bc-card bc-status is-taken" role="status">
+            <h2><?php echo t('bc.status_taken', ['words' => $show_words]); ?></h2>
+            <p><?php echo t('bc.status_taken_p'); ?></p>
+            <a class="btn btn-ghost" href="../3wid_forward.php?threewords=<?php echo rawurlencode($show_words); ?>"><?php echo t('bc.send_message'); ?></a>
+        </div>
+        <?php endif; ?>
 
         <p class="bc-back"><a href="index.php"><?php echo t('bc.back_home'); ?></a></p>
     </main>
@@ -128,28 +258,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <span><a href="../terms.php#bumperchat"><?php echo t('nav.terms'); ?></a> · <a href="../index.php">3WordID.com</a></span>
         <?php echo site_copyright(); ?>
     </footer>
+<?php echo i18n_js([
+    'bc_example'        => 'bc.js_example',
+    'bc_type_plate'     => 'bc.js_type_plate',
+    'bc_no_fit'         => 'bc.js_no_fit',
+    'bc_plate_invalid'  => 'bc.plate_invalid',
+    'bc_format_inline'  => 'bc.plate_format_inline',
+    'bc_suggest'        => 'bc.suggest_country',
+    'bc_choose_region'  => 'bc.choose_region_ph',
+    'bc_err_region'     => 'bc.err_region',
+]); ?>
 <script>
-(function () {
-    var select = document.getElementById('bcCountry');
-    var hidden = document.getElementById('bcCountryHidden');
-    var cont = document.getElementById('bcContinue');
-    var showBtn = document.getElementById('bcShowRules');
-    if (showBtn) showBtn.hidden = true; // JS is available: rules appear on change
-    function reveal() {
-        var code = select ? select.value : '';
-        if (hidden) hidden.value = code;
-        if (cont) cont.disabled = !code;
-        document.querySelectorAll('.bc-country-rules').forEach(function (el) {
-            var on = el.getAttribute('data-country') === code && code !== '';
-            el.hidden = !on;
-            el.classList.toggle('is-on', on);
-        });
-    }
-    if (select) {
-        select.addEventListener('change', reveal);
-        reveal();
-    }
-})();
+    window.BC_LANG = <?php echo json_encode(current_lang()); ?>;
+    window.BC_FORMATS = <?php echo json_encode($formats, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;
+    window.BC_CLAIM_FORM = true;
+    window.BC_DEFAULT_COUNTRY = <?php echo json_encode($default_country); ?>;
 </script>
+<script src="../js/bumperchat.js?v=3"></script>
 </body>
 </html>
