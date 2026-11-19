@@ -343,6 +343,7 @@
                 }
             }
             if (next) next.disabled = !ok;
+            if (root.BC_CLAIM_FORM && !root.BC_PENDING_FORM) checkTaken(ok ? words : '');
             if (root.BC_PENDING_FORM) {
                 var msg = $('bcPendingMsg');
                 var hasMsg = !msg || String(msg.value || '').trim() !== '';
@@ -379,6 +380,39 @@
                     }
                 }
             }
+        }
+
+        // Live "already claimed?" check (same endpoint as the homepage lock, rate limited per
+        // session). Only yes/no for the exact three words. Next stays enabled: when the plate is
+        // the visitor's own, the server sends them on after login.
+        var takenTimer = null, takenFor = '', takenCache = {};
+        function showTaken(words, exists) {
+            if (!out || out.textContent !== words) return;
+            if (exists) {
+                out.textContent = trv('bc_taken', '"{words}" is already in use', { words: words }) + '. ' +
+                    tr('bc_taken_p', 'Is it yours? Log in at the top right.');
+                out.classList.add('is-bad'); out.classList.remove('is-ok');
+                if (shell) { shell.classList.remove('is-ok'); shell.classList.add('is-bad'); }
+            }
+        }
+        function checkTaken(words) {
+            if (takenTimer) { clearTimeout(takenTimer); takenTimer = null; }
+            takenFor = words;
+            if (!words || !root.fetch) return;
+            if (words in takenCache) { showTaken(words, takenCache[words]); return; }
+            takenTimer = setTimeout(function () {
+                var body = new URLSearchParams();
+                body.set('threewords', words);
+                body.set('format', 'json');
+                fetch(root.BC_EXISTS_URL || '../3wid_exists.php', { method: 'POST', body: body, credentials: 'same-origin' })
+                    .then(function (r) { return r.ok ? r.json() : null; })
+                    .then(function (j) {
+                        if (!j) return;
+                        takenCache[words] = !!j.exists;
+                        if (takenFor === words) showTaken(words, !!j.exists);
+                    })
+                    .catch(function () {});
+            }, 400);
         }
 
         function updateHint(c) {
