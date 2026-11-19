@@ -143,7 +143,7 @@ $action_token = get_action_token();
     <link rel="icon" type="image/x-icon" href="../img/favicon.ico">
     <link href="/css/inter.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/newstyle.css">
-    <link rel="stylesheet" href="../css/bumperchat.css?v=5">
+    <link rel="stylesheet" href="../css/bumperchat.css?v=6">
 </head>
 <body class="bc-body">
     <?php echo bumperchat_header($user); ?>
@@ -189,6 +189,7 @@ $action_token = get_action_token();
                 <h2><?php echo t('pending.already_claimed'); ?></h2>
                 <p class="bc-p"><?php echo t('pending.already_claimed_p', ['words' => $show_words]); ?></p>
                 <a class="btn btn-primary" href="../3wid_messageform.php?threeword_id=<?php echo (int) $from_id; ?>&amp;threeword=<?php echo rawurlencode($show_words); ?>"><?php echo t('bc.send_message'); ?></a>
+                <?php echo bumperchat_dispute_link($show_words); ?>
             </div>
         <?php else: ?>
         <form class="bc-card bc-claim-form" method="post" action="pending_process.php" id="bcClaimForm" autocomplete="off">
@@ -312,6 +313,6 @@ $action_token = get_action_token();
     window.BC_PENDING_REMAINING = <?php echo $already ? 0 : (int) $remaining; ?>;
     window.BC_DEFAULT_COUNTRY = <?php echo json_encode($selected); ?>;
 </script>
-<script src="../js/bumperchat.js?v=5"></script>
+<script src="../js/bumperchat.js?v=6"></script>
 </body>
 </html>

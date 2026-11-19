@@ -343,7 +343,16 @@
                 }
             }
             if (next) next.disabled = !ok;
-            if (root.BC_CLAIM_FORM && !root.BC_PENDING_FORM) checkTaken(ok ? words : '');
+            if (root.BC_CLAIM_FORM && !root.BC_PENDING_FORM) {
+                var card = $('bcTakenCard');
+                if (card && card.getAttribute('data-words') !== words) {
+                    card.hidden = true;
+                } else if (card && words) {
+                    card.hidden = false;
+                }
+                if (!ok) clearTakenActions();
+                checkTaken(ok ? words : '');
+            }
             if (root.BC_PENDING_FORM) {
                 var msg = $('bcPendingMsg');
                 var hasMsg = !msg || String(msg.value || '').trim() !== '';
@@ -386,14 +395,77 @@
         // session). Only yes/no for the exact three words. Next stays enabled: when the plate is
         // the visitor's own, the server sends them on after login.
         var takenTimer = null, takenFor = '', takenCache = {};
+        function clearTakenActions() {
+            var box = $('bcTakenActions');
+            if (!box) return;
+            box.hidden = true;
+            while (box.firstChild) box.removeChild(box.firstChild);
+        }
+        function addTakenLink(box, href, label, className) {
+            var a = document.createElement('a');
+            a.href = href;
+            a.className = className;
+            a.textContent = label;
+            box.appendChild(a);
+        }
+        function renderTakenActions(words) {
+            var box = $('bcTakenActions');
+            if (!box) {
+                box = document.createElement('div');
+                box.id = 'bcTakenActions';
+                box.className = 'bc-taken-actions';
+                if (out && out.parentNode) out.parentNode.appendChild(box);
+                else return;
+            }
+            while (box.firstChild) box.removeChild(box.firstChild);
+            box.className = 'bc-taken-actions';
+            addTakenLink(box, '../3wid_forward.php?threewords=' + encodeURIComponent(words),
+                tr('bc_send_to_plate', 'Send a message to this plate'), 'btn btn-primary');
+            if (!root.BC_LOGGED_IN) {
+                var next = 'claim.php?words=' + encodeURIComponent(words);
+                addTakenLink(box, 'login.php?next=' + encodeURIComponent(next),
+                    tr('bc_taken_login', 'Is it yours? Log in'), 'btn btn-ghost');
+            }
+            var retry = document.createElement('button');
+            retry.type = 'button';
+            retry.className = 'btn btn-ghost';
+            retry.textContent = tr('bc_try_another', 'Try another plate');
+            retry.addEventListener('click', function () {
+                if (plate) {
+                    plate.value = '';
+                    plate.focus({ preventScroll: true });
+                }
+                clearTakenActions();
+                var card = $('bcTakenCard');
+                if (card) card.hidden = true;
+                update();
+            });
+            box.appendChild(retry);
+            var dispute = document.createElement('p');
+            dispute.className = 'bc-dispute';
+            var dlink = document.createElement('a');
+            dlink.href = 'dispute.php?words=' + encodeURIComponent(words);
+            dlink.textContent = tr('bc_dispute_link', 'Dispute ownership');
+            dispute.appendChild(dlink);
+            box.appendChild(dispute);
+            box.hidden = false;
+        }
         function showTaken(words, exists) {
             if (!out || out.textContent !== words) return;
-            if (exists) {
-                out.textContent = trv('bc_taken', '"{words}" is already in use', { words: words }) + '. ' +
-                    tr('bc_taken_p', 'Is it yours? Log in at the top right.');
-                out.classList.add('is-bad'); out.classList.remove('is-ok');
-                if (shell) { shell.classList.remove('is-ok'); shell.classList.add('is-bad'); }
+            if (!exists) {
+                clearTakenActions();
+                return;
             }
+            out.textContent = trv('bc_taken', '"{words}" is already in use', { words: words }) + '. ' +
+                tr('bc_taken_p', 'Someone already uses these three words.');
+            out.classList.add('is-bad'); out.classList.remove('is-ok');
+            if (shell) { shell.classList.remove('is-ok'); shell.classList.add('is-bad'); }
+            var card = $('bcTakenCard');
+            if (card && !card.hidden && card.getAttribute('data-words') === words) {
+                clearTakenActions();
+                return;
+            }
+            renderTakenActions(words);
         }
         function checkTaken(words) {
             if (takenTimer) { clearTimeout(takenTimer); takenTimer = null; }
