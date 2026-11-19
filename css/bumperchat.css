@@ -163,3 +163,12 @@
   .bc-plate-shell { min-height: 64px; }
   .bc-plate-field, .bc-plate-value { font-size: clamp(20px, 7vw, 28px); padding: 8px 10px; }
 }
+
+.bc-pending-msg { width: 100%; min-height: 120px; resize: vertical; margin-top: 4px; }
+.bc-pending-remaining { margin: 10px 0 14px; font-size: 14px; color: var(--slate); }
+.bc-flash.is-ok { background: #E6F6EA; color: #1B6B34; }
+.bc-result { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.bc-pill.bc-pending-waiting { background: #F3F0E8; color: #7A6A3A; }
+.bc-pill.bc-pending-delivered { background: #E7F0FF; color: #1A4D9E; }
+.bc-pill.bc-pending-read { background: #E6F6EA; color: #1B6B34; }
+.bc-pill.bc-pending-expired { background: #F0F0F0; color: #555; }

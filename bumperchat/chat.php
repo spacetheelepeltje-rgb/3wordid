@@ -63,7 +63,7 @@ if ($wanted !== '') {
     <link rel="icon" type="image/x-icon" href="../img/favicon.ico">
     <link href="/css/inter.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/newstyle.css">
-    <link rel="stylesheet" href="../css/bumperchat.css?v=4">
+    <link rel="stylesheet" href="../css/bumperchat.css?v=5">
 </head>
 <body class="bc-body">
     <?php echo bumperchat_header($user); ?>
@@ -117,6 +117,44 @@ if ($wanted !== '') {
             <?php endif; ?>
         </div>
 
+        <?php
+        $pending_groups = function_exists('pending_conversations_for_sender')
+            ? pending_conversations_for_sender((int) $user['id'])
+            : [];
+        if ($pending_groups && function_exists('pending_sort_conversations')) {
+            $pending_groups = pending_sort_conversations($pending_groups);
+        }
+        if ($pending_groups):
+        ?>
+        <div class="bc-card">
+            <h2><?php echo t('pending.section'); ?></h2>
+            <p class="bc-p"><?php echo t('pending.section_p'); ?></p>
+            <ul class="bc-chat-list">
+                <?php foreach ($pending_groups as $c):
+                    $last = $c['items'][count($c['items']) - 1];
+                    $st = (string) ($c['pending_status'] ?? 'waiting');
+                    $from_wid = (int) ($c['from_wid_id'] ?? 0);
+                    $href = ($st === 'delivered' || $st === 'read') && $from_wid > 0 && (int) ($c['wid'] ?? 0) > 0
+                        ? '../3wid_list_messages.php?wid_id=' . $from_wid . '&with=' . rawurlencode('w' . (int) $c['wid'])
+                        : ($from_wid > 0
+                            ? '../3wid_list_messages.php?wid_id=' . $from_wid . '&with=' . rawurlencode($c['key'])
+                            : 'pending_send.php?words=' . rawurlencode((string) ($c['words'] ?? '')));
+                    $preview = ($st === 'expired' && ($last['message'] ?? '') === '') ? t_plain('pending.expired_preview') : (string) ($last['message'] ?? '');
+                    if (function_exists('chat_preview')) {
+                        $preview = ($st === 'expired' && ($last['message'] ?? '') === '') ? t_plain('pending.expired_preview') : chat_preview($last['message'] ?? '');
+                    }
+                ?>
+                <li class="bc-chat-row">
+                    <span class="bc-chat-name"><?php echo bc_e($c['name']); ?></span>
+                    <span class="bc-pill bc-pending-<?php echo bc_e($st); ?>"><?php echo t('pending.status_' . $st); ?></span>
+                    <span class="bc-meta"><?php echo bc_e($preview); ?></span>
+                    <a class="btn btn-primary bc-open" href="<?php echo bc_e($href); ?>"><?php echo t('pending.view'); ?></a>
+                </li>
+                <?php endforeach; ?>
+            </ul>
+        </div>
+        <?php endif; ?>
+
         <form class="bc-card" method="post" action="../3wid_forward.php">
             <h2><?php echo t('bc.message_car_h'); ?></h2>
             <p class="bc-p"><?php echo t('bc.message_car_p'); ?></p>
@@ -124,8 +162,9 @@ if ($wanted !== '') {
                 <input name="threewords" class="bc-input" type="text" maxlength="80" autocomplete="off" spellcheck="false" placeholder="<?php echo t('bc.placeholder'); ?>" aria-label="<?php echo t('bc.search_label'); ?>">
                 <button class="btn btn-primary" type="submit"><?php echo t('bc.lookup'); ?></button>
             </div>
+            <input type="hidden" name="from" value="bumperchat">
             <input type="hidden" name="csrf_token" value="<?php echo bc_e($_SESSION['csrf_token']); ?>">
-            <p class="bc-meta"><a href="index.php#formats"><?php echo t('bc.how_plate'); ?></a></p>
+            <p class="bc-meta"><a href="pending_send.php"><?php echo t('pending.leave_message'); ?></a> · <a href="index.php#formats"><?php echo t('bc.how_plate'); ?></a></p>
         </form>
 
         <?php if (!$is_bumperchat): ?>

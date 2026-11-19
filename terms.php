@@ -244,6 +244,7 @@ $loginUrl = '/login/options.php';
                 <p><?php echo t_raw('terms.s15_p3'); ?></p>
                 <p><?php echo t_raw('terms.s15_p4'); ?></p>
                 <p><?php echo t_raw('terms.s15_p5'); ?></p>
+                <p><?php echo t_raw('terms.s15_p6'); ?></p>
             </section>
         </div>
 

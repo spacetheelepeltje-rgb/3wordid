@@ -579,3 +579,22 @@ button.avatar.photo { cursor: zoom-in; }
     .chat-topbar .tb-logout span { display: none; }
     .chat-topbar .tb-logout { padding: 0; width: 40px; }
 }
+
+/* Pending-message status on a conversation row (waiting / delivered / read / expired) */
+.chat-row .cr-status {
+    display: inline-flex;
+    align-items: center;
+    flex: 0 0 auto;
+    padding: 1px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 18px;
+    white-space: nowrap;
+    background: #F3F0E8;
+    color: #7A6A3A;
+}
+.chat-row .cr-status.is-waiting { background: #F3F0E8; color: #7A6A3A; }
+.chat-row .cr-status.is-delivered { background: #E7F0FF; color: #1A4D9E; }
+.chat-row .cr-status.is-read { background: #E6F6EA; color: #1B6B34; }
+.chat-row .cr-status.is-expired { background: #F0F0F0; color: #555; }

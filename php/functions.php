@@ -3422,6 +3422,9 @@ function db_3wordid_mark_read($to_wid, $from_wid) {
 		$stmt->close();
 	}
 	$conn->close();
+	if ($ok && function_exists('pending_mark_read_for_pair')) {
+		pending_mark_read_for_pair($to_wid, $from_wid);
+	}
 	return $ok;
 }
 
@@ -3441,6 +3444,9 @@ function db_3wordid_mark_read_ids($to_wid, $ids) {
 	}
 	$ok = (bool) $conn->query("UPDATE 3wordid_messages SET read_at = NOW() WHERE 3wid_id = " . $to_wid . " AND id IN (" . implode(',', $ids) . ") AND read_at IS NULL");
 	$conn->close();
+	if ($ok && function_exists('pending_mark_read_by_message_ids')) {
+		pending_mark_read_by_message_ids($ids);
+	}
 	return $ok;
 }
 
@@ -3501,3 +3507,4 @@ require_once __DIR__ . '/account_settings.php';
 require_once __DIR__ . '/message_delete.php';
 require_once __DIR__ . '/bumperchat.php';
 require_once __DIR__ . '/plate_billing.php';
+require_once __DIR__ . '/pending_messages.php';

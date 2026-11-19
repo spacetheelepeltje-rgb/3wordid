@@ -254,6 +254,11 @@ function bumperchat_claim_plate(array $user, string $words, array $notify = []):
 
     $wid = db_3wordid_get($new_id) ?: ['id' => $new_id, 'billing_product' => $product, 'trial_expires' => $trial_expires, 'paid_until' => null];
     $state = plate_access_state($wid);
+    // Waiting messages for this plate: move them into the normal inbox now,
+    // even if the owner's trial is already used (they stay after a paywall).
+    if (function_exists('pending_deliver_for_words')) {
+        pending_deliver_for_words($words, $new_id, $user_id);
+    }
     if (function_exists('app_log')) {
         app_log('bumperchat: claimed "' . $words . '" user ' . $user_id . ' state ' . $state, 'info', true);
     }

@@ -41,10 +41,22 @@
 
    $word_row = db_3wordid_get_threeword($threewords);
 
-   if($word_row == NULL || $word_row['id']==0) {   
-	    error_log('threewords ' . $threewords . ' not found. ip ' . $client_ip);	
+   if($word_row == NULL || $word_row['id']==0) {
+        $from_bc = (($_POST['from'] ?? $_GET['from'] ?? '') === 'bumperchat');
+        $looks_like_plate = function_exists('car_plate_pattern') && car_plate_pattern($threewords);
+        if ($from_bc || $looks_like_plate) {
+            $pending_q = 'pending_send.php?words=' . rawurlencode(trim(preg_replace('/\s+/u', ' ', $threewords)));
+            $viewer = current_user_from_session(isset($conn) ? $conn : get_db_conn());
+            if ($viewer) {
+                header('Location: bumperchat/' . $pending_q);
+            } else {
+                header('Location: bumperchat/login.php?next=' . rawurlencode($pending_q));
+            }
+            exit;
+        }
+	    error_log('threewords ' . $threewords . ' not found. ip ' . $client_ip);
 		header('location:' . $main_url);
-		die('sent do mainurl');   
+		die('sent do mainurl');
    }
 
    if((int)$word_row['enabled'] !== 1) {

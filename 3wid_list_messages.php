@@ -55,7 +55,12 @@
   // Messages I sent from this 3WordID (the other half of each conversation)
   $sent_rows = db_3wordid_list_sent($threeword_id, $data['id']);
 
-  if($messages == NULL && !$sent_rows) {
+  $pending_groups = [];
+  if (function_exists('pending_conversations_for_sender')) {
+      $pending_groups = pending_conversations_for_sender((int) $data['id'], (int) $threeword_id);
+  }
+
+  if($messages == NULL && !$sent_rows && !$pending_groups) {
     header('location:3wid_list.php'); 
     die(t_plain('lm.none')); 
   }
@@ -70,6 +75,9 @@
 
   // Conversations, one per partner 3WordID, both directions, newest first (see php/chat.php)
   $conversations = chat_conversations((array) $messages, $dates, $sent_rows, $reads);
+  if ($pending_groups && function_exists('pending_merge_conversations')) {
+      $conversations = pending_merge_conversations($conversations, $pending_groups);
+  }
   // Senders who turned "Show my photo in chats" on (the owner here is always logged in)
   $photo_ids = db_3wordid_photo_ids(array_column($conversations, 'wid'));
 
@@ -99,9 +107,13 @@
   unset($_SESSION['chat_conv_sent']);
   // A note from the process script (recipient gone, etc.), once
   $conv_error = '';
-  if ($open !== null && !empty($_SESSION['chat_error']) && in_array($_SESSION['chat_error'], array('chat.err_visitor', 'chat.err_recipient', 'chat.err_inactive', 'chat.err_empty', 'chat.err_rate_pair', 'chat.err_rate_recipient', 'chat.err_closed_in', 'chat.err_closed_out'), true)) {
+  if ($open !== null && !empty($_SESSION['chat_error']) && in_array($_SESSION['chat_error'], array('chat.err_visitor', 'chat.err_recipient', 'chat.err_inactive', 'chat.err_empty', 'chat.err_rate_pair', 'chat.err_rate_recipient', 'chat.err_closed_in', 'chat.err_closed_out', 'pending.limit_reached', 'pending.err_schema', 'pending.err_csrf'), true)) {
       $conv_error = $_SESSION['chat_error'];
       unset($_SESSION['chat_error']);
+  }
+  if ($open !== null && $conv_error === '' && !empty($_SESSION['pending_error'])) {
+      $conv_error = (string) $_SESSION['pending_error'];
+      unset($_SESSION['pending_error']);
   }
 
   // What was typed when a message was held back (rate limit), put back in the box once
@@ -139,18 +151,20 @@
         <ul class="chat-list">
         <?php foreach ($conversations as $c):
             $last = $c['items'][count($c['items']) - 1];
+            $is_pending = !empty($c['pending']);
+            $pending_status = (string) ($c['pending_status'] ?? '');
             $label = $c['visitor'] ? t('chat.visitors') : chat_e($c['name']);
-            $preview = chat_preview($last['message']);
+            $preview = $pending_status === 'expired' && ($last['message'] ?? '') === '' ? t_plain('pending.expired_preview') : chat_preview($last['message']);
             $show_title = !$last['mine'] && !chat_title_redundant($last['title'], $last['message']);
             // sender: make + colour (car chat) and the organization name of its account, never for your own
-            $cr_car = ($c['visitor'] || !empty($c['deleted']) || empty($c['wid'])) ? '' : sender_list_badges(db_3wordid_get((int) $c['wid']) ?: null, array((int) $data['id']));
+            $cr_car = ($c['visitor'] || !empty($c['deleted']) || $is_pending || empty($c['wid'])) ? '' : sender_list_badges(db_3wordid_get((int) $c['wid']) ?: null, array((int) $data['id']));
         ?>
             <li class="cr-item">
                 <a class="chat-row<?php echo $c['unread'] > 0 ? ' unread' : ''; ?>" href="<?php echo chat_e($base_url . '&with=' . rawurlencode($c['key'])); ?>">
                     <?php echo ($c['visitor'] || !empty($c['deleted'])) ? chat_visitor_avatar() : chat_avatar_for($c['name'], $c['wid'], $photo_ids); ?>
                     <span class="cr-main">
                         <span class="cr-top">
-                            <span class="cr-who"><span class="cr-name"><?php echo $label; ?></span><?php echo $cr_car; ?></span>
+                            <span class="cr-who"><span class="cr-name"><?php echo $label; ?></span><?php echo $cr_car; ?><?php if ($pending_status !== ''): ?><span class="cr-status is-<?php echo chat_e($pending_status); ?>"><?php echo t('pending.status_' . $pending_status); ?></span><?php endif; ?></span>
                             <span class="cr-time"><?php echo chat_e(chat_time_label($last['sent_at'])); ?></span>
                         </span>
                         <span class="cr-bottom">
@@ -159,10 +173,12 @@
                         </span>
                     </span>
                 </a>
-                <?php // Bin: delete the whole conversation without opening it (same POST as the top bar bin in a conversation)
-                echo chat_row_delete_form((int) $threeword_id, $c['key'], $action_token,
-                    t_plain('chat.delete_conversation_with', ['name' => $c['visitor'] ? t_plain('chat.visitors') : (string) $c['name']]),
-                    t_plain('chat.confirm_delete_conversation')); ?>
+                <?php if (!$is_pending) {
+                    // Bin: delete the whole conversation without opening it (same POST as the top bar bin in a conversation)
+                    echo chat_row_delete_form((int) $threeword_id, $c['key'], $action_token,
+                        t_plain('chat.delete_conversation_with', ['name' => $c['visitor'] ? t_plain('chat.visitors') : (string) $c['name']]),
+                        t_plain('chat.confirm_delete_conversation'));
+                } ?>
             </li>
         <?php endforeach; ?>
         </ul>
@@ -171,6 +187,8 @@
 <?php else:
     $is_visitor = $open['visitor'];
     $is_deleted = !empty($open['deleted']);
+    $is_pending = !empty($open['pending']);
+    $pending_status = (string) ($open['pending_status'] ?? '');
     $label = $is_visitor ? t('chat.visitors') : chat_e($open['name']);
     $prev_day = null;
 ?>
@@ -182,12 +200,12 @@
         'avatar'  => ($is_visitor || $is_deleted) ? chat_visitor_avatar() : chat_avatar_for($open['name'], $open['wid'], $photo_ids, '', true),
         'name'    => $label,
         // chat partner: make + colour (car chat) and organization name next to its words (not for your own)
-        'badge'   => ($is_visitor || $is_deleted || empty($open['wid'])) ? '' : sender_topbar_badges(db_3wordid_get((int) $open['wid']) ?: null, array((int) $data['id'])),
-        'sub'     => t('tb.chatting_as', ['words' => $threeword]),
-        'actions' => chat_tb_button('3wid_chat_print.php?wid_id=' . (int) $threeword_id . '&with=' . rawurlencode($open['key']), 'print', t_plain('chat.print_title'), 'target="_blank" rel="noopener"')
+        'badge'   => ($is_visitor || $is_deleted || $is_pending || empty($open['wid'])) ? '' : sender_topbar_badges(db_3wordid_get((int) $open['wid']) ?: null, array((int) $data['id'])),
+        'sub'     => $pending_status !== '' ? t('pending.status_' . $pending_status) : t('tb.chatting_as', ['words' => $threeword]),
+        'actions' => ($is_pending ? '' : chat_tb_button('3wid_chat_print.php?wid_id=' . (int) $threeword_id . '&with=' . rawurlencode($open['key']), 'print', t_plain('chat.print_title'), 'target="_blank" rel="noopener"')
                    // Delete conversation: everything in it, received and sent (3wid_message_delete.php)
                    . chat_tb_form_button('3wid_message_delete.php', array('do' => 'conversation', 'wid_id' => (int) $threeword_id, 'with' => $open['key'], 'action_token' => $action_token),
-                       'trash', t_plain('chat.delete_conversation'), t_plain('chat.confirm_delete_conversation'), 'tb-del')
+                       'trash', t_plain('chat.delete_conversation'), t_plain('chat.confirm_delete_conversation'), 'tb-del'))
                    . chat_tb_button('3wid_list.php', 'list', t_plain('tb.my_ids')),
     )); ?>
 <div class="chat-app">
@@ -208,10 +226,17 @@
         <div class="row <?php echo $side; ?><?php echo $first ? ' first' : ''; ?>" data-id="<?php echo (int) $m['id']; ?>">
             <div class="bubble">
                 <?php if (!chat_title_redundant($m['title'], $m['message']) && !$m['mine']): ?><div class="b-title"><?php echo chat_e($m['title']); ?></div><?php endif; ?>
-                <div class="b-text"><?php echo chat_text($m['message']); ?></div>
+                <div class="b-text"><?php
+                    if ($is_pending && $pending_status === 'expired' && ($m['message'] ?? '') === '') {
+                        echo '<em>' . t('pending.expired_body') . '</em>';
+                    } else {
+                        echo chat_text($m['message']);
+                    }
+                ?></div>
                 <div class="b-meta">
                     <?php if (chat_clock($m['sent_at']) !== ''): ?><time><?php echo chat_e(chat_clock($m['sent_at'])); ?></time><?php endif; ?>
-                    <?php if ($m['mine']): ?>
+                    <?php if ($is_pending): ?>
+                    <?php elseif ($m['mine']): ?>
                     <?php echo (is_string($m['read_at']) && $m['read_at'] !== '') ? chat_icon('ticks') : chat_icon('tick'); ?>
                     <?php // your own message: delete it, also after it has been read (gone for the other person too) ?>
                     <?php echo chat_del_link($m['id'], $action_token, t_plain('common.delete'), t_plain('chat.confirm_delete_own')); ?>
@@ -225,7 +250,39 @@
         <footer class="chat-footer"><?php echo $footer; ?></footer>
     </main>
 
-    <?php if ($is_deleted): ?>
+    <?php if ($is_pending && $pending_status === 'waiting'):
+        $pending_remaining = 0;
+        if (function_exists('pending_remaining') && function_exists('pending_count_toward_limit')) {
+            $pending_remaining = pending_remaining(count(array_filter($open['items'], function ($it) {
+                return ($it['pending_status'] ?? '') === 'waiting';
+            })));
+        }
+    ?>
+        <?php if ($conv_error !== ''): ?><p class="c-note err" role="alert"><?php echo t($conv_error); ?></p><?php endif; ?>
+        <?php if ($pending_remaining > 0): ?>
+    <form class="composer conv" id="3widForm"<?php echo $just_sent ? ' data-sent="1"' : ''; ?> action="bumperchat/pending_process.php" method="post">
+        <input type="hidden" name="from_id" value="<?php echo (int) $threeword_id; ?>">
+        <input type="hidden" name="words" value="<?php echo chat_e($open['words'] ?? ''); ?>">
+        <input type="hidden" name="country" value="<?php echo chat_e($open['country'] ?? ''); ?>">
+        <input type="hidden" name="region" value="<?php echo chat_e($open['region'] ?? ''); ?>">
+        <input type="hidden" name="plate" value="<?php echo chat_e($open['plate'] ?? ''); ?>">
+        <input type="hidden" name="return" value="conv">
+        <p class="c-note"><?php echo t('pending.waiting_hint', ['n' => (string) $pending_remaining]); ?></p>
+        <div class="c-row">
+            <div class="c-box">
+                <textarea name="message" id="message" class="c-text" rows="1" required maxlength="5000" placeholder="<?php echo t('lm.reply', ['name' => $open['name']]); ?>" aria-label="<?php echo t('msg.message_label'); ?>"><?php echo chat_e($draft); ?></textarea>
+            </div>
+            <button type="submit" id="submitBtn" class="send" aria-label="<?php echo t('common.send'); ?>" title="<?php echo t('common.send'); ?>"><?php echo chat_icon('send'); ?></button>
+        </div>
+        <input type="hidden" name="action_token" value="<?php echo chat_e($action_token); ?>">
+        <?php if (function_exists('bumperchat_csrf_field')) echo bumperchat_csrf_field(); ?>
+    </form>
+        <?php else: ?>
+    <div class="reply-bar"><p class="note" role="note"><?php echo t('pending.limit_reached'); ?></p></div>
+        <?php endif; ?>
+    <?php elseif ($is_pending && $pending_status === 'expired'): ?>
+    <div class="reply-bar"><p class="note" role="note"><?php echo t('pending.expired_hint'); ?></p></div>
+    <?php elseif ($is_deleted): ?>
     <div class="reply-bar"><p class="note" role="note"><?php echo t('chat.deleted_no_reply'); ?></p></div>
     <?php elseif (!$is_visitor): ?>
     <form class="composer conv" id="3widForm"<?php echo $just_sent ? ' data-sent="1"' : ''; ?> action="3wid_messageform_process.php" method="post">

@@ -262,7 +262,7 @@ function bumperchat_safe_next(?string $next, string $fallback = 'chat.php'): str
     if ($next === '') {
         return $fallback;
     }
-    if (!preg_match('/^(claim|claim_plate|claim_register|chat|pay|pay_return|index|login)\.php(?:\?[A-Za-z0-9_\-=.&%]*)?$/', $next)) {
+    if (!preg_match('/^(claim|claim_plate|claim_register|chat|pay|pay_return|index|login|pending_send)\.php(?:\?[A-Za-z0-9_\-=.+&%]*)?$/', $next)) {
         return $fallback;
     }
     return $next;
@@ -272,6 +272,12 @@ function bumperchat_safe_next(?string $next, string $fallback = 'chat.php'): str
 function bumperchat_current_return(): string
 {
     $script = basename((string) ($_SERVER['SCRIPT_NAME'] ?? ''));
+    if ($script === 'pending_send.php') {
+        $qs = (string) ($_SERVER['QUERY_STRING'] ?? '');
+        if ($qs !== '') {
+            $script .= '?' . $qs;
+        }
+    }
     return bumperchat_safe_next($script, 'index.php');
 }
 
