@@ -143,7 +143,7 @@ $action_token = get_action_token();
     <link rel="icon" type="image/x-icon" href="../img/favicon.ico">
     <link href="/css/inter.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/newstyle.css">
-    <link rel="stylesheet" href="../css/bumperchat.css?v=7">
+    <link rel="stylesheet" href="../css/bumperchat.css?v=8">
 </head>
 <body class="bc-body">
     <?php echo bumperchat_header($user); ?>
@@ -314,6 +314,6 @@ $action_token = get_action_token();
     window.BC_PENDING_REMAINING = <?php echo $already ? 0 : (int) $remaining; ?>;
     window.BC_DEFAULT_COUNTRY = <?php echo json_encode($selected); ?>;
 </script>
-<script src="../js/bumperchat.js?v=7"></script>
+<script src="../js/bumperchat.js?v=8"></script>
 </body>
 </html>

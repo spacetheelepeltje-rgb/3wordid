@@ -101,6 +101,14 @@ foreach ($prefixCases as [$code, $plate, $region, $words, $formatted, $chip]) {
 expect('FI empty prefix', bumperchat_plate_prefix($by['FI'], '', ''), 'fin');
 expect('NL empty prefix', bumperchat_plate_prefix($by['NL'], '', ''), '');
 expect('BE empty prefix', bumperchat_plate_prefix($by['BE'], '', ''), '');
+expect('FI label', bumperchat_plate_prefix_label($by['FI'], '', ''), 'FIN-');
+expect('EE label space', bumperchat_plate_prefix_label($by['EE'], '123 ABC', ''), 'EST ');
+expect('US TX label', bumperchat_plate_prefix_label($by['US'], 'ABC-1234', 'TX'), 'TX-');
+expect('US CA 1-group label', bumperchat_plate_prefix_label($by['US'], '7ABC123', 'CA'), 'US-');
+expect('CA ON label', bumperchat_plate_prefix_label($by['CA'], 'ABCD 123', 'ON'), 'ON-');
+expect('NL no label', bumperchat_plate_prefix_label($by['NL'], 'AB-123-C', ''), '');
+expect('BE 2-group label', bumperchat_plate_prefix_label($by['BE'], '123-ABC', ''), 'B-');
+expect('BE 3-group no label', bumperchat_plate_prefix_label($by['BE'], '1-ABC-234', ''), '');
 
 $pre = bumperchat_prefill_from_words('fin abc 123');
 expect('prefill FI country', $pre['country'], 'FI');

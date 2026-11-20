@@ -96,7 +96,7 @@ if ($exists && $user) {
     <link rel="icon" type="image/x-icon" href="../img/favicon.ico">
     <link href="/css/inter.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/newstyle.css">
-    <link rel="stylesheet" href="../css/bumperchat.css?v=7">
+    <link rel="stylesheet" href="../css/bumperchat.css?v=8">
 </head>
 <body class="bc-body">
     <?php echo bumperchat_header($user); ?>

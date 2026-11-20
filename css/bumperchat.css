@@ -144,18 +144,35 @@
 .bc-plate-shell.is-na .bc-plate-band { display: none; }
 .bc-plate-shell.is-na .bc-plate-legend:not(:empty) { display: flex; align-items: center; justify-content: center; min-width: 52px; padding: 0 8px; font-size: 12px; font-weight: 800; letter-spacing: 0.08em; color: #1d3a8a; background: #f4f6fb; border-right: 1px solid #d5d8e0; }
 .bc-plate-shell.is-nl { background: #F5C400; }
-.bc-plate-field, .bc-plate-value { flex: 1; min-width: 0; border: 0; background: transparent; color: #111; font: 800 clamp(22px, 5.4vw, 34px)/1.1 Inter, ui-sans-serif, system-ui, sans-serif; letter-spacing: 0.08em; text-transform: uppercase; padding: 8px 14px; text-align: center; }
-
+.bc-plate-type { display: flex; align-items: baseline; flex: 1; min-width: 0; padding: 8px 14px; }
+.bc-plate-prefix, .bc-plate-field, .bc-plate-value {
+  color: #111;
+  font: 800 clamp(22px, 5.4vw, 34px)/1.1 Inter, ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.bc-plate-field, .bc-plate-value { flex: 1; min-width: 0; border: 0; background: transparent; padding: 0; text-align: center; }
 .bc-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
-.bc-plate-prefix { display: none; align-items: center; flex: 0 0 auto; margin: 12px 0 12px 8px; padding: 2px 8px; border-radius: 6px; background: rgba(0,0,0,.07); color: #111; font: 800 clamp(18px, 4.6vw, 26px)/1.1 Inter, ui-sans-serif, system-ui, sans-serif; letter-spacing: 0.06em; text-transform: none; user-select: none; pointer-events: none; }
-.bc-plate-shell.is-prefixed .bc-plate-prefix:not([hidden]) { display: flex; }
+/* Prefix is plain plate text (not a chip), followed by the country's separator. */
+.bc-plate-prefix {
+  display: none;
+  flex: 0 0 auto;
+  margin: 0 -0.08em 0 0; /* cancel trailing letter-spacing so it sits against the field */
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  user-select: none;
+  pointer-events: none;
+  white-space: pre;
+}
+.bc-plate-shell.is-prefixed .bc-plate-prefix:not([hidden]) { display: block; }
 .bc-plate-shell.is-prefixed .bc-plate-field,
-.bc-plate-shell.is-prefixed .bc-plate-value { text-align: left; padding-left: 8px; }
-
+.bc-plate-shell.is-prefixed .bc-plate-value { text-align: left; }
 .bc-plate-field:focus { outline: none; }
-.bc-plate-field::placeholder { color: rgba(17,17,17,.35); letter-spacing: 0.06em; }
+.bc-plate-field::placeholder { color: rgba(17,17,17,.35); letter-spacing: 0.08em; text-transform: uppercase; }
 .bc-plate-shell.is-readonly { cursor: default; }
-.bc-plate-value { display: flex; align-items: center; justify-content: center; }
+.bc-plate-value { display: block; }
 
 .bc-suggest { margin: 8px 0 0; font-size: 14px; color: var(--slate); }
 .bc-suggest button { margin-left: 8px; }
@@ -168,7 +185,8 @@
   .bc-plate-row { flex-direction: column; }
   .bc-plate-row .bc-next { min-height: 48px; width: 100%; }
   .bc-plate-shell { min-height: 64px; }
-  .bc-plate-field, .bc-plate-value { font-size: clamp(20px, 7vw, 28px); padding: 8px 10px; }
+  .bc-plate-type { padding: 8px 10px; }
+  .bc-plate-prefix, .bc-plate-field, .bc-plate-value { font-size: clamp(20px, 7vw, 28px); }
 }
 
 .bc-pending-msg { width: 100%; min-height: 120px; resize: vertical; margin-top: 4px; }
