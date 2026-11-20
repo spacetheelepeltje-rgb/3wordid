@@ -29,6 +29,18 @@ $raw = (string) ($_POST['words'] ?? $_GET['words'] ?? '');
 $words = bumperchat_normalize_words($raw);
 $error = '';
 $wid = null;
+$reseller_unknown = false;
+$reseller_code = reseller_remembered_code();
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $posted_code = (string) ($_POST['reseller_code'] ?? '');
+    if ($posted_code !== '') {
+        $reseller_code = reseller_normalize_code($posted_code);
+        if ($reseller_code === '') {
+            $reseller_code = strtoupper(trim($posted_code));
+        }
+    }
+}
+$user_reseller_id = reseller_user_reseller_id((int) $user['id']);
 
 if ($words !== '') {
     $found = db_3wordid_get_threeword($words);
@@ -50,10 +62,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $can_pay) {
         $error = 'bc.pay_not_owner';
     } else {
         bumperchat_mark_session($words);
+        $applied = reseller_apply_to_user((int) $user['id'], (string) ($_POST['reseller_code'] ?? $reseller_code));
+        $reseller_unknown = !empty($applied['unknown']);
+        $user_reseller_id = reseller_user_reseller_id((int) $user['id']);
         $started = payments_start(BILLING_PRODUCT_PLATE, (int) $user['id'], [
             'subject' => $words,
             'wid_id' => (int) $wid['id'],
             'return_path' => '/bumperchat/pay_return.php',
+            'reseller_id' => $applied['id'] ?? $user_reseller_id,
         ]);
         if (!empty($started['ok']) && !empty($started['checkout_url'])) {
             header('Location: ' . $started['checkout_url']);
@@ -79,7 +95,7 @@ $days = $wid ? plate_days_remaining($wid) : null;
     <link rel="icon" type="image/x-icon" href="../img/favicon.ico">
     <link href="/css/inter.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/newstyle.css">
-    <link rel="stylesheet" href="../css/bumperchat.css?v=4">
+    <link rel="stylesheet" href="../css/bumperchat.css?v=9">
 </head>
 <body class="bc-body">
     <?php echo bumperchat_header($user); ?>
@@ -113,6 +129,11 @@ $days = $wid ? plate_days_remaining($wid) : null;
             <form method="post" action="pay.php">
                 <input type="hidden" name="words" value="<?php echo bc_e($words); ?>">
                 <input type="hidden" name="csrf_token" value="<?php echo bc_e($_SESSION['csrf_token']); ?>">
+                <?php
+                if (!$user_reseller_id) {
+                    echo reseller_field_html(['code' => $reseller_code, 'unknown' => $reseller_unknown, 'id' => 'pay_reseller']);
+                }
+                ?>
                 <button class="btn btn-primary bc-full" type="submit"><?php echo t('bc.pay_submit'); ?></button>
             </form>
             <?php elseif (!payments_configured() || !billing_schema_ready() || !payments_schema_ready()): ?>
