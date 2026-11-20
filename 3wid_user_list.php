@@ -197,6 +197,7 @@ $count = count($users);
         <?php echo lang_switcher(); ?>
         <a class="btn btn-ghost" href="3wid_list.php"><?php echo t('admin.dashboard'); ?></a>
         <a class="btn btn-ghost" href="3wid_admin_3wids.php"><?php echo t('admin.all_3wids'); ?></a>
+        <a class="btn btn-ghost" href="3wid_resellers.php"><?php echo t('admin.resellers'); ?></a>
         <a class="btn btn-primary" href="3wid_user_list.php?order=<?php echo $order === 'ASC' ? 'DESC' : 'ASC'; ?>">
             <?php echo $order === 'ASC' ? t('ul.sort_newest') : t('ul.sort_oldest'); ?>
         </a>

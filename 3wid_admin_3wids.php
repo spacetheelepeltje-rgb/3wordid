@@ -211,6 +211,7 @@ function admin_page_link($page, $q) {
     <div class="header-actions">
         <?php echo lang_switcher(); ?>
         <a class="btn btn-ghost" href="3wid_user_list.php"><?php echo t('ue.all_users'); ?></a>
+        <a class="btn btn-ghost" href="3wid_resellers.php"><?php echo t('admin.resellers'); ?></a>
         <a class="btn btn-ghost" href="3wid_list.php"><?php echo t('admin.dashboard'); ?></a>
         <a href="login/logout.php" class="logout-icon" title="<?php echo t('nav.logout'); ?>">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="<?php echo t('icon.logout'); ?>">

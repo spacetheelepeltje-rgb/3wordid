@@ -301,6 +301,7 @@ $reseller_code = $data["id"] . substr(trim($data["email"]), -5);
                     <a href="3wid_list_ips.php">I</a>
                     <a href="3wid_user_list.php">U</a>
                     <a href="3wid_admin_3wids.php" title="<?php echo t('list.admin_all'); ?>">A</a>
+                    <a href="3wid_resellers.php" title="<?php echo t('admin.resellers'); ?>">R</a>
                 </span>
                 <form class="admin-search" method="get" action="3wid_admin_3wids.php">
                     <input type="search" name="q" placeholder="<?php echo t('list.admin_find'); ?>" aria-label="<?php echo t('list.admin_find_aria'); ?>">
