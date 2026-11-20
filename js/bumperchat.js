@@ -110,6 +110,14 @@
         return '';
     }
 
+    /** Visible prefix: uppercase word plus the country's separator (US/CA always '-'). */
+    function platePrefixLabel(entry, plate, region) {
+        var prefix = platePrefix(entry, plate, region);
+        if (!prefix) return '';
+        var sep = (entry && entry.mode === 'region') ? '-' : plateSeparator(entry);
+        return prefix.toUpperCase() + sep;
+    }
+
     /**
      * entry: one country from plate_formats.json. plate: what the user typed.
      * region: state / province code (US and Canada only).
@@ -232,6 +240,7 @@
     root.formatPlate = formatPlate;
     root.inferCountry = inferCountry;
     root.platePrefix = platePrefix;
+    root.platePrefixLabel = platePrefixLabel;
     root.stripDuplicatePrefix = stripDuplicatePrefix;
     if (typeof module !== 'undefined' && module.exports) {
         module.exports = {
@@ -239,6 +248,7 @@
             formatPlate: formatPlate,
             inferCountry: inferCountry,
             platePrefix: platePrefix,
+            platePrefixLabel: platePrefixLabel,
             stripDuplicatePrefix: stripDuplicatePrefix
         };
         return;
@@ -405,10 +415,11 @@
 
         function applyPrefix(c) {
             var prefix = c ? platePrefix(c, plate && plate.value || '', region && region.value || '') : '';
-            if (shell) shell.classList.toggle('is-prefixed', !!prefix);
+            var label = c ? platePrefixLabel(c, plate && plate.value || '', region && region.value || '') : '';
+            if (shell) shell.classList.toggle('is-prefixed', !!label);
             if (prefixEl) {
-                prefixEl.textContent = prefix;
-                prefixEl.hidden = !prefix;
+                prefixEl.textContent = label;
+                prefixEl.hidden = !label;
             }
             if (prefixHint) {
                 prefixHint.textContent = prefix

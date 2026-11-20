@@ -189,6 +189,20 @@ function bumperchat_plate_prefix(array $entry, string $plate = '', string $regio
     return '';
 }
 
+/**
+ * Visible prefix in the plate field: the word in uppercase plus the
+ * country's separator (dash or space). US/CA always use a dash, as in TX-ABC-1234.
+ */
+function bumperchat_plate_prefix_label(array $entry, string $plate = '', string $region = ''): string
+{
+    $prefix = bumperchat_plate_prefix($entry, $plate, $region);
+    if ($prefix === '') {
+        return '';
+    }
+    $sep = (($entry['mode'] ?? '') === 'region') ? '-' : bumperchat_plate_separator($entry);
+    return strtoupper($prefix) . $sep;
+}
+
 /** Strip and region tokens a user might type in front of the real plate. */
 function bumperchat_prefix_tokens(array $entry, string $region = ''): array
 {
@@ -973,6 +987,7 @@ function bumperchat_plate_face_html(array $country, array $opts = []): string
         $value = bumperchat_format_plate($country, $value, $region);
     }
     $prefix = bumperchat_plate_prefix($country, $value, $region);
+    $label = bumperchat_plate_prefix_label($country, $value, $region);
     $id = (string) ($opts['id'] ?? 'bcPlate');
     $name = (string) ($opts['name'] ?? 'plate');
     $ph = (string) ($opts['placeholder'] ?? bumperchat_plate_example($country));
@@ -981,7 +996,7 @@ function bumperchat_plate_face_html(array $country, array $opts = []): string
     if ($readonly) {
         $cls .= ' is-readonly';
     }
-    if ($prefix !== '') {
+    if ($label !== '') {
         $cls .= ' is-prefixed';
     }
     $html = '<div class="' . $cls . '" id="bcPlateShell" data-style="' . $e($style) . '" data-code="' . $e($code) . '">';
@@ -989,8 +1004,9 @@ function bumperchat_plate_face_html(array $country, array $opts = []): string
         . bumperchat_eu_stars_svg()
         . '<span class="bc-plate-cc" id="bcPlateCc">' . $e($strip) . '</span></span>';
     $html .= '<span class="bc-plate-legend" id="bcPlateLegend">' . $e($region) . '</span>';
+    $html .= '<span class="bc-plate-type">';
     $html .= '<span class="bc-plate-prefix" id="bcPlatePrefix" aria-hidden="true"'
-        . ($prefix === '' ? ' hidden' : '') . '>' . $e($prefix) . '</span>';
+        . ($label === '' ? ' hidden' : '') . '>' . $e($label) . '</span>';
     $hint = $prefix !== '' ? t('bc.plate_prefix_hint', ['prefix' => $prefix]) : '';
     $html .= '<span class="bc-sr-only" id="bcPlatePrefixHint">' . $hint . '</span>';
     $described = $prefix !== '' ? ' aria-describedby="bcPlatePrefixHint"' : '';
@@ -999,6 +1015,6 @@ function bumperchat_plate_face_html(array $country, array $opts = []): string
     } else {
         $html .= '<input id="' . $e($id) . '" name="' . $e($name) . '" class="bc-plate-field" type="text" maxlength="20" autocomplete="off" autocapitalize="characters" spellcheck="false" inputmode="text" aria-label="' . $e(t('bc.plate')) . '"' . $described . ' placeholder="' . $e($ph) . '" value="' . $e($value) . '">';
     }
-    $html .= '</div>';
+    $html .= '</span></div>';
     return $html;
 }

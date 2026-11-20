@@ -180,7 +180,7 @@ if ($check === null && $error === '' && $plate_ok && !$is_next && function_exist
     <link rel="icon" type="image/x-icon" href="../img/favicon.ico">
     <link href="/css/inter.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/newstyle.css">
-    <link rel="stylesheet" href="../css/bumperchat.css?v=7">
+    <link rel="stylesheet" href="../css/bumperchat.css?v=8">
 </head>
 <body class="bc-body">
     <?php echo bumperchat_header($user); ?>
@@ -316,6 +316,6 @@ if ($check === null && $error === '' && $plate_ok && !$is_next && function_exist
     window.BC_LOGGED_IN = <?php echo $user ? 'true' : 'false'; ?>;
     window.BC_DEFAULT_COUNTRY = <?php echo json_encode($default_country); ?>;
 </script>
-<script src="../js/bumperchat.js?v=7"></script>
+<script src="../js/bumperchat.js?v=8"></script>
 </body>
 </html>

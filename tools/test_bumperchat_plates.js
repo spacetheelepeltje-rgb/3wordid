@@ -4,7 +4,7 @@
 // Not needed on the web server. Exit code 1 when something differs.
 const fs = require('fs');
 const path = require('path');
-const { plateToWords, formatPlate, platePrefix } = require(path.join(__dirname, '..', 'js', 'bumperchat.js'));
+const { plateToWords, formatPlate, platePrefix, platePrefixLabel } = require(path.join(__dirname, '..', 'js', 'bumperchat.js'));
 const data = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'bumperchat', 'plate_formats.json'), 'utf8'));
 
 let fail = 0, n = 0;
@@ -69,6 +69,21 @@ if (platePrefix(by.FI, '', '') !== 'fin') { console.log('FI empty prefix'); fail
 if (platePrefix(by.NL, '', '') !== '') { console.log('NL empty prefix'); fail++; }
 if (platePrefix(by.BE, '', '') !== '') { console.log('BE empty prefix'); fail++; }
 n += 3;
+const labels = [
+    ['FI', '', '', 'FIN-'],
+    ['EE', '123 ABC', '', 'EST '],
+    ['US', 'ABC-1234', 'TX', 'TX-'],
+    ['US', '7ABC123', 'CA', 'US-'],
+    ['CA', 'ABCD 123', 'ON', 'ON-'],
+    ['NL', 'AB-123-C', '', ''],
+    ['BE', '123-ABC', '', 'B-'],
+    ['BE', '1-ABC-234', '', ''],
+];
+for (const [code, plate, region, want] of labels) {
+    n++;
+    const got = platePrefixLabel(by[code], plate, region);
+    if (got !== want) { console.log(`${code} label "${plate}" -> ${JSON.stringify(got)}, expected ${JSON.stringify(want)}`); fail++; }
+}
 
 const eu = ['AT','BE','BG','HR','CY','CZ','DK','EE','FI','FR','DE','GR','HU','IE','IT','LV','LT','LU','MT','NL','PL','PT','RO','SK','SI','ES','SE'];
 for (const c of eu.concat(['US', 'CA'])) { if (!codes.has(c)) { console.log(`missing country ${c}`); fail++; } }
