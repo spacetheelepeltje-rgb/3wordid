@@ -4,7 +4,7 @@
 // Not needed on the web server. Exit code 1 when something differs.
 const fs = require('fs');
 const path = require('path');
-const { plateToWords } = require(path.join(__dirname, '..', 'js', 'bumperchat.js'));
+const { plateToWords, formatPlate, platePrefix } = require(path.join(__dirname, '..', 'js', 'bumperchat.js'));
 const data = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'bumperchat', 'plate_formats.json'), 'utf8'));
 
 let fail = 0, n = 0;
@@ -39,6 +39,37 @@ for (const [k, plate, want] of extra) {
     const got = plateToWords(by[code], plate, region || '');
     if (got !== want) { console.log(`${k}: "${plate}" -> "${got}", expected "${want}"`); fail++; }
 }
+// Prefix chip + typed-prefix stripping (JS, same cases as tools/test_bumperchat_flow.php)
+const prefixCases = [
+    ['FI', 'ABC-123', '', 'fin abc 123', 'ABC-123', 'fin'],
+    ['FI', 'fin abc-123', '', 'fin abc 123', 'ABC-123', 'fin'],
+    ['FI', 'FIN ABC-123', '', 'fin abc 123', 'ABC-123', 'fin'],
+    ['FI', 'FIN-123', '', 'fin fin 123', 'FIN-123', 'fin'],
+    ['NL', 'AB-123-C', '', 'ab 123 c', 'AB-123-C', ''],
+    ['NL', 'NL AB-123-C', '', 'nlab 123 c', 'NL-AB-123-C', ''],
+    ['CA|ON', 'ABCD 123', 'ON', 'on abcd 123', 'ABCD 123', 'on'],
+    ['CA|ON', 'ON ABCD 123', 'ON', 'on abcd 123', 'ABCD 123', 'on'],
+    ['US|TX', 'ABC-1234', 'TX', 'tx abc 1234', 'ABC 1234', 'tx'],
+    ['US|TX', 'TX ABC-1234', 'TX', 'tx abc 1234', 'ABC 1234', 'tx'],
+    ['US|CA', '7ABC123', 'CA', 'us ca 7abc123', '7 ABC 123', 'us'],
+    ['BE', '123-ABC', '', 'b 123 abc', '123-ABC', 'b'],
+    ['BE', '1-ABC-234', '', '1 abc 234', '1-ABC-234', ''],
+];
+for (const [code, plate, region, words, formatted, chip] of prefixCases) {
+    n++;
+    const c = by[code.split('|')[0]];
+    const got = plateToWords(c, plate, region);
+    if (got !== words) { console.log(`${code} words "${plate}" -> "${got}", expected "${words}"`); fail++; }
+    const fmt = formatPlate(c, plate, region);
+    if (fmt !== formatted) { console.log(`${code} format "${plate}" -> "${fmt}", expected "${formatted}"`); fail++; }
+    const pref = platePrefix(c, plate, region);
+    if (pref !== chip) { console.log(`${code} prefix "${plate}" -> "${pref}", expected "${chip}"`); fail++; }
+}
+if (platePrefix(by.FI, '', '') !== 'fin') { console.log('FI empty prefix'); fail++; }
+if (platePrefix(by.NL, '', '') !== '') { console.log('NL empty prefix'); fail++; }
+if (platePrefix(by.BE, '', '') !== '') { console.log('BE empty prefix'); fail++; }
+n += 3;
+
 const eu = ['AT','BE','BG','HR','CY','CZ','DK','EE','FI','FR','DE','GR','HU','IE','IT','LV','LT','LU','MT','NL','PL','PT','RO','SK','SI','ES','SE'];
 for (const c of eu.concat(['US', 'CA'])) { if (!codes.has(c)) { console.log(`missing country ${c}`); fail++; } }
 console.log(`${data.countries.length} countries, ${n} conversions checked, ${fail} problem(s)`);

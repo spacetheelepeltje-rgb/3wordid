@@ -77,6 +77,36 @@ expect('CA QC', bumperchat_plate_to_words($by['CA'], 'ABC 123', 'QC'), 'qc abc 1
 $n++;
 expect('US TX', bumperchat_plate_to_words($by['US'], 'ABC-1234', 'TX'), 'tx abc 1234');
 
+// Prefix chip + typed-prefix stripping (same cases as tools/test_bumperchat_plates.js)
+$prefixCases = [
+    ['FI', 'ABC-123', '', 'fin abc 123', 'ABC-123', 'fin'],
+    ['FI', 'fin abc-123', '', 'fin abc 123', 'ABC-123', 'fin'],
+    ['FI', 'FIN ABC-123', '', 'fin abc 123', 'ABC-123', 'fin'],
+    ['FI', 'FIN-123', '', 'fin fin 123', 'FIN-123', 'fin'],
+    ['NL', 'AB-123-C', '', 'ab 123 c', 'AB-123-C', ''],
+    ['NL', 'NL AB-123-C', '', 'nlab 123 c', 'NL-AB-123-C', ''],
+    ['CA', 'ABCD 123', 'ON', 'on abcd 123', 'ABCD 123', 'on'],
+    ['CA', 'ON ABCD 123', 'ON', 'on abcd 123', 'ABCD 123', 'on'],
+    ['US', 'ABC-1234', 'TX', 'tx abc 1234', 'ABC 1234', 'tx'],
+    ['US', 'TX ABC-1234', 'TX', 'tx abc 1234', 'ABC 1234', 'tx'],
+    ['US', '7ABC123', 'CA', 'us ca 7abc123', '7 ABC 123', 'us'],
+    ['BE', '123-ABC', '', 'b 123 abc', '123-ABC', 'b'],
+    ['BE', '1-ABC-234', '', '1 abc 234', '1-ABC-234', ''],
+];
+foreach ($prefixCases as [$code, $plate, $region, $words, $formatted, $chip]) {
+    expect("$code words \"$plate\"", bumperchat_plate_to_words($by[$code], $plate, $region), $words);
+    expect("$code format \"$plate\"", bumperchat_format_plate($by[$code], $plate, $region), $formatted);
+    expect("$code prefix \"$plate\"", bumperchat_plate_prefix($by[$code], $plate, $region), $chip);
+}
+expect('FI empty prefix', bumperchat_plate_prefix($by['FI'], '', ''), 'fin');
+expect('NL empty prefix', bumperchat_plate_prefix($by['NL'], '', ''), '');
+expect('BE empty prefix', bumperchat_plate_prefix($by['BE'], '', ''), '');
+
+$pre = bumperchat_prefill_from_words('fin abc 123');
+expect('prefill FI country', $pre['country'], 'FI');
+expect('prefill FI plate only', $pre['plate'], 'ABC-123');
+expect('prefill FI words', $pre['words'], 'fin abc 123');
+
 expect('country NL', (bumperchat_country('nl')['code'] ?? ''), 'NL');
 expect('country missing', bumperchat_country('XX'), null);
 expect('normalize words', bumperchat_normalize_words('  AB  123  C '), 'ab 123 c');

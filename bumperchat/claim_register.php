@@ -96,7 +96,7 @@ if ($exists && $user) {
     <link rel="icon" type="image/x-icon" href="../img/favicon.ico">
     <link href="/css/inter.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/newstyle.css">
-    <link rel="stylesheet" href="../css/bumperchat.css?v=6">
+    <link rel="stylesheet" href="../css/bumperchat.css?v=7">
 </head>
 <body class="bc-body">
     <?php echo bumperchat_header($user); ?>
@@ -112,7 +112,7 @@ if ($exists && $user) {
                 <a class="bc-textlink" href="claim.php"><?php echo t('bc.edit_plate'); ?></a>
             </div>
             <?php echo bumperchat_plate_face_html($country, [
-                'value' => bumperchat_format_plate($country, (string) ($state['plate'] ?? '')),
+                'value' => bumperchat_format_plate($country, (string) ($state['plate'] ?? ''), (string) ($state['region'] ?? '')),
                 'region' => (string) ($state['region'] ?? ''),
                 'readonly' => true,
                 'id' => 'bcPlateDone',

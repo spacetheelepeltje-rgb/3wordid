@@ -1126,7 +1126,7 @@ function pending_resolve_target(array $post): array
         'words' => $words,
         'country' => $country,
         'region' => $region,
-        'plate' => function_exists('bumperchat_format_plate') ? bumperchat_format_plate($entry, $plate) : strtoupper($plate),
+        'plate' => function_exists('bumperchat_format_plate') ? bumperchat_format_plate($entry, $plate, $region) : strtoupper($plate),
         'entry' => $entry,
     ];
 }

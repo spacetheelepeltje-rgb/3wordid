@@ -24,6 +24,92 @@
         return out;
     }
 
+    function prefixTokens(entry, region) {
+        var mode = String((entry && entry.mode) || '');
+        if (mode === 'three' || mode === '') return [];
+        var tokens = [];
+        var strip = String((entry && entry.strip) || '').toLowerCase();
+        if (strip) tokens.push(strip);
+        if (mode === 'region') {
+            var reg = String(region || '').toLowerCase();
+            if (reg && reg !== strip) tokens.push(reg);
+        }
+        return tokens;
+    }
+
+    function remainderIsComplete(entry, plate, region) {
+        if (!plateToWordsRaw(entry, plate, region)) return false;
+        var mode = String((entry && entry.mode) || '');
+        var g = groups(String(plate || ''));
+        var r = runs(g.join(''));
+        if (mode === 'prefix' || mode === 'mixed') {
+            if (g.length === 2 || r.length === 2) return true;
+            if ((mode === 'mixed' || entry.three_ok) && (g.length === 3 || r.length === 3)) return true;
+            return false;
+        }
+        if (mode === 'region') return g.length === 1 || g.length === 2;
+        return false;
+    }
+
+    /**
+     * If the user typed the country/region prefix in front of the plate
+     * (FIN ABC-123, ON ABCD 123), drop that leading duplicate. Does not peel
+     * a leading group that is itself the plate (FIN-123 stays FIN-123).
+     */
+    function stripDuplicatePrefix(entry, raw, region) {
+        raw = String(raw || '');
+        var tokens = prefixTokens(entry, region);
+        if (!tokens.length || !raw.trim()) return raw;
+        var g = groups(raw);
+        var i = 0;
+        while (i < g.length && tokens.indexOf(g[i].toLowerCase()) !== -1) i++;
+        if (i > 0 && i < g.length) {
+            var rest = g.slice(i).join(' ');
+            if (remainderIsComplete(entry, rest, region)) return rest;
+        }
+        if (g.length === 1) {
+            var compact = raw.toUpperCase().replace(/[^A-Z0-9]/g, '');
+            var strip = String((entry && entry.strip) || '').toUpperCase();
+            var mode = String((entry && entry.mode) || '');
+            if (strip.length >= 2 && (mode === 'prefix' || mode === 'mixed')
+                && compact.indexOf(strip) === 0 && compact.length > strip.length) {
+                var peeled = compact.substr(strip.length);
+                if (remainderIsComplete(entry, peeled, region)) return peeled;
+            }
+        }
+        return raw;
+    }
+
+    /**
+     * The word shown as a fixed chip (never typed). Lower case, matching the
+     * first word of plateToWords. Empty for three-mode countries (NL, …).
+     */
+    function platePrefix(entry, plate, region) {
+        if (!entry) return '';
+        var mode = String(entry.mode || '');
+        var strip = String(entry.strip || '').toLowerCase();
+        plate = stripDuplicatePrefix(entry, plate, region);
+        var g = groups(String(plate || ''));
+        if (mode === 'prefix') {
+            if (entry.three_ok && g.length === 3) return '';
+            return strip;
+        }
+        if (mode === 'mixed') {
+            if (g.length === 3) return '';
+            var r = runs(g.join(''));
+            if (r.length === 3) return '';
+            if (g.length === 2 || r.length === 2) return strip;
+            return '';
+        }
+        if (mode === 'region') {
+            var reg = String(region || '').toUpperCase();
+            if (!reg || !entry.regions || !entry.regions[reg]) return '';
+            if (g.length === 1) return strip;
+            return reg.toLowerCase();
+        }
+        return '';
+    }
+
     /**
      * entry: one country from plate_formats.json. plate: what the user typed.
      * region: state / province code (US and Canada only).
@@ -31,6 +117,10 @@
      * doesn't fit the rule.
      */
     function plateToWords(entry, plate, region) {
+        return plateToWordsRaw(entry, stripDuplicatePrefix(entry, plate, region), region);
+    }
+
+    function plateToWordsRaw(entry, plate, region) {
         var g = groups(String(plate || ''));
         var compact = g.join('');
         var strip = String(entry.strip || '').toLowerCase();
@@ -72,7 +162,8 @@
         return format.indexOf('-') !== -1 ? '-' : ' ';
     }
 
-    function formatPlate(entry, raw) {
+    function formatPlate(entry, raw, region) {
+        raw = stripDuplicatePrefix(entry, raw, region);
         var compact = String(raw || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
         if (!compact) return '';
         var sep = plateSeparator(entry || {});
@@ -140,8 +231,16 @@
     root.plateToWords = plateToWords;
     root.formatPlate = formatPlate;
     root.inferCountry = inferCountry;
+    root.platePrefix = platePrefix;
+    root.stripDuplicatePrefix = stripDuplicatePrefix;
     if (typeof module !== 'undefined' && module.exports) {
-        module.exports = { plateToWords: plateToWords, formatPlate: formatPlate, inferCountry: inferCountry };
+        module.exports = {
+            plateToWords: plateToWords,
+            formatPlate: formatPlate,
+            inferCountry: inferCountry,
+            platePrefix: platePrefix,
+            stripDuplicatePrefix: stripDuplicatePrefix
+        };
         return;
     }
 
@@ -268,6 +367,7 @@
         var select = $('bcCountry'), region = $('bcRegion'), regionWrap = $('bcRegionWrap');
         var plate = $('bcPlate'), out = $('bcWords'), hint = $('bcPlateHint');
         var shell = $('bcPlateShell'), cc = $('bcPlateCc'), legend = $('bcPlateLegend');
+        var prefixEl = $('bcPlatePrefix'), prefixHint = $('bcPlatePrefixHint');
         var next = $('bcNext'), showBtn = $('bcShowCountry'), suggest = $('bcSuggest');
 
         if (showBtn) showBtn.hidden = true;
@@ -300,6 +400,25 @@
             if (cc) cc.textContent = c ? (c.strip || c.code) : '';
             if (legend) legend.textContent = (c && c.regions && region && region.value) ? region.value : '';
             if (plate) plate.setAttribute('placeholder', c ? plateExample(c) : '');
+            applyPrefix(c);
+        }
+
+        function applyPrefix(c) {
+            var prefix = c ? platePrefix(c, plate && plate.value || '', region && region.value || '') : '';
+            if (shell) shell.classList.toggle('is-prefixed', !!prefix);
+            if (prefixEl) {
+                prefixEl.textContent = prefix;
+                prefixEl.hidden = !prefix;
+            }
+            if (prefixHint) {
+                prefixHint.textContent = prefix
+                    ? trv('bc_plate_prefix_hint', 'The first word “{prefix}” is already filled in from the country or state. Type only the rest of the plate.', { prefix: prefix })
+                    : '';
+            }
+            if (plate) {
+                if (prefix) plate.setAttribute('aria-describedby', 'bcPlatePrefixHint');
+                else plate.removeAttribute('aria-describedby');
+            }
         }
 
         function revealRules(code) {
@@ -314,8 +433,9 @@
 
         function validate() {
             var c = current();
-            var formatted = c && plate ? formatPlate(c, plate.value) : (plate ? plate.value.toUpperCase().replace(/[^A-Z0-9]/g, '') : '');
+            var formatted = c && plate ? formatPlate(c, plate.value, region && region.value) : (plate ? plate.value.toUpperCase().replace(/[^A-Z0-9]/g, '') : '');
             if (plate && formatted !== plate.value) setFormattedValue(plate, formatted);
+            applyPrefix(c);
             var words = (c && plate && plate.value.trim() !== '') ? plateToWords(c, plate.value, region && region.value) : '';
             var needsRegion = !!(c && c.regions && region && !region.value);
             var ok = !!words && !needsRegion;

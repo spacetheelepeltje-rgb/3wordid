@@ -39,7 +39,7 @@ foreach ($countries as $c) {
     }
 }
 if ($chosen && $plate !== '' && function_exists('bumperchat_format_plate')) {
-    $plate = bumperchat_format_plate($chosen, $plate);
+    $plate = bumperchat_format_plate($chosen, $plate, $region);
 }
 
 $show_words = '';
@@ -143,7 +143,7 @@ $action_token = get_action_token();
     <link rel="icon" type="image/x-icon" href="../img/favicon.ico">
     <link href="/css/inter.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/newstyle.css">
-    <link rel="stylesheet" href="../css/bumperchat.css?v=6">
+    <link rel="stylesheet" href="../css/bumperchat.css?v=7">
 </head>
 <body class="bc-body">
     <?php echo bumperchat_header($user); ?>
@@ -301,6 +301,7 @@ $action_token = get_action_token();
     'bc_no_fit'         => 'bc.js_no_fit',
     'bc_plate_invalid'  => 'bc.plate_invalid',
     'bc_format_inline'  => 'bc.plate_format_inline',
+    'bc_plate_prefix_hint' => 'bc.plate_prefix_hint',
     'bc_suggest'        => 'bc.suggest_country',
     'bc_choose_region'  => 'bc.choose_region_ph',
     'bc_err_region'     => 'bc.err_region',
@@ -313,6 +314,6 @@ $action_token = get_action_token();
     window.BC_PENDING_REMAINING = <?php echo $already ? 0 : (int) $remaining; ?>;
     window.BC_DEFAULT_COUNTRY = <?php echo json_encode($selected); ?>;
 </script>
-<script src="../js/bumperchat.js?v=6"></script>
+<script src="../js/bumperchat.js?v=7"></script>
 </body>
 </html>
