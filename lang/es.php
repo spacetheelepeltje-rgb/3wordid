@@ -758,6 +758,7 @@ Se eliminarán la URL, la notificación y el chat de estas palabras. Esta acció
     'bc.country' => 'País',
     'bc.region' => 'Estado / provincia',
     'bc.plate' => 'Matrícula',
+    'bc.plate_prefix_hint' => 'La primera palabra “{prefix}” ya está rellenada a partir del país o la región. Escribe solo el resto de la matrícula.',
     'bc.plate_ph' => 'AB-123-C',
     'bc.your_words' => 'Tres palabras',
     'bc.use_words' => 'Comprobar estas palabras',

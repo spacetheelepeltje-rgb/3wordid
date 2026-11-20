@@ -146,11 +146,150 @@ function bumperchat_fixed_split(string $compact, array $lengths): ?array
 }
 
 /**
+ * Country or region word shown as a fixed chip (never typed). Lower case,
+ * matching the first word of plateToWords. Empty for three-mode countries (NL, …)
+ * and for mixed-mode plates that already have three groups.
+ */
+function bumperchat_plate_prefix(array $entry, string $plate = '', string $region = ''): string
+{
+    $mode = (string) ($entry['mode'] ?? '');
+    $strip = strtolower((string) ($entry['strip'] ?? ''));
+    $reg = strtoupper(trim($region));
+    $plate = bumperchat_strip_duplicate_prefix($entry, $plate, $region);
+    $g = bumperchat_plate_groups($plate);
+
+    if ($mode === 'prefix') {
+        if (!empty($entry['three_ok']) && count($g) === 3) {
+            return '';
+        }
+        return $strip;
+    }
+    if ($mode === 'mixed') {
+        if (count($g) === 3) {
+            return '';
+        }
+        $r = bumperchat_plate_runs(strtoupper(implode('', $g)));
+        if (count($r) === 3) {
+            return '';
+        }
+        if (count($g) === 2 || count($r) === 2) {
+            return $strip;
+        }
+        return '';
+    }
+    if ($mode === 'region') {
+        if ($reg === '' || empty($entry['regions']) || !isset($entry['regions'][$reg])) {
+            return '';
+        }
+        if (count($g) === 1) {
+            return $strip;
+        }
+        return strtolower($reg);
+    }
+    return '';
+}
+
+/** Strip and region tokens a user might type in front of the real plate. */
+function bumperchat_prefix_tokens(array $entry, string $region = ''): array
+{
+    $tokens = [];
+    $mode = (string) ($entry['mode'] ?? '');
+    if ($mode === 'three' || $mode === '') {
+        return $tokens;
+    }
+    $strip = strtolower((string) ($entry['strip'] ?? ''));
+    if ($strip !== '') {
+        $tokens[] = $strip;
+    }
+    if ($mode === 'region') {
+        $reg = strtolower(trim($region));
+        if ($reg !== '' && $reg !== $strip) {
+            $tokens[] = $reg;
+        }
+    }
+    return $tokens;
+}
+
+/** Whether $plate is a complete plate for this country, without peeling a prefix. */
+function bumperchat_remainder_is_complete(array $entry, string $plate, string $region = ''): bool
+{
+    if (bumperchat_plate_to_words_raw($entry, $plate, $region) === '') {
+        return false;
+    }
+    $mode = (string) ($entry['mode'] ?? '');
+    $g = bumperchat_plate_groups($plate);
+    $r = bumperchat_plate_runs(strtoupper(implode('', $g)));
+    if ($mode === 'prefix' || $mode === 'mixed') {
+        if (count($g) === 2 || count($r) === 2) {
+            return true;
+        }
+        if (( $mode === 'mixed' || !empty($entry['three_ok']) ) && (count($g) === 3 || count($r) === 3)) {
+            return true;
+        }
+        return false;
+    }
+    if ($mode === 'region') {
+        return count($g) === 1 || count($g) === 2;
+    }
+    return false;
+}
+
+/**
+ * If the user typed the country/region prefix in front of the plate
+ * (FIN ABC-123, ON ABCD 123), drop that leading duplicate. Does not peel
+ * a leading group that is itself the plate (FIN-123 stays FIN-123).
+ */
+function bumperchat_strip_duplicate_prefix(array $entry, string $raw, string $region = ''): string
+{
+    $tokens = bumperchat_prefix_tokens($entry, $region);
+    if (!$tokens || trim($raw) === '') {
+        return $raw;
+    }
+
+    $groups = bumperchat_plate_groups($raw);
+    $i = 0;
+    while ($i < count($groups) && in_array(strtolower($groups[$i]), $tokens, true)) {
+        $i++;
+    }
+    if ($i > 0 && $i < count($groups)) {
+        $rest = implode(' ', array_slice($groups, $i));
+        if (bumperchat_remainder_is_complete($entry, $rest, $region)) {
+            return $rest;
+        }
+    }
+
+    // One blob, no separators: peel a 2+ letter country strip (FINABC123 → ABC123).
+    // Not used for 1-letter strips (S, E, M, …) or region codes, which can be
+    // the start of a real letter group.
+    if (count($groups) === 1) {
+        $compact = strtoupper((string) preg_replace('/[^A-Za-z0-9]/', '', $raw));
+        $strip = strtoupper((string) ($entry['strip'] ?? ''));
+        $mode = (string) ($entry['mode'] ?? '');
+        if ($strip !== '' && strlen($strip) >= 2 && ($mode === 'prefix' || $mode === 'mixed')
+            && strncmp($compact, $strip, strlen($strip)) === 0 && strlen($compact) > strlen($strip)) {
+            $rest = substr($compact, strlen($strip));
+            if (bumperchat_remainder_is_complete($entry, $rest, $region)) {
+                return $rest;
+            }
+        }
+    }
+
+    return $raw;
+}
+
+/**
  * Same rules as js/bumperchat.js plateToWords(): one country entry from
  * plate_formats.json, the typed plate, and (for US/CA) the region code.
  * Returns the three words (lower case, spaces) or '' when the plate does not fit.
  */
 function bumperchat_plate_to_words(array $entry, string $plate, string $region = ''): string
+{
+    $plate = bumperchat_strip_duplicate_prefix($entry, $plate, $region);
+    return bumperchat_plate_to_words_raw($entry, $plate, $region);
+}
+
+/** plateToWords without peeling a typed prefix; used by the peeler itself. */
+function bumperchat_plate_to_words_raw(array $entry, string $plate, string $region = ''): string
 {
     $g = bumperchat_plate_groups($plate);
     $compact = implode('', $g);
@@ -471,8 +610,9 @@ function bumperchat_plate_separator(array $entry): string
  * usual dashes or spaces (letter/digit runs, or a fixed split when the country
  * has one). Input with or without separators is accepted.
  */
-function bumperchat_format_plate(array $entry, string $raw): string
+function bumperchat_format_plate(array $entry, string $raw, string $region = ''): string
 {
+    $raw = bumperchat_strip_duplicate_prefix($entry, $raw, $region);
     $compact = strtoupper((string) preg_replace('/[^A-Za-z0-9]/', '', $raw));
     if ($compact === '') {
         return '';
@@ -619,10 +759,11 @@ function bumperchat_prefill_from_words(string $words): array
                 break 2;
             }
             $rest = implode(' ', array_slice($parts, 1));
+            $reg_up = strtoupper((string) $reg);
             return [
                 'country' => $code,
-                'region'  => strtoupper((string) $reg),
-                'plate'   => bumperchat_format_plate($c, $rest),
+                'region'  => $reg_up,
+                'plate'   => bumperchat_format_plate($c, $rest, $reg_up),
                 'words'   => $words,
             ];
         }
@@ -650,7 +791,7 @@ function bumperchat_prefill_from_words(string $words): array
         return [
             'country' => (string) $c['code'],
             'region'  => $region,
-            'plate'   => bumperchat_format_plate($c, implode(' ', $rest)),
+            'plate'   => bumperchat_format_plate($c, implode(' ', $rest), $region),
             'words'   => $words,
         ];
     }
@@ -826,7 +967,12 @@ function bumperchat_plate_face_html(array $country, array $opts = []): string
     $code = (string) ($country['code'] ?? '');
     $style = bumperchat_plate_style($code);
     $strip = (string) ($country['strip'] ?? $code);
+    $region = (string) ($opts['region'] ?? '');
     $value = (string) ($opts['value'] ?? '');
+    if ($value !== '') {
+        $value = bumperchat_format_plate($country, $value, $region);
+    }
+    $prefix = bumperchat_plate_prefix($country, $value, $region);
     $id = (string) ($opts['id'] ?? 'bcPlate');
     $name = (string) ($opts['name'] ?? 'plate');
     $ph = (string) ($opts['placeholder'] ?? bumperchat_plate_example($country));
@@ -835,15 +981,23 @@ function bumperchat_plate_face_html(array $country, array $opts = []): string
     if ($readonly) {
         $cls .= ' is-readonly';
     }
+    if ($prefix !== '') {
+        $cls .= ' is-prefixed';
+    }
     $html = '<div class="' . $cls . '" id="bcPlateShell" data-style="' . $e($style) . '" data-code="' . $e($code) . '">';
     $html .= '<span class="bc-plate-band" id="bcPlateBand" aria-hidden="true">'
         . bumperchat_eu_stars_svg()
         . '<span class="bc-plate-cc" id="bcPlateCc">' . $e($strip) . '</span></span>';
-    $html .= '<span class="bc-plate-legend" id="bcPlateLegend">' . $e((string) ($opts['region'] ?? '')) . '</span>';
+    $html .= '<span class="bc-plate-legend" id="bcPlateLegend">' . $e($region) . '</span>';
+    $html .= '<span class="bc-plate-prefix" id="bcPlatePrefix" aria-hidden="true"'
+        . ($prefix === '' ? ' hidden' : '') . '>' . $e($prefix) . '</span>';
+    $hint = $prefix !== '' ? t('bc.plate_prefix_hint', ['prefix' => $prefix]) : '';
+    $html .= '<span class="bc-sr-only" id="bcPlatePrefixHint">' . $hint . '</span>';
+    $described = $prefix !== '' ? ' aria-describedby="bcPlatePrefixHint"' : '';
     if ($readonly) {
         $html .= '<span class="bc-plate-value" id="' . $e($id) . '">' . $e($value) . '</span>';
     } else {
-        $html .= '<input id="' . $e($id) . '" name="' . $e($name) . '" class="bc-plate-field" type="text" maxlength="20" autocomplete="off" autocapitalize="characters" spellcheck="false" inputmode="text" aria-label="' . $e(t('bc.plate')) . '" placeholder="' . $e($ph) . '" value="' . $e($value) . '">';
+        $html .= '<input id="' . $e($id) . '" name="' . $e($name) . '" class="bc-plate-field" type="text" maxlength="20" autocomplete="off" autocapitalize="characters" spellcheck="false" inputmode="text" aria-label="' . $e(t('bc.plate')) . '"' . $described . ' placeholder="' . $e($ph) . '" value="' . $e($value) . '">';
     }
     $html .= '</div>';
     return $html;

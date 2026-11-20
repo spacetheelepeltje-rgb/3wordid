@@ -758,6 +758,7 @@ L’URL, la notification et le chat de ces mots seront supprimés. Cette action 
     'bc.country' => 'Pays',
     'bc.region' => 'État / province',
     'bc.plate' => 'Plaque',
+    'bc.plate_prefix_hint' => 'Le premier mot « {prefix} » est déjà rempli d’après le pays ou la région. Saisissez uniquement le reste de la plaque.',
     'bc.plate_ph' => 'AB-123-C',
     'bc.your_words' => 'Trois mots',
     'bc.use_words' => 'Vérifier ces mots',

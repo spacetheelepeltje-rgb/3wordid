@@ -850,6 +850,7 @@ De URL, mededeling en chat van deze woorden worden verwijderd. Dit kan niet onge
     'bc.country' => 'Land',
     'bc.region' => 'Staat / provincie',
     'bc.plate' => 'Kenteken',
+    'bc.plate_prefix_hint' => 'Het eerste woord “{prefix}” is al ingevuld vanuit het land of de regio. Typ alleen de rest van het kenteken.',
     'bc.plate_ph' => 'AB-123-C',
     'bc.your_words' => 'Drie woorden',
     'bc.use_words' => 'Controleer deze woorden',

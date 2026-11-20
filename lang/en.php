@@ -850,6 +850,7 @@ The URL, notification, and chat for these words will be removed. This cannot be 
     'bc.country' => 'Country',
     'bc.region' => 'State / province',
     'bc.plate' => 'Licence plate',
+    'bc.plate_prefix_hint' => 'The first word “{prefix}” is already filled in from the country or state. Type only the rest of the plate.',
     'bc.plate_ph' => 'AB-123-C',
     'bc.your_words' => 'Three words',
     'bc.use_words' => 'Check these words',
