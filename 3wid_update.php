@@ -115,6 +115,7 @@ if ($data == NULL) {
    // "Message with link": only when forward and chat are both off (they win)
    $link_title = (string) ($_POST["link_title"] ?? '');
    $msglink = (isset($_POST["msglinkflag"]) && $linkthruflag === 0 && $emailform === 0 && db_3wordid_has_link_title()) ? 1 : 0;
+   $is_address = (db_3wordid_has_is_address() && isset($_POST['is_address'])) ? 1 : 0;
 
    // The Message field is required only when the 3WordID shows it (no forward, no chat);
    // forward and "Message with link" need a valid URL, "Message with link" also a link title
@@ -134,6 +135,7 @@ if ($data == NULL) {
            'private' => $private,
            'car_chat' => $carchat,
            'chat_open' => $chat_open,
+           'is_address' => $is_address,
        ];
        $from = (($_POST['from'] ?? '') === 'admin') ? '&from=admin' : '';
        header('Location: 3wid_3wid.php?id=' . $id . $from);
@@ -160,6 +162,7 @@ if ($data == NULL) {
                'car_chat' => 1,
                'chat_open' => $chat_open,
                'car_error' => 1,
+               'is_address' => $is_address,
            ];
            $from = (($_POST['from'] ?? '') === 'admin') ? '&from=admin' : '';
            header('Location: 3wid_3wid.php?id=' . $id . $from);
@@ -196,6 +199,11 @@ try {
 
     // Link title: kept only for "Message with link", cleared for the other options
     db_3wordid_set_link_title($id, $msglink === 1 ? $link_title : '');
+
+    // Address flag (no-op until the is_address column exists)
+    if (db_3wordid_has_is_address()) {
+        db_3wordid_set_is_address($id, $is_address === 1);
+    }
 
     // "Show my photo in chats" (opt-in, off by default). Only when the edit form sent it;
     // does nothing until the show_photo column exists.

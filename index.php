@@ -131,10 +131,13 @@ while (count($featured_list) < $examples_visible && count($more_list) > 0) {
             background: #fdf6e3;
         }
         /* Licence plate in the RDW register: car instead of lock (js/3wid_index_2.js).
-           Green / gold as above when the 3WordID exists, blue when it does not exist yet. */
-        .lock .car-ico { display: none; }
-        .lock.is-car #lockIcon { display: none; }
+           Green / gold as above when the 3WordID exists, blue when it does not exist yet.
+           Address flag: home instead of lock, same green / gold. A plate always wins. */
+        .lock .car-ico, .lock .home-ico { display: none; }
+        .lock.is-car #lockIcon, .lock.is-car .home-ico { display: none; }
         .lock.is-car .car-ico { display: block; }
+        .lock.is-address:not(.is-car) #lockIcon { display: none; }
+        .lock.is-address:not(.is-car) .home-ico { display: block; }
         .lock.is-plate {
             color: #1d4ed8;
             background: #eff6ff;
@@ -179,6 +182,9 @@ while (count($featured_list) < $examples_visible && count($more_list) > 0) {
                         </svg>
                         <svg class="car-ico" id="carIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
                             <path d="M5 17H3v-5l2-5h14l2 5v5h-2"></path><path d="M3 12h18"></path><circle cx="7.5" cy="17" r="2"></circle><circle cx="16.5" cy="17" r="2"></circle><path d="M9.5 17h5"></path>
+                        </svg>
+                        <svg class="home-ico" id="homeIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                            <path d="M3 11l9-8 9 8"></path><path d="M5 10v10h14V10"></path><path d="M10 20v-6h4v6"></path>
                         </svg>
                     </div>
                     <input id="threewords" name="threewords" type="text" class="search-bar" placeholder="<?php echo t('common.placeholder_words'); ?>" value="<?= htmlspecialchars($threewords); ?>" autocomplete="off">
@@ -287,11 +293,12 @@ while (count($featured_list) < $examples_visible && count($more_list) > 0) {
     'exists'    => 'home.js_exists',
     'paying'    => 'home.js_paying',
     'plate'     => 'home.js_plate',
+    'address'   => 'home.js_address',
     'missing'   => 'home.js_missing',
     'see_more'  => 'home.see_more',
     'show_less' => 'home.show_less',
 ]); ?>
-<script src="js/3wid_index_2.js?v=5"></script>
+<script src="js/3wid_index_2.js?v=6"></script>
 <script>
     function handleGoogleLogin() {
         //window.location.href = '<?php echo $loginUrl; ?>';

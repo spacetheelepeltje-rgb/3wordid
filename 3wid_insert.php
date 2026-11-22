@@ -59,6 +59,7 @@ try {
    // "Message with link": only when forward and chat are both off (they win)
    $link_title = (string) ($_POST["link_title"] ?? '');
    $msglink = (isset($_POST["msglinkflag"]) && $linkthruflag === 0 && $emailform === 0 && db_3wordid_has_link_title()) ? 1 : 0;
+   $is_address = (db_3wordid_has_is_address() && isset($_POST['is_address'])) ? 1 : 0;
 
    // Not accepted: back to the form with the reason, and with what was typed
    $paying = user_is_paying($data);
@@ -77,6 +78,7 @@ try {
            'msglinkflag' => $msglink,
            'link_title' => $link_title,
            'private' => $private,
+           'is_address' => $is_address,
        ];
        header('location:3wid_add.php');
        exit;
@@ -88,8 +90,13 @@ try {
     
    if($new_id == FALSE) {
 	   error_log('aborted insert');
-	   } elseif ($msglink === 1) {
-	   db_3wordid_set_link_title($new_id, $link_title);
+	   } else {
+	   if ($msglink === 1) {
+	       db_3wordid_set_link_title($new_id, $link_title);
+	   }
+	   if ($is_address === 1) {
+	       db_3wordid_set_is_address($new_id, true);
+	   }
 	   }
     
    //header('location:' .   $loginUrl);

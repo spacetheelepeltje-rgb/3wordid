@@ -35,6 +35,8 @@ if (empty($_SESSION['csrf_token'])) {
  // "Message with link" (only offered once the link_title column exists)
  $has_link_title = db_3wordid_has_link_title();
  $is_msglink = $has_link_title && (int) ($old['msglinkflag'] ?? 0) === 1;
+ // "This is an address" (only offered once the is_address column exists)
+ $has_is_address = db_3wordid_has_is_address();
 
 ?>  
 <!DOCTYPE html>
@@ -362,6 +364,9 @@ if (empty($_SESSION['csrf_token'])) {
             <label><input type="checkbox" id="linkthruflag" name="linkthruflag"<?php echo $old_checked('linkthruflag'); ?>> <?php echo t('add.use_forward'); ?></label>
             <?php if ($has_link_title) { ?>
             <label><input type="checkbox" id="msglinkflag" name="msglinkflag"<?php echo $is_msglink ? ' checked' : ''; ?>> <?php echo t('add.use_msglink'); ?></label>
+            <?php } ?>
+            <?php if ($has_is_address) { ?>
+            <label><input type="checkbox" id="is_address" name="is_address"<?php echo $old_checked('is_address'); ?>> <?php echo t('add.is_address'); ?></label>
             <?php } ?>
           </div>
           <?php // Kept simple: "Link to chat" / "Car chat", open / closed and public / private are on the edit page, from the list ?>

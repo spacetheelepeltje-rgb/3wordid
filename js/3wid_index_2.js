@@ -47,13 +47,21 @@ function looksLikePlate(words) {
 // on and the visitor lands on the "not active at the moment" page.
 // plate: true when RDW knows the words as a Dutch licence plate: a car instead of the lock,
 // green / gold when the 3WordID exists, blue when it does not exist (yet).
-function setSearchLock(state, plate) {
+// address: true when the owner marked the (existing) 3WordID as an address: a home instead
+// of the lock, same green / gold. A plate always wins over an address.
+function searchLockKind(found, plate, address) {
+    if (plate === true) return 'car';
+    if (found && address === true) return 'home';
+    return 'lock';
+}
+
+function setSearchLock(state, plate, address) {
     var lock = document.getElementById('searchLock');
     var shackle = document.getElementById('lockShackle');
     var input = document.getElementById('threewords');
     if (!lock || !shackle) return;
 
-    lock.classList.remove('is-found', 'is-gold', 'is-car', 'is-plate');
+    lock.classList.remove('is-found', 'is-gold', 'is-car', 'is-plate', 'is-address');
     lock.removeAttribute('title');
     lock.removeAttribute('aria-label');
     lock.removeAttribute('role');
@@ -70,11 +78,17 @@ function setSearchLock(state, plate) {
         shackle.setAttribute('d', 'M7 11V7a5 5 0 0 1 10 0v4');
         if (input) input.style.color = '';
     }
-    if (plate === true) {
+    var kind = searchLockKind(found, plate, address);
+    if (kind === 'car') {
         var plateLabel = tr('plate', 'Dutch licence plate');
-        label = label ? plateLabel + ' \u00b7 ' + label : plateLabel;
+        label = label ? plateLabel + ' · ' + label : plateLabel;
         lock.classList.add('is-car');
         if (!found) lock.classList.add('is-plate');
+    } else if (kind === 'home' && document.getElementById('homeIcon')) {
+        // Home icon only on the main homepage, which has #homeIcon (Bumperchat does not).
+        var addressLabel = tr('address', 'Address');
+        label = label ? addressLabel + ' · ' + label : addressLabel;
+        lock.classList.add('is-address');
     }
     if (label) {
         lock.setAttribute('title', label);
@@ -86,6 +100,7 @@ function setSearchLock(state, plate) {
 
 var existsRequest = 0; // only the newest answer may change the lock
 
+if (typeof $ === 'function') {
  $(document).ready(function() {
 
     $('#threewords').on('keyup', function() {
@@ -126,12 +141,13 @@ var existsRequest = 0; // only the newest answer may change the lock
                         success: function(response) {
                             if (mine !== existsRequest) return; // an older answer
                             var plate = looksLikePlate(threewords_array) && !!(response && response.plate === true);
+                            var address = !!(response && response.address === true);
                             if (response && response.exists) {
                                 $("#helperText").text(tr('exists', "3wid exists"));
-                                setSearchLock(response.paying ? 'gold' : 'found', plate);
+                                setSearchLock(response.paying ? 'gold' : 'found', plate, address);
                             } else {
                                 $('#helperText').text(tr('missing', "3wid does not exist log in to create"));
-                                setSearchLock('closed', plate);
+                                setSearchLock('closed', plate, address);
                             }
                         },
                         error: function(xhr, status, error) {
@@ -173,3 +189,8 @@ var existsRequest = 0; // only the newest answer may change the lock
     
   
 });
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { looksLikePlate: looksLikePlate, searchLockKind: searchLockKind, setSearchLock: setSearchLock };
+}

@@ -81,6 +81,7 @@ return [
     'home.js_missing' => '3wid does not exist log in to create',
     'home.js_paying' => 'Owned by a paying account',
     'home.js_plate' => 'Dutch licence plate',
+    'home.js_address' => 'Address',
 
     // ---- terms
     'terms.title' => 'Terms and Conditions — 3WordID',
@@ -281,6 +282,7 @@ The URL, notification, and chat for these words will be removed. This cannot be 
     'add.subscribe_hint' => 'You can subscribe to make sure your 3WordID is not taken by another user or deleted. It expires after two weeks. Subscription can be done via <a href=\'https://3wordid.com/3wid_signup.php\'>the signup form</a>.',
     'add.create' => 'Create',
     'add.later_note' => 'Chat options, and whether this 3WordID is public or private, can be set from the list view, where you also switch the 3WordID on.',
+    'add.is_address' => 'This is an address',
 
     // ---- edit
     'edit.wrong_user' => 'This is not the correct 3wid id for this user',
