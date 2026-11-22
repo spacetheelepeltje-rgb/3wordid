@@ -17,6 +17,8 @@ if (empty($_SESSION['csrf_token'])) {
 
 $error = '';
 $email_value = '';
+$reseller_unknown = false;
+$reseller_code = reseller_remembered_code();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $posted_csrf = $_POST['csrf_token'] ?? '';
@@ -32,11 +34,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         // Checks and the INSERT live in php/email_auth.php (also used by bumperchat/claim.php)
         $result = email_auth_register($conn, $email_value, $password, $confirm);
+        $posted_code = (string) ($_POST['reseller_code'] ?? $reseller_code);
+        $reseller_code = reseller_normalize_code($posted_code);
+        if ($reseller_code === '' && trim($posted_code) !== '') {
+            $reseller_code = strtoupper(trim($posted_code));
+        }
         if ($result['user_id'] > 0) {
+            reseller_apply_to_user((int) $result['user_id'], $posted_code);
             establish_user_session($conn, $result['user_id'], $email_value);
             header('Location: ../3wid_list.php');
             exit;
         }
+        $resolved = reseller_resolve_code($posted_code);
+        $reseller_unknown = !empty($resolved['unknown']);
         $error = t_plain($result['error']);
     }
 }
@@ -75,6 +85,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .btn:hover{background:var(--navy-hover)}
         .hint{color:var(--muted);font-size:13px;text-align:center;margin-top:20px}
         .hint a{color:var(--navy);font-weight:600;text-decoration:none}
+        .reseller-opt{margin:0 0 14px}
+        .reseller-opt summary{cursor:pointer;color:var(--muted);font-size:13px;font-weight:600;margin-bottom:8px}
+        .reseller-opt label{margin-top:8px}
+        .reseller-note{color:var(--gold);font-size:13px;margin:4px 0 0}
         footer{text-align:center;color:var(--muted);font-size:13px;padding:24px}
         footer a{color:var(--muted);margin:0 8px;text-decoration:none}
         @media (max-width:800px){.site-header{padding:14px 20px}h1{font-size:28px}.wrap{margin-top:32px}}
@@ -108,6 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <input id="password_confirm" name="password_confirm" type="password" required minlength="10" placeholder="<?php echo t('reg.repeat_ph'); ?>">
 
             <!-- Placeholder: email verification is not sent. Enable later if you start mailing. -->
+            <?php echo reseller_field_html(['code' => $reseller_code, 'unknown' => $reseller_unknown, 'id' => 'reg_reseller']); ?>
             <?php echo botcheck_fields('register'); ?>
             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8'); ?>">
             <button class="btn" type="submit"><?php echo t('reg.submit'); ?></button>

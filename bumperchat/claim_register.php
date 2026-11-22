@@ -42,7 +42,23 @@ if ($email_value === '' && function_exists('get_session_email')) {
 $phone_value = (string) ($_POST['notify_phone'] ?? '');
 $consent_value = !empty($_POST['notify_sms_consent']);
 
+$reseller_unknown = false;
+$reseller_code = reseller_remembered_code();
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $posted_code = (string) ($_POST['reseller_code'] ?? '');
+    if ($posted_code !== '') {
+        $reseller_code = reseller_normalize_code($posted_code);
+        if ($reseller_code === '') {
+            $reseller_code = strtoupper(trim($posted_code));
+        }
+    }
+}
+
 if ($user) {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $applied = reseller_apply_to_user((int) $user['id'], (string) ($_POST['reseller_code'] ?? $reseller_code));
+        $reseller_unknown = !empty($applied['unknown']);
+    }
     bumperchat_try_claim_and_redirect($user, $words, $_POST);
     if (!empty($GLOBALS['error'])) {
         $error = (string) $GLOBALS['error'];
@@ -59,12 +75,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$user) {
     } else {
         $result = email_auth_register($conn, $email_value, $password, (string) ($_POST['password_confirm'] ?? ''));
         if ($result['user_id'] > 0) {
+            $applied = reseller_apply_to_user((int) $result['user_id'], (string) ($_POST['reseller_code'] ?? $reseller_code));
+            $reseller_unknown = !empty($applied['unknown']);
             establish_user_session($conn, $result['user_id'], $email_value);
             bumperchat_mark_session($words);
             $user = current_user_from_session($conn);
             if ($user) {
                 bumperchat_try_claim_and_redirect($user, $words, $_POST);
             }
+        } else {
+            $resolved = reseller_resolve_code((string) ($_POST['reseller_code'] ?? $reseller_code));
+            $reseller_unknown = !empty($resolved['unknown']);
         }
         if ($error === '') {
             $error = $result['error'] !== '' ? $result['error'] : (string) ($GLOBALS['error'] ?? '');
@@ -96,7 +117,7 @@ if ($exists && $user) {
     <link rel="icon" type="image/x-icon" href="../img/favicon.ico">
     <link href="/css/inter.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/newstyle.css">
-    <link rel="stylesheet" href="../css/bumperchat.css?v=8">
+    <link rel="stylesheet" href="../css/bumperchat.css?v=9">
 </head>
 <body class="bc-body">
     <?php echo bumperchat_header($user); ?>
@@ -166,6 +187,7 @@ if ($exists && $user) {
             <label class="bc-label" for="reg_confirm"><?php echo t('reg.confirm'); ?></label>
             <input id="reg_confirm" name="password_confirm" class="bc-input" type="password" required minlength="<?php echo (int) EMAIL_PW_MIN; ?>" autocomplete="new-password" placeholder="<?php echo t('reg.repeat_ph'); ?>">
             <?php echo bumperchat_notify_fields($phone_value, $consent_value); ?>
+            <?php echo reseller_field_html(['code' => $reseller_code, 'unknown' => $reseller_unknown, 'id' => 'reg_reseller']); ?>
             <?php echo botcheck_fields('bumperchat_register'); ?>
             <?php echo bumperchat_csrf_field(); ?>
             <button class="btn btn-primary bc-full" type="submit"><?php echo t('reg.submit'); ?></button>
@@ -176,6 +198,12 @@ if ($exists && $user) {
             <h2><?php echo t('bc.claim_now_h'); ?></h2>
             <p class="bc-p"><?php echo t('bc.claim_now_p'); ?></p>
             <?php echo bumperchat_notify_fields($phone_value, $consent_value); ?>
+            <?php
+            $already = reseller_user_reseller_id((int) $user['id']);
+            if (!$already) {
+                echo reseller_field_html(['code' => $reseller_code, 'unknown' => $reseller_unknown, 'id' => 'claim_reseller']);
+            }
+            ?>
             <?php echo bumperchat_csrf_field(); ?>
             <button class="btn btn-primary bc-full" type="submit"><?php echo t('bc.claim_now'); ?></button>
             <p class="bc-meta bc-terms"><?php echo t_raw('bc.reg_terms'); ?></p>

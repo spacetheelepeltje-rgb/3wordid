@@ -3508,3 +3508,5 @@ require_once __DIR__ . '/message_delete.php';
 require_once __DIR__ . '/bumperchat.php';
 require_once __DIR__ . '/plate_billing.php';
 require_once __DIR__ . '/pending_messages.php';
+require_once __DIR__ . '/resellers.php';
+reseller_capture_ref();
