@@ -85,6 +85,23 @@ for (const [code, plate, region, want] of labels) {
     if (got !== want) { console.log(`${code} label "${plate}" -> ${JSON.stringify(got)}, expected ${JSON.stringify(want)}`); fail++; }
 }
 
+// Three already-typed groups stay intact, including mixed letter/digit groups.
+// Compact plates still split on letter/digit runs.
+const mixedCases = [
+    ['NL', '2562AE 187 0', '2562AE-187-0', '2562ae 187 0'],
+    ['NL', '2562AE-187-0', '2562AE-187-0', '2562ae 187 0'],
+    ['NL', 'AB123C', 'AB-123-C', 'ab 123 c'],
+    ['NL', '92ZD NG', '92-ZD-NG', '92 zd ng'],
+    ['NL', '92-ZD-NG', '92-ZD-NG', '92 zd ng'],
+];
+for (const [code, plate, formatted, words] of mixedCases) {
+    n++;
+    const fmt = formatPlate(by[code], plate);
+    if (fmt !== formatted) { console.log(`${code} format "${plate}" -> "${fmt}", expected "${formatted}"`); fail++; }
+    const got = plateToWords(by[code], fmt);
+    if (got !== words) { console.log(`${code} words after format "${plate}" -> "${got}", expected "${words}"`); fail++; }
+}
+
 const eu = ['AT','BE','BG','HR','CY','CZ','DK','EE','FI','FR','DE','GR','HU','IE','IT','LV','LT','LU','MT','NL','PL','PT','RO','SK','SI','ES','SE'];
 for (const c of eu.concat(['US', 'CA'])) { if (!codes.has(c)) { console.log(`missing country ${c}`); fail++; } }
 console.log(`${data.countries.length} countries, ${n} conversions checked, ${fail} problem(s)`);

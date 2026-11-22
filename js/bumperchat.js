@@ -186,13 +186,21 @@
             if (at < compact.length) parts.push(compact.substr(at));
             return parts.join(sep);
         }
-        // Respect separators the user typed (92-ZD-NG): each typed group is kept, and
-        // inside a group we still split where letters and digits change (92ZD -> 92-ZD).
+        // Respect separators the user typed (92-ZD-NG). If they already typed
+        // exactly three groups, keep mixed groups intact (2562AE 187 0 stays
+        // three words). Only split where letters and digits change when there
+        // are fewer than three groups (92ZD -> 92-ZD). Same as PHP bumperchat_format_plate().
         var typed = String(raw || '').toUpperCase();
         var trailing = /[^A-Z0-9]$/.test(typed);
+        var typedGroups = typed.split(/[^A-Z0-9]+/).filter(function (g) { return g !== ''; });
+        if (typedGroups.length === 3) {
+            var kept = typedGroups.join(sep);
+            if (/[-.\s]$/.test(typed)) kept += sep;
+            return kept;
+        }
         var parts2 = [];
-        typed.split(/[^A-Z0-9]+/).forEach(function (g) {
-            if (g !== '') runs(g).forEach(function (x) { parts2.push(x); });
+        typedGroups.forEach(function (g) {
+            runs(g).forEach(function (x) { parts2.push(x); });
         });
         var out = parts2.join(sep);
         // Keep a separator the user just typed, so the next group can follow it

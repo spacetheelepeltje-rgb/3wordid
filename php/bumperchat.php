@@ -632,6 +632,13 @@ function bumperchat_format_plate(array $entry, string $raw, string $region = '')
         return '';
     }
     $sep = bumperchat_plate_separator($entry);
+    $typed_groups = bumperchat_plate_groups($raw);
+    // Already three groups as typed (2562AE 187 0): keep mixed groups intact.
+    // Letter/digit splitting and fixed splits are only for compact or incomplete plates.
+    // Same as formatPlate() in js/bumperchat.js.
+    if (count($typed_groups) === 3) {
+        return implode($sep, $typed_groups);
+    }
     if (!empty($entry['fixed']) && is_array($entry['fixed'])) {
         $parts = [];
         $at = 0;
@@ -649,11 +656,9 @@ function bumperchat_format_plate(array $entry, string $raw, string $region = '')
         }
         return implode($sep, $parts);
     }
-    // Respect separators the user typed (92-ZD-NG): each typed group stays a group, and
-    // inside a group we still split where letters and digits change (92ZD -> 92-ZD).
-    // Same logic as formatPlate() in js/bumperchat.js.
+    // Fewer than three typed groups: split where letters and digits change (92ZD -> 92-ZD).
     $parts = [];
-    foreach (preg_split('/[^A-Z0-9]+/', strtoupper($raw), -1, PREG_SPLIT_NO_EMPTY) as $g) {
+    foreach ($typed_groups as $g) {
         foreach (bumperchat_plate_runs($g) as $r) {
             $parts[] = $r;
         }
