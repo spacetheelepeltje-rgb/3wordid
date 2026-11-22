@@ -316,6 +316,6 @@ if ($check === null && $error === '' && $plate_ok && !$is_next && function_exist
     window.BC_LOGGED_IN = <?php echo $user ? 'true' : 'false'; ?>;
     window.BC_DEFAULT_COUNTRY = <?php echo json_encode($default_country); ?>;
 </script>
-<script src="../js/bumperchat.js?v=8"></script>
+<script src="../js/bumperchat.js?v=10"></script>
 </body>
 </html>

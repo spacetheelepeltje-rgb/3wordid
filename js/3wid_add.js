@@ -3,7 +3,11 @@ var tr = window.tr || function (key, fallback) {
     return (window.T3 && window.T3[key]) || fallback;
 };
 
-// Add form (3wid_add.php). The server (3wid_insert.php) does the same checks.
+// Add form (3wid_add.php). The server (3wid_insert.php) does the same checks
+// (php/threewords.php). Words are split only on whitespace: "2562AE 187 0" is
+// three words. Mixed letter/digit groups and single-character groups are allowed
+// for paying users. Bumperchat plate formatting may split compact plates; it must
+// not be applied to this field.
 //  - Free users: letters only. Paying users: letters and digits.
 //  - The Message field is only required when the 3WordID shows it, so not for
 //    "Use forward URL" or "Link to chat".

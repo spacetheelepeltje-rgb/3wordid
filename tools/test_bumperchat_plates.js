@@ -30,7 +30,7 @@ const extra = [
     ['NL', 'ab123c', 'ab 123 c'], ['NL', 'AB 123 C', 'ab 123 c'], ['FR', 'AB123CD', 'ab 123 cd'],
     ['DK', 'AB12345', 'ab 12 345'], ['ES', '1234BCD', 'e 1234 bcd'], ['BE', '1ABC234', '1 abc 234'],
     ['BE', '123-ABC', 'b 123 abc'], ['HU', 'AABC123', 'h aabc 123'], ['SE', 'ABC 12A', 's abc 12a'],
-    ['LU', '1234', 'l 12 34'], ['CZ', '1A23456', ''], ['NL', 'ABCD12', ''], ['US|XX', 'ABC123', ''],
+    ['LU', '1234', 'l 12 34'], ['CZ', '1A23456', 'cz 1a2 3456'], ['NL', 'ABCD12', ''], ['US|XX', 'ABC123', ''],
     ['CA|QC', 'ABC 123', 'qc abc 123'], ['US|TX', 'ABC-1234', 'tx abc 1234'],
 ];
 for (const [k, plate, want] of extra) {
@@ -51,7 +51,7 @@ const prefixCases = [
     ['CA|ON', 'ON ABCD 123', 'ON', 'on abcd 123', 'ABCD 123', 'on'],
     ['US|TX', 'ABC-1234', 'TX', 'tx abc 1234', 'ABC 1234', 'tx'],
     ['US|TX', 'TX ABC-1234', 'TX', 'tx abc 1234', 'ABC 1234', 'tx'],
-    ['US|CA', '7ABC123', 'CA', 'us ca 7abc123', '7 ABC 123', 'us'],
+    ['US|CA', '7ABC123', 'CA', 'us ca 7abc123', '7ABC123', 'us'],
     ['BE', '123-ABC', '', 'b 123 abc', '123-ABC', 'b'],
     ['BE', '1-ABC-234', '', '1 abc 234', '1-ABC-234', ''],
 ];
@@ -84,6 +84,70 @@ for (const [code, plate, region, want] of labels) {
     const got = platePrefixLabel(by[code], plate, region);
     if (got !== want) { console.log(`${code} label "${plate}" -> ${JSON.stringify(got)}, expected ${JSON.stringify(want)}`); fail++; }
 }
+
+// Three already-typed groups stay intact, including mixed letter/digit groups.
+// Compact plates still split on letter/digit runs when the official groups are homogeneous.
+const mixedCases = [
+    ['NL', '2562AE 187 0', '2562AE-187-0', '2562ae 187 0'],
+    ['NL', '2562AE-187-0', '2562AE-187-0', '2562ae 187 0'],
+    ['NL', 'AB123C', 'AB-123-C', 'ab 123 c'],
+    ['NL', '92ZD NG', '92-ZD-NG', '92 zd ng'],
+    ['NL', '92-ZD-NG', '92-ZD-NG', '92 zd ng'],
+];
+for (const [code, plate, formatted, words] of mixedCases) {
+    n++;
+    const fmt = formatPlate(by[code], plate);
+    if (fmt !== formatted) { console.log(`${code} format "${plate}" -> "${fmt}", expected "${formatted}"`); fail++; }
+    const got = plateToWords(by[code], fmt);
+    if (got !== words) { console.log(`${code} words after format "${plate}" -> "${got}", expected "${words}"`); fail++; }
+}
+
+// Official mixed-group formats (and mid-typing). Region plates stay as printed.
+// [code, plate, region, formatted, words] — words '' means incomplete / ambiguous.
+const officialCases = [
+    ['CZ', '1A2 3456', '', '1A2 3456', 'cz 1a2 3456'],
+    ['CZ', '1A23456', '', '1A2 3456', 'cz 1a2 3456'],
+    ['CZ', '1AA 0001', '', '1AA 0001', 'cz 1aa 0001'],
+    ['CZ', '1AA0001', '', '1AA 0001', 'cz 1aa 0001'],
+    ['CZ', '1A2', '', '1A2', ''],
+    ['CZ', '1A23', '', '1A2 3', ''],
+    ['CZ', '1A2345', '', '1A2 345', ''],
+    ['SE', 'ABC 123', '', 'ABC 123', 's abc 123'],
+    ['SE', 'ABC123', '', 'ABC 123', 's abc 123'],
+    ['SE', 'ABC 12A', '', 'ABC 12A', 's abc 12a'],
+    ['SE', 'ABC12A', '', 'ABC 12A', 's abc 12a'],
+    ['SE', 'ABC12', '', 'ABC 12', ''],
+    ['PL', 'WA 12345', '', 'WA 12345', 'pl wa 12345'],
+    ['PL', 'WA12345', '', 'WA 12345', 'pl wa 12345'],
+    ['PL', 'KR 1234A', '', 'KR 1234A', 'pl kr 1234a'],
+    ['PL', 'KR1234A', '', 'KR 1234A', 'pl kr 1234a'],
+    ['PL', 'KRA1234A', '', 'KRA 1234A', 'pl kra 1234a'],
+    ['PL', 'KR12', '', 'KR 12', ''],
+    ['DE', 'M AB 1234', '', 'M AB 1234', 'm ab 1234'],
+    ['DE', 'B XY 123E', '', 'B XY 123E', 'b xy 123e'],
+    ['DE', 'B XY 123', '', 'B XY 123', 'b xy 123'],
+    ['DE', 'BXY123E', '', 'BXY123E', ''],
+    ['DE', 'MAB1234', '', 'MAB1234', ''],
+    ['US', '7ABC123', 'CA', '7ABC123', 'us ca 7abc123'],
+    ['US', 'ABC-1234', 'TX', 'ABC 1234', 'tx abc 1234'],
+    ['SK', 'AB 123 CD', '', 'AB 123 CD', 'ab 123 cd'],
+    ['SK', 'BA123AB', '', 'BA 123 AB', 'ba 123 ab'],
+    ['SK', 'BA-123AB', '', 'BA 123 AB', 'ba 123 ab'],
+];
+for (const [code, plate, region, formatted, words] of officialCases) {
+    n++;
+    const fmt = formatPlate(by[code], plate, region);
+    if (fmt !== formatted) { console.log(`${code} official format "${plate}" -> "${fmt}", expected "${formatted}"`); fail++; }
+    const got = plateToWords(by[code], fmt, region);
+    if (got !== words) { console.log(`${code} official words "${plate}" -> "${got}", expected "${words}"`); fail++; }
+    if (words) {
+        const direct = plateToWords(by[code], plate, region);
+        if (direct !== words) { console.log(`${code} official direct "${plate}" -> "${direct}", expected "${words}"`); fail++; }
+    }
+}
+// Without a country, keep three typed groups; generic split only on fewer groups.
+n++;
+if (formatPlate({}, '2562AE 187 0') !== '2562AE 187 0') { console.log('no-country three groups were split'); fail++; }
 
 const eu = ['AT','BE','BG','HR','CY','CZ','DK','EE','FI','FR','DE','GR','HU','IE','IT','LV','LT','LU','MT','NL','PL','PT','RO','SK','SI','ES','SE'];
 for (const c of eu.concat(['US', 'CA'])) { if (!codes.has(c)) { console.log(`missing country ${c}`); fail++; } }
