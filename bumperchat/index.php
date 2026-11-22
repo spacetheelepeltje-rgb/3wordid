@@ -194,7 +194,7 @@ function bc_e($s): string { return htmlspecialchars((string) $s, ENT_QUOTES, 'UT
     window.BC_LOGGED_IN = <?php echo $user ? 'true' : 'false'; ?>;
 </script>
 <script src="../js/3wid_index_2.js?v=5"></script>
-<script src="../js/bumperchat.js?v=9"></script>
+<script src="../js/bumperchat.js?v=10"></script>
 
 </body>
 </html>

@@ -314,6 +314,6 @@ $action_token = get_action_token();
     window.BC_PENDING_REMAINING = <?php echo $already ? 0 : (int) $remaining; ?>;
     window.BC_DEFAULT_COUNTRY = <?php echo json_encode($selected); ?>;
 </script>
-<script src="../js/bumperchat.js?v=9"></script>
+<script src="../js/bumperchat.js?v=10"></script>
 </body>
 </html>

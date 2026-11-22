@@ -61,7 +61,7 @@ $extra = [
     ['HU', 'AABC123', 'h aabc 123'],
     ['SE', 'ABC 12A', 's abc 12a'],
     ['LU', '1234', 'l 12 34'],
-    ['CZ', '1A23456', ''],
+    ['CZ', '1A23456', 'cz 1a2 3456'],
     ['NL', 'ABCD12', ''],
 ];
 foreach ($extra as [$code, $plate, $want]) {
@@ -89,7 +89,7 @@ $prefixCases = [
     ['CA', 'ON ABCD 123', 'ON', 'on abcd 123', 'ABCD 123', 'on'],
     ['US', 'ABC-1234', 'TX', 'tx abc 1234', 'ABC 1234', 'tx'],
     ['US', 'TX ABC-1234', 'TX', 'tx abc 1234', 'ABC 1234', 'tx'],
-    ['US', '7ABC123', 'CA', 'us ca 7abc123', '7 ABC 123', 'us'],
+    ['US', '7ABC123', 'CA', 'us ca 7abc123', '7ABC123', 'us'],
     ['BE', '123-ABC', '', 'b 123 abc', '123-ABC', 'b'],
     ['BE', '1-ABC-234', '', '1 abc 234', '1-ABC-234', ''],
 ];
@@ -182,6 +182,46 @@ expect('format still splits compact NL', bumperchat_format_plate($by['NL'], 'AB1
 expect('format still splits two groups', bumperchat_format_plate($by['NL'], '92ZD NG'), '92-ZD-NG');
 expect('words from three mixed groups', bumperchat_plate_to_words($by['NL'], '2562AE 187 0'), '2562ae 187 0');
 expect('words after format mixed groups', bumperchat_plate_to_words($by['NL'], bumperchat_format_plate($by['NL'], '2562AE 187 0')), '2562ae 187 0');
+
+// Official mixed-group formats (and mid-typing). Region plates stay as printed.
+$officialCases = [
+    ['CZ', '1A2 3456', '', '1A2 3456', 'cz 1a2 3456'],
+    ['CZ', '1A23456', '', '1A2 3456', 'cz 1a2 3456'],
+    ['CZ', '1AA 0001', '', '1AA 0001', 'cz 1aa 0001'],
+    ['CZ', '1AA0001', '', '1AA 0001', 'cz 1aa 0001'],
+    ['CZ', '1A2', '', '1A2', ''],
+    ['CZ', '1A23', '', '1A2 3', ''],
+    ['CZ', '1A2345', '', '1A2 345', ''],
+    ['SE', 'ABC 123', '', 'ABC 123', 's abc 123'],
+    ['SE', 'ABC123', '', 'ABC 123', 's abc 123'],
+    ['SE', 'ABC 12A', '', 'ABC 12A', 's abc 12a'],
+    ['SE', 'ABC12A', '', 'ABC 12A', 's abc 12a'],
+    ['SE', 'ABC12', '', 'ABC 12', ''],
+    ['PL', 'WA 12345', '', 'WA 12345', 'pl wa 12345'],
+    ['PL', 'WA12345', '', 'WA 12345', 'pl wa 12345'],
+    ['PL', 'KR 1234A', '', 'KR 1234A', 'pl kr 1234a'],
+    ['PL', 'KR1234A', '', 'KR 1234A', 'pl kr 1234a'],
+    ['PL', 'KRA1234A', '', 'KRA 1234A', 'pl kra 1234a'],
+    ['PL', 'KR12', '', 'KR 12', ''],
+    ['DE', 'M AB 1234', '', 'M AB 1234', 'm ab 1234'],
+    ['DE', 'B XY 123E', '', 'B XY 123E', 'b xy 123e'],
+    ['DE', 'B XY 123', '', 'B XY 123', 'b xy 123'],
+    ['DE', 'BXY123E', '', 'BXY123E', ''],
+    ['DE', 'MAB1234', '', 'MAB1234', ''],
+    ['US', '7ABC123', 'CA', '7ABC123', 'us ca 7abc123'],
+    ['US', 'ABC-1234', 'TX', 'ABC 1234', 'tx abc 1234'],
+    ['SK', 'AB 123 CD', '', 'AB 123 CD', 'ab 123 cd'],
+    ['SK', 'BA123AB', '', 'BA 123 AB', 'ba 123 ab'],
+    ['SK', 'BA-123AB', '', 'BA 123 AB', 'ba 123 ab'],
+];
+foreach ($officialCases as [$code, $plate, $region, $formatted, $words]) {
+    expect("$code official format \"$plate\"", bumperchat_format_plate($by[$code], $plate, $region), $formatted);
+    expect("$code official words \"$plate\"", bumperchat_plate_to_words($by[$code], bumperchat_format_plate($by[$code], $plate, $region), $region), $words);
+    if ($words !== '') {
+        expect("$code official direct \"$plate\"", bumperchat_plate_to_words($by[$code], $plate, $region), $words);
+    }
+}
+expect('no-country keeps three typed groups', bumperchat_format_plate([], '2562AE 187 0'), '2562AE 187 0');
 expect('example NL', bumperchat_plate_example($by['NL']), 'AB-123-C');
 expect('style NL', bumperchat_plate_style('NL'), 'nl');
 expect('style FR', bumperchat_plate_style('FR'), 'eu');
