@@ -43,7 +43,7 @@
   if (isset($_SESSION['edit_form_error']) && is_array($_SESSION['edit_form_error'])) {
       if ((int) ($_SESSION['edit_form_error']['id'] ?? 0) === (int) $row['id']) {
           $form_error = (string) ($_SESSION['edit_form_error']['error'] ?? '');
-          foreach (['notification', 'linkthru', 'linkthruflag', 'emailform', 'private', 'link_title', 'msglinkflag', 'car_chat', 'chat_open', 'car_error'] as $k) {
+          foreach (['notification', 'linkthru', 'linkthruflag', 'emailform', 'private', 'link_title', 'msglinkflag', 'car_chat', 'chat_open', 'car_error', 'is_address'] as $k) {
               if (array_key_exists($k, $_SESSION['edit_form_error'])) {
                   $row[$k] = $_SESSION['edit_form_error'][$k];
               }
@@ -54,6 +54,7 @@
 
   // "Message with link" (only offered once the link_title column exists)
   $has_link_title = db_3wordid_has_link_title();
+  $has_is_address = db_3wordid_has_is_address();
   $is_msglink = $has_link_title && (array_key_exists('msglinkflag', $row)
       ? ((int) $row['msglinkflag'] === 1 && (int) $row['linkthruflag'] !== 1 && (int) $row['emailform'] !== 1)
       : wid_is_msglink($row));
@@ -371,6 +372,9 @@
                     </fieldset>
                     <?php } ?>
                     <label><input <?php echo $row["private"]== 1 ?'checked':''; ?> type="checkbox" id="private" name="private"> <?php echo t('edit.private'); ?></label>
+                    <?php if ($has_is_address) { ?>
+                    <label><input <?php echo ((int) ($row['is_address'] ?? 0) === 1) ? 'checked' : ''; ?> type="checkbox" id="is_address" name="is_address"> <?php echo t('add.is_address'); ?></label>
+                    <?php } ?>
                 </div>
 
                 <div class="checks photo-opt">

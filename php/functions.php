@@ -2050,9 +2050,14 @@ function db_3wordid_exists_status(string $threeword): ?array
     if (!db_3wordid_hasThreeAlphabeticNumeric($threeword)) {
         return null;
     }
+    $has_address = db_3wordid_has_is_address();
     $conn = get_db_conn();
+    $cols = 'u.user_type';
+    if ($has_address) {
+        $cols .= ', w.is_address';
+    }
     $stmt = $conn->prepare(
-        'SELECT u.user_type FROM 3wordid w LEFT JOIN google_users u ON u.id = w.user_id'
+        'SELECT ' . $cols . ' FROM 3wordid w LEFT JOIN google_users u ON u.id = w.user_id'
         . ' WHERE w.threeword = ? LIMIT 1'
     );
     if ($stmt === false) {
@@ -2065,7 +2070,11 @@ function db_3wordid_exists_status(string $threeword): ?array
     if (!$row) {
         return null;
     }
-    return ['paying' => user_is_paying(['user_type' => $row['user_type']])];
+    $out = ['paying' => user_is_paying(['user_type' => $row['user_type']])];
+    if ($has_address) {
+        $out['address'] = ((int) ($row['is_address'] ?? 0) === 1);
+    }
+    return $out;
 }
 
 require_once __DIR__ . '/threewords.php';
@@ -2412,6 +2421,79 @@ function db_3wordid_set_link_title($wid_id, $title) {
 	$stmt->close();
 	$conn->close();
 	return $ok;
+}
+
+// ---------------------------------------------------------------------------
+// "This is an address" flag (column 3wordid.is_address).
+// The code works before the column exists: the checkbox is then not shown,
+// and the homepage search keeps the lock (or car) icon.
+//   ALTER TABLE 3wordid ADD COLUMN is_address TINYINT(1) NOT NULL DEFAULT 0;
+//   ALTER TABLE 3wordid_deleted ADD COLUMN is_address TINYINT(1) NOT NULL DEFAULT 0;
+// ---------------------------------------------------------------------------
+
+function db_3wordid_has_is_address(): bool
+{
+	static $has = null;
+	if ($has !== null) {
+		return $has;
+	}
+	$has = false;
+	$conn = get_db_conn();
+	if ($conn && !$conn->connect_error) {
+		$result = $conn->query("SHOW COLUMNS FROM 3wordid LIKE 'is_address'");
+		if ($result) {
+			$has = ($result->num_rows > 0);
+			$result->free();
+		}
+		$conn->close();
+	}
+	return $has;
+}
+
+// Save the address flag. Call only after the owner check.
+function db_3wordid_set_is_address($wid_id, $on): bool
+{
+	$wid_id = (int) $wid_id;
+	$on = $on ? 1 : 0;
+	if ($wid_id < 1 || !db_3wordid_has_is_address()) {
+		return false;
+	}
+	$conn = get_db_conn();
+	if (!$conn || $conn->connect_error) {
+		return false;
+	}
+	$stmt = $conn->prepare("UPDATE 3wordid SET is_address = ? WHERE id = ?");
+	if ($stmt === false) {
+		$conn->close();
+		return false;
+	}
+	$stmt->bind_param("ii", $on, $wid_id);
+	$ok = $stmt->execute();
+	$stmt->close();
+	$conn->close();
+	return $ok;
+}
+
+function wid_is_address($row): bool
+{
+	return is_array($row) && db_3wordid_has_is_address() && (int) ($row['is_address'] ?? 0) === 1;
+}
+
+/**
+ * Which icon the homepage search box should show (same rule as searchLockKind()
+ * in js/3wid_index_2.js). A Dutch plate in the RDW register always wins, also
+ * when the 3WordID does not exist yet. The home icon is only for an existing
+ * 3WordID that the owner marked as an address.
+ */
+function wid_search_lock_kind(bool $exists, bool $plate, bool $address): string
+{
+	if ($plate) {
+		return 'car';
+	}
+	if ($exists && $address) {
+		return 'home';
+	}
+	return 'lock';
 }
 
 // Plain text, one line, at most 255 characters.

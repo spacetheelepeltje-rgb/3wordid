@@ -9,10 +9,13 @@
  *   + plate=1 (homepage search) -> also "plate": bool, only when the words look like a
  *     licence plate (three words of 1-3 letters / digits, at least one digit): is it a Dutch
  *     plate in the RDW register? (car icon instead of the lock)
+ *   + "address": bool, only when the is_address column exists and the 3WordID exists:
+ *     the owner marked it as an address (home icon instead of the lock, unless "plate")
  *
  * Privacy: only yes/no for the exact, complete three words, plus whether the owner is a
- * paying account (gold lock). No suggestions, no partial matches, nothing else about the
- * 3WordID or its owner. "plate" is only yes / no from RDW (car_plate_known() in
+ * paying account (gold lock), and whether it is marked as an address. No suggestions, no
+ * partial matches, nothing else about the 3WordID or its owner. "plate" is only yes / no
+ * from RDW (car_plate_known() in
  * php/car_chat.php: server side, cached, short timeout), never make, colour or anything else;
  * RDW down or slow = no "plate" at all. Switched-off 3WordIDs count as existing: the search goes on and the
  * visitor lands on the "not active at the moment" page. Public, so limited per session.
@@ -30,13 +33,16 @@ header('X-Robots-Tag: noindex');
 $json = (($_POST['format'] ?? '') === 'json');
 header($json ? 'Content-Type: application/json; charset=utf-8' : 'Content-Type: text/plain; charset=utf-8');
 
-function exists_answer(bool $json, int $status, bool $exists, bool $paying = false, ?bool $plate = null): void
+function exists_answer(bool $json, int $status, bool $exists, bool $paying = false, ?bool $plate = null, ?bool $address = null): void
 {
     http_response_code($status);
     if ($json) {
         $out = ['exists' => $exists, 'paying' => $exists && $paying];
         if ($plate !== null) {
             $out['plate'] = $plate;
+        }
+        if ($address !== null) {
+            $out['address'] = $exists && $address;
         }
         echo json_encode($out);
     } else {
@@ -68,4 +74,6 @@ if (strlen($words) > 80 || !preg_match('/^[A-Za-z0-9]+ [A-Za-z0-9]+ [A-Za-z0-9]+
 $status = db_3wordid_exists_status($words);
 // Licence plate? (homepage search only, after the session is released: RDW can take a moment)
 $plate = ($json && (($_POST['plate'] ?? '') === '1') && car_plate_pattern($words)) ? car_plate_known($words) : null;
-exists_answer($json, 200, $status !== null, (bool) ($status['paying'] ?? false), $plate);
+// Address flag: only when the column exists and this 3WordID exists (no extra lookup)
+$address = ($json && $status !== null && array_key_exists('address', $status)) ? (bool) $status['address'] : null;
+exists_answer($json, 200, $status !== null, (bool) ($status['paying'] ?? false), $plate, $address);

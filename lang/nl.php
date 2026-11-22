@@ -81,6 +81,7 @@ return [
     'home.js_missing' => '3wid bestaat niet, log in om hem te maken',
     'home.js_paying' => 'Van een betaald account',
     'home.js_plate' => 'Nederlands kenteken',
+    'home.js_address' => 'Adres',
 
     // ---- terms
     'terms.title' => 'Algemene voorwaarden — 3WordID',
@@ -282,6 +283,7 @@ De URL, mededeling en chat van deze woorden worden verwijderd. Dit kan niet onge
     'add.subscribe_hint' => 'Je kunt een abonnement nemen om te zorgen dat je 3WordID niet door een andere gebruiker wordt overgenomen of verwijderd. Hij verloopt na twee weken. Een abonnement kun je afsluiten via <a href=\'https://3wordid.com/3wid_signup.php\'>het aanmeldformulier</a>.',
     'add.create' => 'Maken',
     'add.later_note' => 'Chatopties, en of deze 3WordID openbaar of privé is, stel je in vanuit het overzicht van je 3WordID’s. Daar schakel je de 3WordID ook in.',
+    'add.is_address' => 'Dit is een adres',
 
     // ---- edit
     'edit.wrong_user' => 'Dit is niet de juiste 3wid-id voor deze gebruiker',
