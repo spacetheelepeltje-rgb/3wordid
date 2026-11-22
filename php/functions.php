@@ -2077,29 +2077,16 @@ function db_3wordid_exists_status(string $threeword): ?array
     return $out;
 }
 
+require_once __DIR__ . '/threewords.php';
+
 /**
  * Why a 3WordID typed in the add form is not accepted, as a lang key (null = fine).
  * Same checks as db_3wid_validate_type(), but with a reason the form can show.
+ * Words are split only on whitespace (see php/threewords.php).
  */
 function wid_threeword_error(string $threeword, bool $paying): ?string
 {
-    $threeword = trim($threeword);
-    if ($threeword === '') {
-        return 'js.add_need_3wid';
-    }
-    $parts = preg_split('/\s+/', $threeword);
-    if (count($parts) !== 3) {
-        return 'js.max_three';
-    }
-    foreach ($parts as $part) {
-        if (!$paying && preg_match('/[0-9]/', $part)) {
-            return 'js.add_err_digits';
-        }
-        if (!preg_match($paying ? '/^[a-zA-Z0-9]+$/' : '/^[a-zA-Z]+$/', $part)) {
-            return $paying ? 'js.add_err_chars_paid' : 'js.add_err_chars';
-        }
-    }
-    return null;
+    return threeword_error($threeword, $paying, true);
 }
 
 /**
@@ -2118,55 +2105,25 @@ function wid_note_error(string $clean_note, int $linkthruflag, int $emailform): 
 function db_3wid_validate_type($threeword,$user_type){
 	
 	$threeword = trim(strtolower($threeword));
-	
-    // Split by spaces
-    $parts = preg_split('/\s+/', $threeword);
-    
-    // Check if there are exactly 3 parts
-    if (count($parts) !== 3) {
-        return false;
-    }
-    
-    if($user_type == 0) {
-    // Check each part is only alphabetic
-		foreach ($parts as $part) {
-			if (!ctype_alpha($part) || empty($part)) {
-				return false;
-			}
-		}
-	} 
-	
-	if($user_type > 0) {
-    // Check each part is only alphabetic
-		foreach ($parts as $part) {
-			if (!ctype_alnum($part) || empty($part)) {
-				return false;
-			}
-		}
-	} 
-	
+	$paying = (int) $user_type > 0;
+	if (threeword_error($threeword, $paying, true) !== null) {
+		return false;
+	}
 	return $threeword;
 	}
 
 function db_3wid_validate($threeword){
 	
 	$threeword = trim(strtolower($threeword));
-	
-    // Split by spaces
-    $parts = preg_split('/\s+/', $threeword);
-    
-    // Check if there are exactly 3 parts
-    if (count($parts) !== 3) {
-        return false;
-    }
-    
-    // Check each part is only alphabetic
-    foreach ($parts as $part) {
-        if (!ctype_alnum($part) || empty($part)) {
-            return false;
-        }
-    }
-	
+	$parts = threeword_split($threeword);
+	if (count($parts) !== 3) {
+		return false;
+	}
+	foreach ($parts as $part) {
+		if (!preg_match('/^[a-zA-Z0-9]+$/', $part)) {
+			return false;
+		}
+	}
 	return $threeword;
 	}
 	
@@ -3590,3 +3547,5 @@ require_once __DIR__ . '/message_delete.php';
 require_once __DIR__ . '/bumperchat.php';
 require_once __DIR__ . '/plate_billing.php';
 require_once __DIR__ . '/pending_messages.php';
+require_once __DIR__ . '/resellers.php';
+reseller_capture_ref();

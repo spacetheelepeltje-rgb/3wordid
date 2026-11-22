@@ -96,29 +96,69 @@ function payments_start(string $product_key, int $user_id, array $opts = []): ar
         'user_id' => $user_id,
     ]);
 
-    $sql = "INSERT INTO payments (order_ref, user_id, wid_id, product_key, subject, amount, currency,
-                interval_unit, interval_count, method, status, metadata_json)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-    $stmt = $conn->prepare($sql);
-    if (!$stmt) {
-        error_log('payments_start: prepare insert failed');
-        return ['ok' => false, 'error' => 'db'];
+    $reseller_db = null;
+    if (function_exists('reseller_payments_column_ready') && reseller_payments_column_ready()) {
+        $entered = isset($opts['reseller_id']) ? (int) $opts['reseller_id'] : 0;
+        $entered = $entered > 0 ? $entered : null;
+        $from_user = function_exists('reseller_user_reseller_id')
+            ? reseller_user_reseller_id($user_id)
+            : null;
+        $chosen = function_exists('reseller_payment_attribution')
+            ? reseller_payment_attribution($from_user, $entered)
+            : ($from_user ?: $entered);
+        $reseller_db = $chosen && $chosen > 0 ? $chosen : null;
     }
-    $stmt->bind_param(
-        'siisssssisss',
-        $order_ref,
-        $user_id,
-        $wid_db,
-        $product_key,
-        $subject_db,
-        $amount,
-        $currency,
-        $interval_unit,
-        $interval_count,
-        $method,
-        $status,
-        $meta
-    );
+
+    if ($reseller_db !== null || (function_exists('reseller_payments_column_ready') && reseller_payments_column_ready())) {
+        $sql = "INSERT INTO payments (order_ref, user_id, wid_id, product_key, subject, amount, currency,
+                    interval_unit, interval_count, method, status, metadata_json, reseller_id)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $stmt = $conn->prepare($sql);
+        if (!$stmt) {
+            error_log('payments_start: prepare insert failed');
+            return ['ok' => false, 'error' => 'db'];
+        }
+        $stmt->bind_param(
+            'siisssssisssi',
+            $order_ref,
+            $user_id,
+            $wid_db,
+            $product_key,
+            $subject_db,
+            $amount,
+            $currency,
+            $interval_unit,
+            $interval_count,
+            $method,
+            $status,
+            $meta,
+            $reseller_db
+        );
+    } else {
+        $sql = "INSERT INTO payments (order_ref, user_id, wid_id, product_key, subject, amount, currency,
+                    interval_unit, interval_count, method, status, metadata_json)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $stmt = $conn->prepare($sql);
+        if (!$stmt) {
+            error_log('payments_start: prepare insert failed');
+            return ['ok' => false, 'error' => 'db'];
+        }
+        $stmt->bind_param(
+            'siisssssisss',
+            $order_ref,
+            $user_id,
+            $wid_db,
+            $product_key,
+            $subject_db,
+            $amount,
+            $currency,
+            $interval_unit,
+            $interval_count,
+            $method,
+            $status,
+            $meta
+        );
+    }
     if (!$stmt->execute()) {
         $stmt->close();
         error_log('payments_start: insert failed');

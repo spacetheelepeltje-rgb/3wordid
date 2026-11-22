@@ -312,15 +312,19 @@ function bumperchat_plate_to_words_raw(array $entry, string $plate, string $regi
     if ($compact === '' || strlen($compact) > 20) {
         return '';
     }
+    $official = bumperchat_unique_fit_any_pattern($entry, $compact, false);
+    $mixed_official = bumperchat_patterns_have_mixed(is_array($entry['group_patterns'] ?? null) ? $entry['group_patterns'] : []);
 
     $mode = (string) ($entry['mode'] ?? '');
     if ($mode === 'three') {
         if (count($g) === 3) {
             $out = $g;
+        } elseif ($official && count($official) === 3) {
+            $out = $official;
         } elseif (!empty($entry['fixed']) && is_array($entry['fixed'])) {
             $out = bumperchat_fixed_split($compact, $entry['fixed']);
         }
-        if (!$out) {
+        if (!$out && !$mixed_official) {
             $r = bumperchat_plate_runs($compact);
             if (count($r) === 3) {
                 $out = $r;
@@ -329,7 +333,11 @@ function bumperchat_plate_to_words_raw(array $entry, string $plate, string $regi
     } elseif ($mode === 'mixed') {
         if (count($g) === 3) {
             $out = $g;
-        } else {
+        } elseif ($official && count($official) === 3) {
+            $out = $official;
+        } elseif ($official && count($official) === 2) {
+            $out = array_merge([$strip], $official);
+        } elseif (!$mixed_official) {
             $r2 = bumperchat_plate_runs($compact);
             if (count($r2) === 3) {
                 $out = $r2;
@@ -338,14 +346,23 @@ function bumperchat_plate_to_words_raw(array $entry, string $plate, string $regi
             } elseif (count($g) === 2) {
                 $out = array_merge([$strip], $g);
             }
+        } elseif (count($g) === 2 && (($official && count($official) === 2) || bumperchat_groups_match_official($entry, $g))) {
+            $out = array_merge([$strip], $g);
         }
     } elseif ($mode === 'prefix') {
-        $r3 = bumperchat_plate_runs($compact);
+        $has_patterns = !empty($entry['group_patterns']) && is_array($entry['group_patterns']);
+        $r3 = $has_patterns ? [] : bumperchat_plate_runs($compact);
         if (count($g) === 3 && !empty($entry['three_ok'])) {
             $out = $g;
+        } elseif ($official && count($official) === 2) {
+            $out = array_merge([$strip], $official);
+        } elseif ($official && count($official) === 3 && !empty($entry['three_ok'])) {
+            $out = $official;
+        } elseif (count($g) === 2 && bumperchat_groups_match_official($entry, $g)) {
+            $out = array_merge([$strip], $g);
         } elseif (count($r3) === 2) {
             $out = array_merge([$strip], $r3);
-        } elseif (count($g) === 2) {
+        } elseif (!$has_patterns && count($g) === 2) {
             $out = array_merge([$strip], $g);
         } elseif (count($g) === 1 && strlen($compact) >= 3 && preg_match('/^[0-9]+$/', $compact)) {
             $out = [$strip, substr($compact, 0, 2), substr($compact, 2)];
@@ -620,9 +637,326 @@ function bumperchat_plate_separator(array $entry): string
 }
 
 /**
- * Upper-case the typed plate, drop illegal characters, and insert the country's
- * usual dashes or spaces (letter/digit runs, or a fixed split when the country
- * has one). Input with or without separators is accepted.
+ * Official group patterns from plate_formats.json. Same helpers as
+ * js/bumperchat.js. Used only by the Bumperchat chain.
+ * @return list<array{cls:?string,lit:?string,min:int,max:int}>|null
+ */
+function bumperchat_compile_group_pattern(string $src): ?array
+{
+    $slots = [];
+    $i = 0;
+    $len = strlen($src);
+    while ($i < $len) {
+        $cls = null;
+        $lit = null;
+        if ($src[$i] === '[') {
+            $close = strpos($src, ']', $i);
+            if ($close === false) {
+                return null;
+            }
+            $body = substr($src, $i + 1, $close - $i - 1);
+            if ($body === 'A-Z') {
+                $cls = 'A-Z';
+            } elseif ($body === '0-9') {
+                $cls = '0-9';
+            } elseif ($body === 'A-Z0-9' || $body === '0-9A-Z') {
+                $cls = 'A-Z0-9';
+            } elseif ($body === 'EH' || $body === 'HE') {
+                $cls = 'EH';
+            } else {
+                return null;
+            }
+            $i = $close + 1;
+        } elseif (preg_match('/[A-Z0-9]/', $src[$i])) {
+            $lit = $src[$i];
+            $i++;
+        } else {
+            return null;
+        }
+        $min = 1;
+        $max = 1;
+        if ($i < $len && $src[$i] === '{') {
+            $end = strpos($src, '}', $i);
+            if ($end === false) {
+                return null;
+            }
+            $spec = explode(',', substr($src, $i + 1, $end - $i - 1));
+            $min = (int) $spec[0];
+            $max = isset($spec[1]) ? (int) $spec[1] : $min;
+            if ($min < 1 || $max < $min) {
+                return null;
+            }
+            $i = $end + 1;
+        } elseif ($i < $len && $src[$i] === '?') {
+            $min = 0;
+            $max = 1;
+            $i++;
+        }
+        $slots[] = ['cls' => $cls, 'lit' => $lit, 'min' => $min, 'max' => $max];
+    }
+    return $slots ?: null;
+}
+
+function bumperchat_slot_char_ok(array $slot, string $ch): bool
+{
+    if ($slot['lit'] !== null) {
+        return $ch === $slot['lit'];
+    }
+    $cls = (string) ($slot['cls'] ?? '');
+    if ($cls === 'A-Z') {
+        return (bool) preg_match('/[A-Z]/', $ch);
+    }
+    if ($cls === '0-9') {
+        return (bool) preg_match('/[0-9]/', $ch);
+    }
+    if ($cls === 'A-Z0-9') {
+        return (bool) preg_match('/[A-Z0-9]/', $ch);
+    }
+    if ($cls === 'EH') {
+        return (bool) preg_match('/[EH]/', $ch);
+    }
+    return false;
+}
+
+function bumperchat_slots_minmax(array $slots): array
+{
+    $min = 0;
+    $max = 0;
+    foreach ($slots as $slot) {
+        $min += (int) $slot['min'];
+        $max += (int) $slot['max'];
+    }
+    return ['min' => $min, 'max' => $max];
+}
+
+function bumperchat_slots_consume(array $slots, string $text, int $si, int $ti, bool $allow_partial): bool
+{
+    $nslots = count($slots);
+    $len = strlen($text);
+    if ($si === $nslots) {
+        return $ti === $len || ($allow_partial && $ti <= $len);
+    }
+    if ($ti > $len) {
+        return false;
+    }
+    $slot = $slots[$si];
+    $max_take = min((int) $slot['max'], $len - $ti);
+    for ($n = $max_take; $n >= (int) $slot['min']; $n--) {
+        $ok = true;
+        for ($k = 0; $k < $n; $k++) {
+            if (!bumperchat_slot_char_ok($slot, $text[$ti + $k])) {
+                $ok = false;
+                break;
+            }
+        }
+        if ($ok && bumperchat_slots_consume($slots, $text, $si + 1, $ti + $n, $allow_partial)) {
+            return true;
+        }
+    }
+    if ($allow_partial && $ti === $len && (int) $slot['min'] === 0) {
+        return bumperchat_slots_consume($slots, $text, $si + 1, $ti, $allow_partial);
+    }
+    if ($allow_partial && $si === $nslots - 1 && $ti < $len) {
+        $rest = $len - $ti;
+        if ($rest < (int) $slot['min'] && $rest <= (int) $slot['max']) {
+            $ok = true;
+            for ($k = 0; $k < $rest; $k++) {
+                if (!bumperchat_slot_char_ok($slot, $text[$ti + $k])) {
+                    $ok = false;
+                    break;
+                }
+            }
+            if ($ok) {
+                return true;
+            }
+        }
+    }
+    if ($allow_partial && $si < $nslots && $ti === $len) {
+        return true;
+    }
+    return false;
+}
+
+function bumperchat_group_full_match(string $pattern, string $text): bool
+{
+    $slots = bumperchat_compile_group_pattern($pattern);
+    return $slots && $text !== '' && bumperchat_slots_consume($slots, $text, 0, 0, false);
+}
+
+function bumperchat_group_prefix_match(string $pattern, string $text): bool
+{
+    $slots = bumperchat_compile_group_pattern($pattern);
+    if (!$slots) {
+        return false;
+    }
+    if ($text === '') {
+        return true;
+    }
+    return bumperchat_slots_consume($slots, $text, 0, 0, true);
+}
+
+/** True when typed groups are one complete official pattern (not a prefix). */
+function bumperchat_groups_match_official(array $entry, array $groups): bool
+{
+    $list = $entry['group_patterns'] ?? [];
+    if (!$groups || !is_array($list)) {
+        return false;
+    }
+    foreach ($list as $pats) {
+        if (!is_array($pats) || count($pats) !== count($groups)) {
+            continue;
+        }
+        $ok = true;
+        foreach ($pats as $i => $pat) {
+            if (!bumperchat_group_full_match((string) $pat, (string) $groups[$i])) {
+                $ok = false;
+                break;
+            }
+        }
+        if ($ok) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function bumperchat_group_is_mixed(string $pattern): bool
+{
+    $has_digit = (bool) preg_match('/\[0-9\]/', $pattern);
+    $has_letter = (bool) preg_match('/\[A-Z\]/', $pattern);
+    $has_alnum = (bool) preg_match('/\[0-9A-Z\]|\[A-Z0-9\]/', $pattern);
+    $has_eh = (bool) preg_match('/\[EH\]|\[HE\]/', $pattern);
+    return $has_alnum || ($has_digit && $has_letter) || ($has_digit && $has_eh);
+}
+
+function bumperchat_patterns_have_mixed(array $patterns): bool
+{
+    foreach ($patterns as $groups) {
+        if (!is_array($groups)) {
+            continue;
+        }
+        foreach ($groups as $g) {
+            if (bumperchat_group_is_mixed((string) $g)) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+/** @param list<string> $group_patterns @return list<list<string>> */
+function bumperchat_collect_pattern_fits(array $group_patterns, string $text, bool $allow_partial): array
+{
+    $fits = [];
+    if ($text === '') {
+        return $allow_partial ? [[]] : [];
+    }
+    $walker = function (int $gi, int $pos, array $acc) use (&$walker, $group_patterns, $text, $allow_partial, &$fits): void {
+        if ($gi === count($group_patterns)) {
+            if ($pos === strlen($text)) {
+                $fits[] = $acc;
+            }
+            return;
+        }
+        if ($pos === strlen($text)) {
+            if ($allow_partial) {
+                $fits[] = $acc;
+            }
+            return;
+        }
+        $slots = bumperchat_compile_group_pattern((string) $group_patterns[$gi]);
+        if (!$slots) {
+            return;
+        }
+        $mm = bumperchat_slots_minmax($slots);
+        $left = strlen($text) - $pos;
+        $is_last = $gi === count($group_patterns) - 1;
+        $max_len = min($mm['max'], $left);
+        $min_len = $allow_partial ? 1 : $mm['min'];
+        if ($min_len > $max_len && $allow_partial && $left > 0) {
+            $min_len = 1;
+        }
+        for ($n = $max_len; $n >= $min_len; $n--) {
+            $piece = substr($text, $pos, $n);
+            $more = ($pos + $n) < strlen($text);
+            $ok_full = bumperchat_slots_consume($slots, $piece, 0, 0, false);
+            $ok_part = $allow_partial && !$more && bumperchat_slots_consume($slots, $piece, 0, 0, true);
+            if ($more && !$ok_full) {
+                continue;
+            }
+            if (!$more && !$ok_full && !$ok_part) {
+                continue;
+            }
+            if ($more && $is_last) {
+                continue;
+            }
+            $walker($gi + 1, $pos + $n, array_merge($acc, [$piece]));
+        }
+    };
+    $walker(0, 0, []);
+    return $fits;
+}
+
+/**
+ * Official grouping when every matching pattern agrees on the same
+ * group boundaries. Null when the plate is ambiguous or does not fit.
+ * @return list<string>|null
+ */
+function bumperchat_unique_fit_any_pattern(array $entry, string $text, bool $allow_partial): ?array
+{
+    $list = $entry['group_patterns'] ?? [];
+    if (!is_array($list)) {
+        return null;
+    }
+    $all = [];
+    foreach ($list as $groups) {
+        if (!is_array($groups)) {
+            continue;
+        }
+        foreach (bumperchat_collect_pattern_fits($groups, $text, $allow_partial) as $got) {
+            $all[] = $got;
+        }
+    }
+    if (!$all) {
+        return null;
+    }
+    $key = implode("\0", $all[0]);
+    foreach ($all as $got) {
+        if (implode("\0", $got) !== $key) {
+            return null;
+        }
+    }
+    return $all[0];
+}
+
+function bumperchat_country_format_known(array $entry): bool
+{
+    return ($entry['format'] ?? '') !== ''
+        || !empty($entry['fixed'])
+        || (($entry['mode'] ?? '') === 'region')
+        || !empty($entry['group_patterns']);
+}
+
+function bumperchat_join_formatted(array $parts, string $sep, bool $trailing): string
+{
+    $parts = array_values(array_filter($parts, static function ($g) {
+        return $g !== '';
+    }));
+    $out = implode($sep, $parts);
+    if ($trailing && $out !== '') {
+        $out .= $sep;
+    }
+    return $out;
+}
+
+/**
+ * Format a typed plate for the Bumperchat chain only (index, claim,
+ * onboarding). Not used on the main 3WordID site or the create form.
+ * When a country format is known, follow that format (including official
+ * mixed letter/digit groups, also while typing). The generic letter/digit
+ * split is only used when no country format is known, or when every official
+ * group is a homogeneous run of letters or of digits. Same as formatPlate()
+ * in js/bumperchat.js.
  */
 function bumperchat_format_plate(array $entry, string $raw, string $region = ''): string
 {
@@ -632,7 +966,59 @@ function bumperchat_format_plate(array $entry, string $raw, string $region = '')
         return '';
     }
     $sep = bumperchat_plate_separator($entry);
-    if (!empty($entry['fixed']) && is_array($entry['fixed'])) {
+    $typed = strtoupper($raw);
+    $trailing = (bool) preg_match('/[-.\\s]$/', $typed);
+    $typed_groups = bumperchat_plate_groups($raw);
+    $known = bumperchat_country_format_known($entry);
+    $patterns = is_array($entry['group_patterns'] ?? null) ? $entry['group_patterns'] : [];
+    $mode = (string) ($entry['mode'] ?? '');
+
+    if ($mode === 'region') {
+        return bumperchat_join_formatted($typed_groups, $sep, $trailing);
+    }
+
+    // If the user already typed exactly three groups, those are the three
+    // words. Do not split mixed groups such as 2562AE 187 0 or DE 123E.
+    if (count($typed_groups) === 3) {
+        return bumperchat_join_formatted($typed_groups, $sep, $trailing);
+    }
+
+    if ($patterns) {
+        if (count($typed_groups) <= 1) {
+            $fitted = bumperchat_unique_fit_any_pattern($entry, $compact, true);
+            if ($fitted) {
+                return bumperchat_join_formatted($fitted, $sep, $trailing);
+            }
+        } else {
+            $kept = [];
+            foreach ($typed_groups as $g) {
+                $keep_whole = false;
+                foreach ($patterns as $groups) {
+                    if (!is_array($groups)) {
+                        continue;
+                    }
+                    foreach ($groups as $pat) {
+                        $pat = (string) $pat;
+                        if (bumperchat_group_full_match($pat, $g) || (bumperchat_group_is_mixed($pat) && bumperchat_group_prefix_match($pat, $g))) {
+                            $keep_whole = true;
+                            break 2;
+                        }
+                    }
+                }
+                if ($keep_whole) {
+                    $kept[] = $g;
+                } else {
+                    $pieces = bumperchat_plate_runs($g);
+                    $kept = array_merge($kept, $pieces ?: [$g]);
+                }
+            }
+            if ($kept) {
+                return bumperchat_join_formatted($kept, $sep, $trailing);
+            }
+        }
+    }
+
+    if (!empty($entry['fixed']) && is_array($entry['fixed']) && count($typed_groups) <= 1) {
         $parts = [];
         $at = 0;
         $len = strlen($compact);
@@ -647,18 +1033,19 @@ function bumperchat_format_plate(array $entry, string $raw, string $region = '')
         if ($at < $len) {
             $parts[] = substr($compact, $at);
         }
-        return implode($sep, $parts);
+        return bumperchat_join_formatted($parts, $sep, $trailing);
     }
-    // Respect separators the user typed (92-ZD-NG): each typed group stays a group, and
-    // inside a group we still split where letters and digits change (92ZD -> 92-ZD).
-    // Same logic as formatPlate() in js/bumperchat.js.
-    $parts = [];
-    foreach (preg_split('/[^A-Z0-9]+/', strtoupper($raw), -1, PREG_SPLIT_NO_EMPTY) as $g) {
-        foreach (bumperchat_plate_runs($g) as $r) {
-            $parts[] = $r;
+
+    if (!$known || !bumperchat_patterns_have_mixed($patterns)) {
+        $parts = [];
+        foreach ($typed_groups as $g) {
+            foreach (bumperchat_plate_runs($g) as $r) {
+                $parts[] = $r;
+            }
         }
+        return bumperchat_join_formatted($parts, $sep, $trailing);
     }
-    return $parts ? implode($sep, $parts) : $compact;
+    return bumperchat_join_formatted($typed_groups, $sep, $trailing);
 }
 
 /** First example plate of a country, without a "STATE|" prefix. */

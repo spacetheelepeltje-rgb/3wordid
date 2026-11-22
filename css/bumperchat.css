@@ -204,3 +204,10 @@
 .bc-dispute { margin: 12px 0 0; font-size: 12px; line-height: 1.4; }
 .bc-dispute a { color: var(--muted); font-weight: 500; text-decoration: underline; text-underline-offset: 2px; }
 .bc-dispute a:hover { color: var(--slate); }
+
+
+/* Optional reseller code (collapsed behind a summary link) */
+.bc-reseller { margin: 12px 0 16px; }
+.bc-reseller summary { cursor: pointer; color: var(--muted); font-size: 13px; font-weight: 600; }
+.bc-reseller[open] summary { margin-bottom: 8px; }
+.bc-reseller-note { color: var(--gold, #B45309); font-size: 13px; margin: 6px 0 0; }

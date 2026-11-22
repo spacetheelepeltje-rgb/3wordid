@@ -134,24 +134,32 @@
         var strip = String(entry.strip || '').toLowerCase();
         var out = null;
         if (compact === '' || compact.length > 20) return '';
+        var official = uniqueFitAnyPattern(entry, compact, false);
+        var mixedOfficial = patternHasMixed((entry && entry.group_patterns) || []);
 
         if (entry.mode === 'three') {
             if (g.length === 3) out = g;
+            else if (official && official.length === 3) out = official;
             else if (entry.fixed) out = fixedSplit(compact, entry.fixed);
-            if (!out) { var r = runs(compact); if (r.length === 3) out = r; }
+            if (!out && !mixedOfficial) { var r = runs(compact); if (r.length === 3) out = r; }
         } else if (entry.mode === 'mixed') {
             if (g.length === 3) out = g;
-            else {
+            else if (official && official.length === 3) out = official;
+            else if (official && official.length === 2) out = [strip].concat(official);
+            else if (!mixedOfficial) {
                 var r2 = runs(compact);
                 if (r2.length === 3) out = r2;
                 else if (r2.length === 2) out = [strip].concat(r2);
                 else if (g.length === 2) out = [strip].concat(g);
-            }
+            } else if (g.length === 2 && (official && official.length === 2 || groupsMatchOfficial(entry, g))) out = [strip].concat(g);
         } else if (entry.mode === 'prefix') {
-            var r3 = runs(compact);
+            var r3 = ((entry.group_patterns || []).length) ? [] : runs(compact);
             if (g.length === 3 && entry.three_ok) out = g;
+            else if (official && official.length === 2) out = [strip].concat(official);
+            else if (official && official.length === 3 && entry.three_ok) out = official;
+            else if (g.length === 2 && groupsMatchOfficial(entry, g)) out = [strip].concat(g);
             else if (r3.length === 2) out = [strip].concat(r3);
-            else if (g.length === 2) out = [strip].concat(g);
+            else if (!(entry.group_patterns || []).length && g.length === 2) out = [strip].concat(g);
             else if (g.length === 1 && compact.length >= 3 && /^[0-9]+$/.test(compact)) {
                 out = [strip, compact.substr(0, 2), compact.substr(2)];
             }
@@ -170,12 +178,280 @@
         return format.indexOf('-') !== -1 ? '-' : ' ';
     }
 
+    /**
+     * Official group patterns from plate_formats.json (simple character classes
+     * and {n}/{n,m} only). Used so mixed official groups (CZ 1A2, SE 12A, …)
+     * are not split at letter/digit transitions, including while typing.
+     */
+    function compileGroupPattern(src) {
+        var slots = [], i = 0, s = String(src || '');
+        while (i < s.length) {
+            var cls = null, lit = null;
+            if (s[i] === '[') {
+                var close = s.indexOf(']', i);
+                if (close < 0) return null;
+                var body = s.slice(i + 1, close);
+                if (body === 'A-Z') cls = /[A-Z]/;
+                else if (body === '0-9') cls = /[0-9]/;
+                else if (body === 'A-Z0-9' || body === '0-9A-Z') cls = /[A-Z0-9]/;
+                else if (body === 'EH' || body === 'HE') cls = /[EH]/;
+                else return null;
+                i = close + 1;
+            } else if (/[A-Z0-9]/.test(s[i])) {
+                lit = s[i];
+                i += 1;
+            } else {
+                return null;
+            }
+            var min = 1, max = 1;
+            if (s[i] === '{') {
+                var end = s.indexOf('}', i);
+                if (end < 0) return null;
+                var spec = s.slice(i + 1, end).split(',');
+                min = parseInt(spec[0], 10);
+                max = spec.length > 1 ? parseInt(spec[1], 10) : min;
+                if (!min || min < 1 || !max || max < min) return null;
+                i = end + 1;
+            } else if (s[i] === '?') {
+                min = 0;
+                max = 1;
+                i += 1;
+            }
+            slots.push({ cls: cls, lit: lit, min: min, max: max });
+        }
+        return slots.length ? slots : null;
+    }
+
+    function slotsMinMax(slots) {
+        var min = 0, max = 0, i;
+        for (i = 0; i < slots.length; i++) {
+            min += slots[i].min;
+            max += slots[i].max;
+        }
+        return { min: min, max: max };
+    }
+
+    function slotsConsume(slots, text, si, ti, allowPartial) {
+        if (si === slots.length) return ti === text.length || (allowPartial && ti <= text.length);
+        if (ti > text.length) return false;
+        var slot = slots[si], n, ch, ok;
+        var maxTake = Math.min(slot.max, text.length - ti);
+        if (allowPartial && si === slots.length - 1) {
+            // last slot may be short while typing
+        }
+        for (n = maxTake; n >= slot.min; n--) {
+            ok = true;
+            for (var k = 0; k < n; k++) {
+                ch = text[ti + k];
+                if (slot.lit) { if (ch !== slot.lit) { ok = false; break; } }
+                else if (!slot.cls.test(ch)) { ok = false; break; }
+            }
+            if (ok && slotsConsume(slots, text, si + 1, ti + n, allowPartial)) return true;
+        }
+        if (allowPartial && ti === text.length && slot.min === 0) {
+            return slotsConsume(slots, text, si + 1, ti, allowPartial);
+        }
+        // Incomplete last slot while typing (0..min-1 characters already taken by recursion above only if min=0)
+        if (allowPartial && si === slots.length - 1 && ti < text.length) {
+            var rest = text.length - ti;
+            if (rest < slot.min && rest <= slot.max) {
+                ok = true;
+                for (k = 0; k < rest; k++) {
+                    ch = text[ti + k];
+                    if (slot.lit) { if (ch !== slot.lit) ok = false; }
+                    else if (!slot.cls.test(ch)) ok = false;
+                    if (!ok) break;
+                }
+                if (ok) return true;
+            }
+        }
+        if (allowPartial && si < slots.length && ti === text.length) return true;
+        return false;
+    }
+
+    function groupFullMatch(pattern, text) {
+        var slots = compileGroupPattern(pattern);
+        return !!(slots && text !== '' && slotsConsume(slots, text, 0, 0, false));
+    }
+
+    function groupPrefixMatch(pattern, text) {
+        var slots = compileGroupPattern(pattern);
+        if (!slots) return false;
+        if (text === '') return true;
+        return slotsConsume(slots, text, 0, 0, true);
+    }
+
+    /** True when typed groups are one complete official pattern (not a prefix). */
+    function groupsMatchOfficial(entry, groups) {
+        var list = (entry && entry.group_patterns) || [], p, i, pats, ok;
+        if (!groups || !groups.length) return false;
+        for (p = 0; p < list.length; p++) {
+            pats = list[p];
+            if (pats.length !== groups.length) continue;
+            ok = true;
+            for (i = 0; i < pats.length; i++) {
+                if (!groupFullMatch(pats[i], groups[i])) { ok = false; break; }
+            }
+            if (ok) return true;
+        }
+        return false;
+    }
+
+    function groupIsMixed(pattern) {
+        return /\[0-9A-Z\]|\[A-Z0-9\]|\[0-9\].*\[A-Z\]|\[A-Z\].*\[0-9\]/.test(String(pattern || ''))
+            || (/\[0-9\]/.test(String(pattern || '')) && /\[A-Z\]/.test(String(pattern || '')))
+            || (/\[0-9\]/.test(String(pattern || '')) && /\[EH\]/.test(String(pattern || '')));
+    }
+
+    function patternHasMixed(patterns) {
+        var i, j;
+        for (i = 0; i < (patterns || []).length; i++) {
+            for (j = 0; j < patterns[i].length; j++) {
+                if (groupIsMixed(patterns[i][j])) return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Collect every way compact text can fit one official pattern.
+     * allowPartial: later groups may be missing and the last used group may
+     * be incomplete (while typing).
+     */
+    function collectPatternFits(groupPatterns, text, allowPartial) {
+        var fits = [];
+        if (!text) {
+            if (allowPartial) fits.push([]);
+            return fits;
+        }
+        function rec(gi, pos, acc) {
+            if (gi === groupPatterns.length) {
+                if (pos === text.length) fits.push(acc);
+                return;
+            }
+            if (pos === text.length) {
+                if (allowPartial) fits.push(acc);
+                return;
+            }
+            var slots = compileGroupPattern(groupPatterns[gi]);
+            if (!slots) return;
+            var mm = slotsMinMax(slots);
+            var left = text.length - pos;
+            var isLast = gi === groupPatterns.length - 1;
+            var maxLen = Math.min(mm.max, left);
+            var minLen = allowPartial ? 1 : mm.min;
+            if (minLen > maxLen && allowPartial && left > 0) minLen = 1;
+            var n, piece, more, okFull, okPart;
+            for (n = maxLen; n >= minLen; n--) {
+                piece = text.substr(pos, n);
+                more = pos + n < text.length;
+                okFull = slotsConsume(slots, piece, 0, 0, false);
+                okPart = allowPartial && !more && slotsConsume(slots, piece, 0, 0, true);
+                if (more && !okFull) continue;
+                if (!more && !okFull && !okPart) continue;
+                if (more && isLast) continue;
+                rec(gi + 1, pos + n, acc.concat([piece]));
+            }
+        }
+        rec(0, 0, []);
+        return fits;
+    }
+
+    /**
+     * The official grouping when every matching pattern agrees on the same
+     * group boundaries. Null when the plate is ambiguous (e.g. compact German
+     * without separators) or does not fit.
+     */
+    function uniqueFitAnyPattern(entry, text, allowPartial) {
+        var list = (entry && entry.group_patterns) || [];
+        var all = [], i, j, fits, key;
+        for (i = 0; i < list.length; i++) {
+            fits = collectPatternFits(list[i], text, allowPartial);
+            for (j = 0; j < fits.length; j++) all.push(fits[j]);
+        }
+        if (!all.length) return null;
+        key = all[0].join('\0');
+        for (i = 1; i < all.length; i++) {
+            if (all[i].join('\0') !== key) return null;
+        }
+        return all[0];
+    }
+
+    function countryFormatKnown(entry) {
+        return !!(entry && (entry.format || entry.fixed || entry.mode === 'region' || (entry.group_patterns && entry.group_patterns.length)));
+    }
+
+    function joinFormatted(parts, sep, trailing) {
+        var out = parts.filter(function (g) { return g !== ''; }).join(sep);
+        if (trailing && out) out += sep;
+        return out;
+    }
+
+    /**
+     * Format a typed plate for the Bumperchat chain only (index, claim,
+     * onboarding). Not used on the main 3WordID site or the create form.
+     * When a country format is known, follow that format (including official
+     * mixed letter/digit groups, also while typing). The generic letter/digit
+     * split is only used when no country format is known, or when every
+     * official group is a homogeneous run of letters or of digits (the
+     * transition then is the official group boundary). Same as PHP
+     * bumperchat_format_plate().
+     */
     function formatPlate(entry, raw, region) {
         raw = stripDuplicatePrefix(entry, raw, region);
         var compact = String(raw || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
         if (!compact) return '';
         var sep = plateSeparator(entry || {});
-        if (entry && entry.fixed && entry.fixed.length) {
+        var typed = String(raw || '').toUpperCase();
+        var trailing = /[-.\s]$/.test(typed);
+        var typedGroups = typed.split(/[^A-Z0-9]+/).filter(function (g) { return g !== ''; });
+        var known = countryFormatKnown(entry);
+        var patterns = (entry && entry.group_patterns) || [];
+        var mode = String((entry && entry.mode) || '');
+
+        // Region plates are used as printed: one block stays one block, two
+        // groups stay two groups. Never split a mixed block such as 7ABC123.
+        if (mode === 'region') {
+            return joinFormatted(typedGroups, sep, trailing);
+        }
+
+        // If the user already typed exactly three groups, those are the three
+        // words. Do not split mixed groups such as 2562AE 187 0 or DE 123E.
+        if (typedGroups.length === 3) {
+            return joinFormatted(typedGroups, sep, trailing);
+        }
+
+        // Official patterns: compact or mid-typing, including mixed groups.
+        // Only apply a split when every official reading agrees.
+        if (patterns.length) {
+            if (typedGroups.length <= 1) {
+                var fitted = uniqueFitAnyPattern(entry, compact, true);
+                if (fitted && fitted.length) return joinFormatted(fitted, sep, trailing);
+            } else {
+                var kept = [];
+                typedGroups.forEach(function (g) {
+                    var keepWhole = false, p, gi;
+                    for (p = 0; p < patterns.length && !keepWhole; p++) {
+                        for (gi = 0; gi < patterns[p].length; gi++) {
+                            if (groupFullMatch(patterns[p][gi], g) || (groupIsMixed(patterns[p][gi]) && groupPrefixMatch(patterns[p][gi], g))) {
+                                keepWhole = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (keepWhole) {
+                        kept.push(g);
+                    } else {
+                        var pieces = runs(g);
+                        if (pieces.length) kept = kept.concat(pieces);
+                        else kept.push(g);
+                    }
+                });
+                if (kept.length) return joinFormatted(kept, sep, trailing);
+            }
+        }
+
+        if (entry && entry.fixed && entry.fixed.length && typedGroups.length <= 1) {
             var parts = [], at = 0, i;
             for (i = 0; i < entry.fixed.length; i++) {
                 var n = parseInt(entry.fixed[i], 10);
@@ -184,20 +460,19 @@
                 at += n;
             }
             if (at < compact.length) parts.push(compact.substr(at));
-            return parts.join(sep);
+            return joinFormatted(parts, sep, trailing);
         }
-        // Respect separators the user typed (92-ZD-NG): each typed group is kept, and
-        // inside a group we still split where letters and digits change (92ZD -> 92-ZD).
-        var typed = String(raw || '').toUpperCase();
-        var trailing = /[^A-Z0-9]$/.test(typed);
-        var parts2 = [];
-        typed.split(/[^A-Z0-9]+/).forEach(function (g) {
-            if (g !== '') runs(g).forEach(function (x) { parts2.push(x); });
-        });
-        var out = parts2.join(sep);
-        // Keep a separator the user just typed, so the next group can follow it
-        if (trailing && parts2.length > 0) out += sep;
-        return out;
+
+        // Generic letter/digit split only when no country format is known, or
+        // when official groups are homogeneous so the transition is the boundary.
+        if (!known || !patternHasMixed(patterns)) {
+            var parts2 = [];
+            typedGroups.forEach(function (g) {
+                runs(g).forEach(function (x) { parts2.push(x); });
+            });
+            return joinFormatted(parts2, sep, trailing);
+        }
+        return joinFormatted(typedGroups, sep, trailing);
     }
 
     function plateExample(entry) {
@@ -292,6 +567,10 @@
             if (rule) {
                 var ex = c.examples[0];
                 rule.textContent = txt(c.rule) + ' ' + tr('bc_example', 'Example:') + ' ' + ex.plate.replace('|', ' ') + ' \u2192 ' + ex.words;
+            }
+            if (plate) {
+                var formatted = formatPlate(c, plate.value, region && region.value);
+                if (formatted !== plate.value) setFormattedValue(plate, formatted);
             }
             var words = plate && plate.value.trim() !== '' ? plateToWords(c, plate.value, region && region.value) : '';
             if (out) {
