@@ -241,10 +241,15 @@ function email_store_plain(?array $row): string
 
 function email_store_schema_ready($conn): bool
 {
-    return function_exists('google_users_has_column')
-        && $conn
-        && google_users_has_column($conn, 'email_enc')
-        && google_users_has_column($conn, 'email_lookup');
+    if (!function_exists('google_users_has_column') || !$conn) {
+        return false;
+    }
+    try {
+        return google_users_has_column($conn, 'email_enc')
+            && google_users_has_column($conn, 'email_lookup');
+    } catch (Throwable $e) {
+        return false;
+    }
 }
 
 /**
@@ -256,31 +261,50 @@ function email_store_find_id($conn, string $email): int
     if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL) || !$conn) {
         return 0;
     }
-    if (pii_email_keys_ready() && email_store_schema_ready($conn)) {
-        $lookup = email_lookup_hash($email);
-        if ($lookup) {
-            $stmt = $conn->prepare('SELECT id FROM google_users WHERE email_lookup = ? LIMIT 1');
-            if ($stmt) {
-                $stmt->bind_param('s', $lookup);
-                $stmt->execute();
-                $row = $stmt->get_result()->fetch_assoc();
-                $stmt->close();
-                if ($row) {
-                    return (int) $row['id'];
+    try {
+        if (pii_email_keys_ready() && email_store_schema_ready($conn)) {
+            $lookup = email_lookup_hash($email);
+            if ($lookup) {
+                $stmt = $conn->prepare('SELECT id FROM google_users WHERE email_lookup = ? LIMIT 1');
+                if ($stmt) {
+                    $stmt->bind_param('s', $lookup);
+                    $stmt->execute();
+                    $row = $stmt->get_result()->fetch_assoc();
+                    $stmt->close();
+                    if ($row) {
+                        return (int) $row['id'];
+                    }
                 }
             }
         }
+        $md5 = email_md5($email);
+        $stmt = $conn->prepare('SELECT id FROM google_users WHERE email = ? LIMIT 1');
+        if (!$stmt) {
+            return 0;
+        }
+        $stmt->bind_param('s', $md5);
+        $stmt->execute();
+        $row = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+        return $row ? (int) $row['id'] : 0;
+    } catch (Throwable $e) {
+        error_log('email_store_find_id: lookup failed, trying md5');
+        try {
+            $md5 = email_md5($email);
+            $stmt = $conn->prepare('SELECT id FROM google_users WHERE email = ? LIMIT 1');
+            if (!$stmt) {
+                return 0;
+            }
+            $stmt->bind_param('s', $md5);
+            $stmt->execute();
+            $row = $stmt->get_result()->fetch_assoc();
+            $stmt->close();
+            return $row ? (int) $row['id'] : 0;
+        } catch (Throwable $e2) {
+            error_log('email_store_find_id: md5 fallback failed');
+            return 0;
+        }
     }
-    $md5 = email_md5($email);
-    $stmt = $conn->prepare('SELECT id FROM google_users WHERE email = ? LIMIT 1');
-    if (!$stmt) {
-        return 0;
-    }
-    $stmt->bind_param('s', $md5);
-    $stmt->execute();
-    $row = $stmt->get_result()->fetch_assoc();
-    $stmt->close();
-    return $row ? (int) $row['id'] : 0;
 }
 
 /**
@@ -304,17 +328,22 @@ function email_store_save($conn, int $user_id, string $email): array
     if ($other > 0 && $other !== $user_id) {
         return ['ok' => false, 'error' => 'reg.exists'];
     }
-    $stmt = $conn->prepare('UPDATE google_users SET email = ?, email_enc = ?, email_lookup = ? WHERE id = ?');
-    if (!$stmt) {
-        return ['ok' => false, 'error' => 'pii.save_failed'];
+    try {
+        $stmt = $conn->prepare('UPDATE google_users SET email = ?, email_enc = ?, email_lookup = ? WHERE id = ?');
+        if (!$stmt) {
+            return ['ok' => false, 'error' => 'pii.save_failed'];
+        }
+        $stmt->bind_param('sssi', $bundle['md5'], $bundle['enc'], $bundle['lookup'], $user_id);
+        $ok = $stmt->execute();
+        $stmt->close();
+        if (!$ok) {
+            return ['ok' => false, 'error' => 'pii.save_failed'];
+        }
+        return $bundle;
+    } catch (Throwable $e) {
+        error_log('email_store_save: failed');
+        return ['ok' => false, 'error' => 'pii.schema'];
     }
-    $stmt->bind_param('sssi', $bundle['md5'], $bundle['enc'], $bundle['lookup'], $user_id);
-    $ok = $stmt->execute();
-    $stmt->close();
-    if (!$ok) {
-        return ['ok' => false, 'error' => 'pii.save_failed'];
-    }
-    return $bundle;
 }
 
 /**
@@ -414,13 +443,22 @@ function user_phone_store_save($conn, int $user_id, ?string $phone, bool $consen
     $enc = $bundle['enc'];
     $consent_i = ($enc && $consent) ? 1 : 0;
     $consent_at = $consent_i ? date('Y-m-d H:i:s') : null;
-    $stmt = $conn->prepare(
-        'UPDATE google_users
-            SET notify_phone_enc = ?, notify_sms_consent = ?, notify_sms_consent_at = ?
-          WHERE id = ?'
-    );
-    if (!$stmt) {
-        // notify_sms_consent columns may be missing on an older database: try phone only
+    try {
+        $stmt = $conn->prepare(
+            'UPDATE google_users
+                SET notify_phone_enc = ?, notify_sms_consent = ?, notify_sms_consent_at = ?
+              WHERE id = ?'
+        );
+        if ($stmt) {
+            $stmt->bind_param('sisi', $enc, $consent_i, $consent_at, $user_id);
+            $ok = $stmt->execute();
+            $stmt->close();
+            return $ok ? $bundle : ['ok' => false, 'error' => 'pii.save_failed'];
+        }
+    } catch (Throwable $e) {
+        // notify_sms_consent columns may be missing: try phone only below
+    }
+    try {
         $stmt = $conn->prepare('UPDATE google_users SET notify_phone_enc = ? WHERE id = ?');
         if (!$stmt) {
             return ['ok' => false, 'error' => 'pii.save_failed'];
@@ -429,11 +467,10 @@ function user_phone_store_save($conn, int $user_id, ?string $phone, bool $consen
         $ok = $stmt->execute();
         $stmt->close();
         return $ok ? $bundle : ['ok' => false, 'error' => 'pii.save_failed'];
+    } catch (Throwable $e) {
+        error_log('user_phone_store_save: failed');
+        return ['ok' => false, 'error' => 'pii.schema'];
     }
-    $stmt->bind_param('sisi', $enc, $consent_i, $consent_at, $user_id);
-    $ok = $stmt->execute();
-    $stmt->close();
-    return $ok ? $bundle : ['ok' => false, 'error' => 'pii.save_failed'];
 }
 
 function plate_phone_schema_ready($conn = null): bool
@@ -476,14 +513,19 @@ function plate_phone_store_save($conn, int $wid_id, ?string $phone): array
         return $bundle['plain'] === '' ? $bundle : ['ok' => false, 'error' => 'pii.schema'];
     }
     $enc = $bundle['enc'];
-    $stmt = $conn->prepare('UPDATE 3wordid SET notify_phone_enc = ?, notify_phone = NULL WHERE id = ?');
-    if (!$stmt) {
-        return ['ok' => false, 'error' => 'pii.save_failed'];
+    try {
+        $stmt = $conn->prepare('UPDATE 3wordid SET notify_phone_enc = ?, notify_phone = NULL WHERE id = ?');
+        if (!$stmt) {
+            return ['ok' => false, 'error' => 'pii.save_failed'];
+        }
+        $stmt->bind_param('si', $enc, $wid_id);
+        $ok = $stmt->execute();
+        $stmt->close();
+        return $ok ? $bundle : ['ok' => false, 'error' => 'pii.save_failed'];
+    } catch (Throwable $e) {
+        error_log('plate_phone_store_save: failed');
+        return ['ok' => false, 'error' => 'pii.schema'];
     }
-    $stmt->bind_param('si', $enc, $wid_id);
-    $ok = $stmt->execute();
-    $stmt->close();
-    return $ok ? $bundle : ['ok' => false, 'error' => 'pii.save_failed'];
 }
 
 /**

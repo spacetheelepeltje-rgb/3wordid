@@ -79,19 +79,33 @@ function establish_user_session(mysqli $conn, int $userId, ?string $plainEmail =
     if ($plainEmail !== null) {
         set_session_email($plainEmail);
         if (function_exists('email_store_remember')) {
-            email_store_remember($conn, $userId, $plainEmail);
+            try {
+                email_store_remember($conn, $userId, $plainEmail);
+            } catch (Throwable $e) {
+                error_log('establish_user_session: could not store email');
+            }
         }
     } elseif (function_exists('email_store_plain')) {
-        $stmt = $conn->prepare('SELECT email, email_enc FROM google_users WHERE id = ? LIMIT 1');
-        if ($stmt) {
-            $stmt->bind_param('i', $userId);
-            $stmt->execute();
-            $row = $stmt->get_result()->fetch_assoc();
-            $stmt->close();
-            $stored = email_store_plain($row ?: null);
-            if ($stored !== '') {
-                set_session_email($stored);
+        // Remember-me resume has no plaintext email. Never let a missing
+        // email_enc column (SQL not yet run) take the login down.
+        try {
+            $sql = 'SELECT email FROM google_users WHERE id = ? LIMIT 1';
+            if (function_exists('google_users_has_column') && google_users_has_column($conn, 'email_enc')) {
+                $sql = 'SELECT email, email_enc FROM google_users WHERE id = ? LIMIT 1';
             }
+            $stmt = $conn->prepare($sql);
+            if ($stmt) {
+                $stmt->bind_param('i', $userId);
+                $stmt->execute();
+                $row = $stmt->get_result()->fetch_assoc();
+                $stmt->close();
+                $stored = email_store_plain($row ?: null);
+                if ($stored !== '') {
+                    set_session_email($stored);
+                }
+            }
+        } catch (Throwable $e) {
+            error_log('establish_user_session: could not load stored email');
         }
     }
 

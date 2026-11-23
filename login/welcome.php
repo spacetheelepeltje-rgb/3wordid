@@ -110,20 +110,17 @@ if ($existing) {
 establish_user_session($conn, $userId, $emailRaw);
 
 if ($from_bumperchat) {
-    // Same as the Bumperchat email login: mark the session, then route into Bumperchat
-    // (extras form for new Google signups, then claim / pending message / chat).
+    // Account may already exist or has just been created. Chat is only opened
+    // after a plate is claimed (and the extras form, when required). Without a
+    // plate the visitor lands on plate registration. A Google login started on
+    // 3wordid.com still goes to the main-site list page below.
     bumperchat_mark_session(bumperchat_normalize_words((string) (bumperchat_claim_state()['words'] ?? '')));
     $bc_next = bumperchat_safe_next((string) ($oauth_return['next'] ?? ''), '');
     $row = function_exists('db_3wordid_get_google_user') ? db_3wordid_get_google_user($userId) : null;
     if (!$row) {
         $row = ['id' => $userId];
     }
-    if (function_exists('bumperchat_google_details_needed') && bumperchat_google_details_needed($row, $google_just_created)) {
-        header('Location: ../bumperchat/google_details.php' . ($bc_next !== '' ? '?next=' . rawurlencode($bc_next) : ''));
-        exit;
-    }
-    header('Location: ../bumperchat/login.php' . ($bc_next !== '' ? '?next=' . rawurlencode($bc_next) : ''));
-    exit;
+    bumperchat_after_login_redirect($row, $bc_next, $google_just_created);
 }
 
 header('Location: ../3wid_list.php'); // 3wid_list.php sends a plate-only account on to the chat view

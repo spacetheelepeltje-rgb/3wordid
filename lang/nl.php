@@ -1138,6 +1138,7 @@ De URL, mededeling en chat van deze woorden worden verwijderd. Dit kan niet onge
     'bc.google_details_p' => 'Je Google-login is klaar. Je kunt een mobiel nummer toevoegen voor sms-berichten, een resellercode als je die hebt, en ingelogd blijven op dit apparaat. Dit is allemaal optioneel.',
     'bc.google_details_submit' => 'Doorgaan',
     'bc.google_details_skip' => 'Je kunt de optionele velden leeg laten en op Doorgaan drukken.',
+    'bc.first_register_plate' => 'Registreer eerst je kenteken',
     'bc.account' => 'Account',
     'bc.account_title' => 'Account – Bumperchat',
     'bc.account_h' => 'Je account',

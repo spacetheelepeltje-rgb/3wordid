@@ -3542,7 +3542,12 @@ function db_3wordid_mail_summary($user_id) {
 // Chat login (members log in with a 3WordID + password set by its owner)
 require_once __DIR__ . '/chat_login.php';
 require_once __DIR__ . '/car_chat.php';
-require_once __DIR__ . '/pii_store.php';
+$pii_store_file = __DIR__ . '/pii_store.php';
+if (is_file($pii_store_file)) {
+    require_once $pii_store_file;
+} else {
+    error_log('php/pii_store.php is missing; email/phone encryption is off, login still works');
+}
 require_once __DIR__ . '/account_settings.php';
 require_once __DIR__ . '/message_delete.php';
 require_once __DIR__ . '/bumperchat.php';

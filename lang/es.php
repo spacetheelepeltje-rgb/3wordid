@@ -1046,6 +1046,7 @@ Se eliminarán la URL, la notificación y el chat de estas palabras. Esta acció
     'bc.google_details_p' => 'Tu acceso de Google está listo. Puedes añadir un móvil para avisos por SMS, un código de revendedor si tienes uno, y mantener la sesión en este dispositivo. Todo es opcional.',
     'bc.google_details_submit' => 'Continuar',
     'bc.google_details_skip' => 'Puedes dejar los campos opcionales vacíos y pulsar Continuar.',
+    'bc.first_register_plate' => 'Primero registra tu matrícula',
     'bc.account' => 'Cuenta',
     'bc.account_title' => 'Cuenta – Bumperchat',
     'bc.account_h' => 'Tu cuenta',

@@ -1138,6 +1138,7 @@ The URL, notification, and chat for these words will be removed. This cannot be 
     'bc.google_details_p' => 'Your Google login is ready. You can add a mobile number for SMS notices, a reseller code if you have one, and stay logged in on this device. All of these are optional.',
     'bc.google_details_submit' => 'Continue',
     'bc.google_details_skip' => 'You can leave the optional fields empty and press Continue.',
+    'bc.first_register_plate' => 'First register your licence plate',
     'bc.account' => 'Account',
     'bc.account_title' => 'Account – Bumperchat',
     'bc.account_h' => 'Your account',
