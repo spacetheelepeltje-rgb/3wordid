@@ -238,6 +238,14 @@ function bumperchat_claim_plate(array $user, string $words, array $notify = []):
     }
     $stmt->close();
 
+    // A Bumperchat plate is made to message other accounts. The chat_open column defaults to 0
+    // (closed: only your own 3WordIDs may message it, and it may only message out to your own),
+    // and db_3wordid_insert() does not set it, so open it here. Without this a new plate
+    // account got "closed" errors both when sending and when receiving (chat_access_error).
+    if (function_exists('db_chat_open_set')) {
+        db_chat_open_set($new_id, true);
+    }
+
     if ($grant_trial) {
         $hash = plate_email_hash_for_user($user);
         $ins = $conn->prepare(

@@ -6,7 +6,7 @@
   // Must be logged in
   $data = current_user_from_session($conn);
   if ($data == NULL) {
-    header('Location: login/options.php?message=' . rawurlencode(t_plain('common.login_required')));
+    header('Location: ' . (bumperchat_active() ? 'bumperchat/login.php?next=chat.php' : 'login/options.php?message=' . rawurlencode(t_plain('common.login_required'))));
     exit;
   }
   
@@ -15,7 +15,7 @@
   if(isset($_GET["id"])) {
 	$id = (int)$_GET["id"];	
   } else {
-	header("location:3wid_list.php");
+	header('location:' . bumperchat_or('3wid_list.php', 'chat.php') );
 	exit;
   }
   
@@ -23,7 +23,7 @@
   $message_row = db_3wordid_message_for_user($id, $data['id']);
   if (!$message_row) {
     error_log('message view: user ' . $data['id'] . ' may not read message ' . $id);
-    header("location:3wid_list.php");
+    header('location:' . bumperchat_or('3wid_list.php', 'chat.php') );
     exit;
   }
 
@@ -80,7 +80,7 @@
       // other party: make + colour (car chat) and organization name next to its words (never your own)
       'badge'   => (!$head_wid || ($is_owner && $from_deleted)) ? '' : sender_topbar_badges(db_3wordid_get($head_wid) ?: null, array((int) $data['id'])),
       'sub'     => $is_owner ? t('chat.to_you', ['words' => $to_name]) : t('chat.sent_by_you'),
-      'actions' => chat_tb_button('3wid_list.php', 'list', t_plain('tb.my_ids')),
+      'actions' => chat_list_button(),
   ));
 ?>
 <div class="chat-app">

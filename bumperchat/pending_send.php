@@ -18,7 +18,7 @@ if (empty($_SESSION['csrf_token'])) {
 $formats = bumperchat_formats();
 $countries = $formats['countries'] ?? [];
 $prefill = bumperchat_prefill_from_words((string) ($_GET['words'] ?? $_GET['threeword'] ?? ''));
-$default_country = bumperchat_default_country();
+$default_country = bumperchat_remembered_country();
 
 $country_explicit = strtoupper(trim((string) ($_GET['country'] ?? ''))) !== '';
 $selected = strtoupper(trim((string) ($_GET['country'] ?? '')));
@@ -77,6 +77,10 @@ if ($show_words === '' && $wanted_words !== '') {
     $show_words = $wanted_words;
 }
 
+if ($country_explicit || !empty($prefill['country'])) {
+    bumperchat_remember_country($selected);
+}
+
 $login_next = 'pending_send.php';
 $qn = [];
 if ($selected !== '') { $qn['country'] = $selected; }
@@ -93,7 +97,7 @@ if (!$user) {
     exit;
 }
 if ((int) ($user['privacy_consent'] ?? 0) !== 1) {
-    header('Location: ../3wid_privacy_consent.php');
+    header('Location: ../3wid_privacy_consent.php?from=bumperchat');
     exit;
 }
 
@@ -165,7 +169,7 @@ $action_token = get_action_token();
     <link rel="icon" type="image/x-icon" href="../img/favicon.ico">
     <link href="/css/inter.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/newstyle.css">
-    <link rel="stylesheet" href="../css/bumperchat.css?v=8">
+    <link rel="stylesheet" href="../css/bumperchat.css?v=10">
 </head>
 <body class="bc-body">
     <?php echo bumperchat_header($user); ?>
@@ -314,7 +318,7 @@ $action_token = get_action_token();
     </main>
 
     <footer class="site-footer">
-        <span><a href="../terms.php#bumperchat"><?php echo t('nav.terms'); ?></a> · <a href="../index.php">3WordID.com</a></span>
+        <span><?php echo bumperchat_footer_links(); ?></span>
         <?php echo site_copyright(); ?>
     </footer>
 <?php echo i18n_js([
@@ -335,7 +339,8 @@ $action_token = get_action_token();
     window.BC_PENDING_FORM = true;
     window.BC_PENDING_REMAINING = <?php echo $already ? 0 : (int) $remaining; ?>;
     window.BC_DEFAULT_COUNTRY = <?php echo json_encode($selected); ?>;
+    window.BC_COUNTRY_EXPLICIT = <?php echo json_encode($country_explicit || !empty($prefill['country']) || $plate !== ''); ?>;
 </script>
-<script src="../js/bumperchat.js?v=11"></script>
+<script src="../js/bumperchat.js?v=12"></script>
 </body>
 </html>

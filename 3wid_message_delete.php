@@ -13,7 +13,7 @@
   // Must be logged in
   $data = current_user_from_session($conn);
   if ($data == NULL) {
-    header('Location: login/options.php?message=' . rawurlencode(t_plain('common.login_required')));
+    header('Location: ' . (bumperchat_active() ? 'bumperchat/login.php?next=chat.php' : 'login/options.php?message=' . rawurlencode(t_plain('common.login_required'))));
     exit;
   }
   $user_id = (int) $data['id'];
@@ -27,13 +27,13 @@ try {
    $token = $is_post ? (string) ($_POST['action_token'] ?? '') : (string) ($_GET['action_token'] ?? '');
    if (!check_action_token($token)) {
        error_log('message delete: invalid action token, user ' . $user_id);
-       header('location:3wid_list.php?message=' . rawurlencode(t_plain('common.session_expired_retry')));
+       header('location:' . bumperchat_or('3wid_list.php', 'chat.php') . '?message=' . rawurlencode(t_plain('common.session_expired_retry')));
        exit;
    }
 
    if ($do === 'conversation') {
        if (!$is_post) {
-           header('location:3wid_list.php');
+           header('location:' . bumperchat_or('3wid_list.php', 'chat.php'));
            exit;
        }
        require_once 'php/chat.php';
@@ -42,7 +42,7 @@ try {
        // Only a conversation of one of my own 3WordIDs, built the same way as 3wid_list_messages.php
        if (!db_3wordid_owned_by($wid_id, $user_id)) {
            error_log('conversation delete: user ' . $user_id . ' does not own 3wid ' . $wid_id);
-           header('location:3wid_list.php');
+           header('location:' . bumperchat_or('3wid_list.php', 'chat.php'));
            exit;
        }
        $messages = (array) db_3wordid_list_messages($wid_id);
@@ -67,7 +67,7 @@ try {
 
    $id = $is_post ? (int) ($_POST['id'] ?? 0) : (int) ($_GET['id'] ?? 0);
    if ($id < 1) {
-       header('location:3wid_list.php');
+       header('location:' . bumperchat_or('3wid_list.php', 'chat.php'));
        exit;
    }
 
@@ -76,7 +76,7 @@ try {
    $role = message_delete_role($row, $user_id);
    if ($role === '') {
        error_log('message delete: user ' . $user_id . ' may not delete message ' . $id);
-       header('location:3wid_list.php');
+       header('location:' . bumperchat_or('3wid_list.php', 'chat.php'));
        exit;
    }
 

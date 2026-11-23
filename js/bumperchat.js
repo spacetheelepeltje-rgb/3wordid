@@ -551,7 +551,21 @@
     function tr(key, fallback) { return (root.T3 && root.T3[key]) || fallback; }
     function $(id) { return document.getElementById(id); }
 
+    // The chosen plate country is remembered in this browser, so every Bumperchat page (home
+    // converter, claim, leave-a-message, chat view) starts with the same one. An explicit
+    // country in the URL (or a plate already typed) wins over the remembered one.
+    function savedCountry(byCode) {
+        try {
+            var v = root.localStorage && root.localStorage.getItem('bcCountry');
+            return (v && byCode[v]) ? v : '';
+        } catch (e) { return ''; }
+    }
+    function saveCountry(code) {
+        try { if (root.localStorage && code) root.localStorage.setItem('bcCountry', code); } catch (e) { /* private mode */ }
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
+        if (root.BC_LIB_ONLY) { return; } // another page only wants formatPlate / plateToWords / inferCountry
         if (root.BC_CLAIM_FORM || root.BC_PENDING_FORM) { initClaimForm(); return; }
         var data = root.BC_FORMATS || {};
         var list = data.countries || [];
@@ -646,7 +660,9 @@
         }
 
         if (select) {
-            select.addEventListener('change', function () { fillRegions(byCode[select.value]); update(); });
+            var savedIdx = root.BC_COUNTRY_EXPLICIT ? '' : savedCountry(byCode);
+            if (savedIdx) select.value = savedIdx;
+            select.addEventListener('change', function () { saveCountry(select.value); fillRegions(byCode[select.value]); update(); });
             fillRegions(byCode[select.value]);
         }
         if (region) region.addEventListener('change', update);
@@ -829,6 +845,7 @@
                         btn.textContent = txt(g && g.name) || guess;
                         btn.addEventListener('click', function () {
                             if (select) select.value = guess;
+                            saveCountry(guess);
                             fillRegions(byCode[guess], region && region.value);
                             update();
                         });
@@ -956,12 +973,45 @@
             applyStyle(c);
             updateHint(c);
             validate();
+            syncCountryBtn();
+        }
+
+        // Country icon button + hidden dropdown (chat view): shows the country code, opens the select
+        var countryBtn = $('bcCountryBtn'), countryPop = $('bcCountryPop'), countryCc = $('bcCountryBtnCc');
+        function syncCountryBtn() {
+            var c = current();
+            if (countryCc) countryCc.textContent = c ? (c.strip || c.code) : '';
+            if (countryBtn) {
+                var base = tr('bc_country_btn', 'Country of the plate');
+                var label = base + (c ? ': ' + (txt(c.name) || c.code) : '');
+                countryBtn.setAttribute('title', label);
+                countryBtn.setAttribute('aria-label', label);
+            }
+        }
+        function setPop(open) {
+            if (!countryPop || !countryBtn) return;
+            countryPop.hidden = !open;
+            countryBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+            if (open && select) select.focus({ preventScroll: true });
+        }
+        if (countryBtn && countryPop) {
+            countryBtn.addEventListener('click', function (e) { e.stopPropagation(); setPop(countryPop.hidden); });
+            document.addEventListener('click', function (e) {
+                if (!countryPop.hidden && !countryPop.contains(e.target) && e.target !== countryBtn) setPop(false);
+            });
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape' && !countryPop.hidden) { setPop(false); countryBtn.focus(); }
+            });
         }
 
         if (select) {
+            var savedClaim = root.BC_COUNTRY_EXPLICIT ? '' : savedCountry(byCode);
+            if (savedClaim && !(plate && plate.value.trim() !== '')) select.value = savedClaim;
             select.addEventListener('change', function () {
+                saveCountry(select.value);
                 fillRegions(byCode[select.value]);
                 update();
+                if (countryPop && !countryPop.hidden) setPop(false);
                 if (plate) plate.focus({ preventScroll: true });
             });
         }
@@ -974,6 +1024,7 @@
         if (pendingMsg) pendingMsg.addEventListener('input', validate);
         fillRegions(current(), region && region.value);
         update();
+        syncCountryBtn();
     }
 
 })(typeof window !== 'undefined' ? window : globalThis);

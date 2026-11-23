@@ -3,6 +3,10 @@
   require_once 'login/config.php';
   require_once 'php/functions.php';
 
+  // Bumperchat context: "home" and "login" stay inside /bumperchat/ (see docs/BUMPERCHAT.md)
+  if (($_GET['from'] ?? $_POST['from'] ?? '') === 'bumperchat') { bumperchat_ctx_remember(); }
+  if (bumperchat_active()) { $main_url = 'bumperchat/index.php'; }
+
 
   //error_log('add page ip ' . get_client_ip() . ' time ' . time() . ' session  ' . json_encode($_SESSION) . ' session id ' . session_id() . ' user token ' . $_SESSION["user_token"] );
 
@@ -10,7 +14,7 @@
   
  $data = current_user_from_session($conn);
     if ($data == NULL) {
-        header('Location: login/options.php?message=' . rawurlencode(t_plain('common.login_required')));
+        header('Location: ' . (bumperchat_active() ? 'bumperchat/login.php?next=chat.php' : 'login/options.php?message=' . rawurlencode(t_plain('common.login_required'))));
         exit;
     }
  
@@ -152,10 +156,10 @@
     <header class="site-header">
         <a class="brand" href="<?php echo $main_url; ?>">
             <span class="brand-mark"><img width="35" src="https://3WordID.com/img/3wid_big.png" alt=""></span>
-            3WordID
+            <?php echo bumperchat_active() ? 'Bumperchat' : '3WordID'; ?>
         </a>
         <nav class="nav-links">
-            <a href="terms.php"><?php echo t('nav.terms'); ?></a>
+            <a href="terms.php<?php echo bumperchat_active() ? '?from=bumperchat' : ''; ?>"><?php echo t('nav.terms'); ?></a>
             <a href="https://x.com/climatebabes/status/1921113933592584660"><?php echo t('nav.github'); ?></a>
         </nav>
         <div class="header-actions" id="userContainer">

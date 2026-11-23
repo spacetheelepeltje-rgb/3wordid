@@ -75,5 +75,5 @@ function message_delete_return_url(array $row, string $role, int $user_id): stri
     if ($role === 'sent' && $from_wid > 0 && db_3wordid_owned_by($from_wid, $user_id)) {
         return '3wid_list_messages.php?wid_id=' . $from_wid . '&with=' . rawurlencode('w' . (int) $row['3wid_id']);
     }
-    return '3wid_list.php';
+    return bumperchat_or('3wid_list.php', 'chat.php');
 }

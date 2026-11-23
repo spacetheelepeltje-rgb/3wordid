@@ -288,7 +288,18 @@ function car_chat_on($row): bool
 /** True when this 3WordID is a chat ("Link to chat" or "Car chat") that is closed. */
 function chat_is_closed($row): bool
 {
-    return is_array($row) && car_chat_ready() && (int) ($row['emailform'] ?? 0) === 1
+    return is_array($row) && car_chat_ready() && chat_row_is_closed($row);
+}
+
+/**
+ * The closed rule on a row alone (no database check, so it can be tested): a chat 3WordID
+ * (emailform = 1) whose chat_open column is not 1. NOTE: the column defaults to 0 (closed),
+ * so every code path that creates a chat 3WordID for use with other people must set it to 1
+ * (bumperchat_claim_plate does; before this fix it did not, which blocked plate accounts).
+ */
+function chat_row_is_closed($row): bool
+{
+    return is_array($row) && (int) ($row['emailform'] ?? 0) === 1
         && array_key_exists('chat_open', $row) && (int) $row['chat_open'] !== 1;
 }
 

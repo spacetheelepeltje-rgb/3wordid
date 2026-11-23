@@ -17,6 +17,9 @@ if ($data == NULL) {
     header('Location: login/options.php?message=' . rawurlencode(t_plain('common.login_required')));
     exit;
 }
+
+// Plate accounts only use the Bumperchat chat view
+bumperchat_route_chat_only($data);
 if ((int) ($data['privacy_consent'] ?? 0) === 0) {
     header('Location: 3wid_privacy_consent.php');
     exit;

@@ -12,6 +12,10 @@
   error_log('external message page ip ' . $client_ip . ' on ' . check_mobile());
 
   $loginUrl = '/login/options.php'; // same login page as index.php
+  // Bumperchat context: "home" and "login" stay inside /bumperchat/ (see docs/BUMPERCHAT.md)
+  if (($_GET['from'] ?? $_POST['from'] ?? '') === 'bumperchat') { bumperchat_ctx_remember(); }
+  if (bumperchat_active()) { $main_url = 'bumperchat/index.php'; }
+  if (bumperchat_active()) { $loginUrl = 'bumperchat/login.php'; }
 
   //$data = check_credentials($_SESSION,$_POST,$_GET);
 
@@ -108,7 +112,7 @@
       'name'    => $reply_to_safe,
       'sub'     => t('tb.anonymous'),
       // Logged in: the list button to My 3WordIDs; visitors: "Login" top left, a home icon here
-      'actions' => $viewer ? chat_tb_button('3wid_list.php', 'list', t_plain('tb.my_ids')) : chat_home_button(),
+      'actions' => $viewer ? chat_list_button() : chat_home_button(),
   ));
 ?>
 <div class="chat-app">

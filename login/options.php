@@ -14,6 +14,9 @@ if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
+// A normal login from the main site: forget any Bumperchat Google return context
+bumperchat_ctx_forget();
+
 $_SESSION['oauth_state'] = bin2hex(random_bytes(16));
 $client->setState($_SESSION['oauth_state']);
 $googleUrl = $client->createAuthUrl();

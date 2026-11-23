@@ -10,6 +10,9 @@ if ($data == NULL) {
     exit;
 }
 
+
+// Plate accounts only use the Bumperchat chat view
+bumperchat_route_chat_only($data);
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }

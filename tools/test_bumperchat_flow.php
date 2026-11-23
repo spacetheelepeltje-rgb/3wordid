@@ -156,7 +156,7 @@ expect('next claim words', bumperchat_safe_next('claim.php?words=ab%20123%20c'),
 expect('contact email', SITE_CONTACT_EMAIL, 'frits@rincker.nl');
 
 $actions = bumperchat_taken_actions('ab 123 c', ['logged_in' => false]);
-expect('actions send href', strpos($actions, '../3wid_forward.php?threewords=ab%20123%20c') !== false, true);
+expect('actions send href', strpos($actions, '../3wid_forward.php?from=bumperchat&amp;threewords=ab%20123%20c') !== false, true);
 expect('actions login href', strpos($actions, 'login.php?next=' . rawurlencode('claim.php?words=' . rawurlencode('ab 123 c'))) !== false, true);
 expect('actions retry', strpos($actions, 'claim.php?new=1') !== false, true);
 expect('actions dispute', strpos($actions, 'dispute.php?words=ab%20123%20c') !== false, true);

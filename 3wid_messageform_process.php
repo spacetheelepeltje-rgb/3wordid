@@ -39,7 +39,7 @@
 	// The form must come from our own message page (CSRF protection)
 	if (!check_action_token($_POST['action_token'] ?? '')) {
 	   error_log('messageform process: missing or wrong action token for user ' . $data['id']);
-	   header('location:3wid_list.php?message=' . rawurlencode(t_plain('mp.session')));
+	   header('location:' . bumperchat_or('3wid_list.php', 'chat.php') . '?message=' . rawurlencode(t_plain('mp.session')));
 	   exit;
 	}
 	  
@@ -47,6 +47,11 @@
  
    // Same form as stored ("Red  Blue Dog" finds "red blue dog")
    $threeword = chat_normalize_words($_POST["threeword"] ?? '');
+   // Bumperchat chat view: a licence plate typed as "AB-123-C" becomes its three words (same formatter / validator as the claim flow)
+   if (bumperchat_active() && $threeword !== '' && bumperchat_normalize_words($threeword) === '') {
+       $plate_words = bumperchat_plate_input_to_words((string) ($_POST["threeword"] ?? ''), (string) ($_POST['country'] ?? ''));
+       if ($plate_words !== '') { $threeword = $plate_words; }
+   }
    
    
    $from_id = (int) ($_POST["from_id"] ?? 0);
@@ -72,7 +77,7 @@
    // The 3WordID to send from has to be one of the user's own
    if(!db_3wordid_owned_by($from_id, $data['id'])) {
 	   error_log('messageform process: user ' . $data['id'] . ' tried to send from 3wid ' . $from_id);
-	   header('location:3wid_list.php?message=' . rawurlencode(t_plain('mp.session')));
+	   header('location:' . bumperchat_or('3wid_list.php', 'chat.php') . '?message=' . rawurlencode(t_plain('mp.session')));
 	   exit;
    }
 

@@ -4,6 +4,9 @@
 require_once 'php/functions.php';
 require_once 'login/config.php';
 
+// The main homepage is not Bumperchat: forget any Bumperchat context (shared pages then use the normal links)
+bumperchat_ctx_forget();
+
 $client_ip = get_client_ip();
 error_log('index page ip ' . $client_ip . ' on ' . check_mobile());
 
@@ -142,6 +145,20 @@ while (count($featured_list) < $examples_visible && count($more_list) > 0) {
             color: #1d4ed8;
             background: #eff6ff;
         }
+        /* The one link from 3WordID to Bumperchat: a car at the far left of the search box.
+           (The lock / home / RDW car status icon stays next to the input.) */
+        .bc-link {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: grid;
+            place-items: center;
+            flex: 0 0 auto;
+            color: var(--slate);
+            background: #f3f1ec;
+            text-decoration: none;
+        }
+        .bc-link:hover, .bc-link:focus-visible { color: var(--navy); background: #e9e6df; }
     </style>
 </head>
 <body>
@@ -175,6 +192,11 @@ while (count($featured_list) < $examples_visible && count($more_list) > 0) {
 
             <form id="searchform" name="searchform" action="3wid_forward.php" method="POST">
                 <div class="search-shell">
+                    <a class="bc-link" id="bumperchatLink" href="https://bumperchat.com" title="<?php echo t('home.to_bumperchat'); ?>" aria-label="<?php echo t('home.to_bumperchat'); ?>">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                            <path d="M5 17H3v-5l2-5h14l2 5v5h-2"></path><path d="M3 12h18"></path><circle cx="7.5" cy="17" r="2"></circle><circle cx="16.5" cy="17" r="2"></circle><path d="M9.5 17h5"></path>
+                        </svg>
+                    </a>
                     <div class="lock" id="searchLock" aria-hidden="true">
                         <svg id="lockIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>

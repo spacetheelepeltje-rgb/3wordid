@@ -11,12 +11,12 @@
 
   if($data == NULL) {
 	 error_log('add data is NULL '); 
-	 header('location:' . $main_url);
+	 header('location:' . bumperchat_or($main_url, 'login.php'));
 	 exit;
   }
   
   db_3wordid_set_user_consent($data["id"]);
  
   
-   header('location:3wid_list.php');
+   header('location:' . bumperchat_or('3wid_list.php', 'chat.php'));
    exit;

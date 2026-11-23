@@ -4,6 +4,10 @@ require_once 'login/config.php';
 
 $data = current_user_from_session($conn);
 $loginUrl = '/login/options.php';
+// Opened from Bumperchat (?from=bumperchat): home and login stay inside /bumperchat/
+if (($_GET['from'] ?? '') === 'bumperchat') { bumperchat_ctx_remember(); }
+$bc_terms = bumperchat_active();
+if ($bc_terms) { $main_url = 'bumperchat/index.php'; $loginUrl = 'bumperchat/login.php'; }
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo current_lang(); ?>">
@@ -118,7 +122,7 @@ $loginUrl = '/login/options.php';
     <header class="site-header">
         <a class="brand" href="<?php echo $main_url; ?>">
             <span class="brand-mark"><img width="35" src="https://3WordID.com/img/3wid_big.png" alt=""></span>
-            3WordID
+            <?php echo $bc_terms ? 'Bumperchat' : '3WordID'; ?>
         </a>
         <nav class="nav-links">
             <a href="https://x.com/climatebabes/status/1921113933592584660"><?php echo t('nav.docs'); ?></a>

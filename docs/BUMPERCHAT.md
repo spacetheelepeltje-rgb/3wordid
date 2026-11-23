@@ -11,7 +11,9 @@ Bumperchat is a second front door to 3WordID for licence plates: **chat only**, 
 | `bumperchat/claim.php` | Country dropdown and a large licence-plate input on one page. Rules and an example stay visible. The plate is auto-formatted (uppercase, dashes/spaces) and validated live; Next stays off until the plate fits the country (the server checks again on submit). A logged-in user is then claimed immediately; otherwise they go to registration. Works without JavaScript. |
 | `bumperchat/claim_plate.php` | Redirects to `claim.php`, keeping country, plate, region and words query parameters (old links). |
 | `bumperchat/claim_register.php` | Register with email + password and an optional mobile number (E.164 + SMS consent). The confirmed plate is shown read-only, with an Edit link back to `claim.php`. No login form here. A user who is already logged in skips this step and the plate is claimed immediately. After registration the user is logged in and sent to chat (or to pay if the free month was already used). |
-| `bumperchat/login.php` | Top-right email + password login, with an optional "Stay logged in" checkbox. After login, return to the claim flow or to chat. |
+| `bumperchat/login.php` | Top-right login: "Continue with Google" (same Google login as 3wordid.com, see below) or email + password with an optional "Stay logged in" checkbox. After login, return to the claim flow, a waiting message or chat. |
+| `bumperchat/google.php` | Starts the Google login from Bumperchat: stores a safe return path in the session, then uses the existing `login/config.php` client. `login/welcome.php` brings the visitor back to `bumperchat/login.php`. |
+| `bumperchat/help.php` | Help page (logging in, leaving messages, country picker, claiming, chat view, deleting). Texts are `bch.*` in `lang/*.php`. Linked from the header (help icon), the footer and the chat page. |
 | `bumperchat/chat.php` | "My chats": the user's 3WordIDs with their message counts; "Open chat" opens the existing chat (`3wid_list_messages.php`). Shows the status of the plate they came for and a box to message another car. |
 | `bumperchat/logout.php` | Log out (also deletes the remember-me cookie), back to the Bumperchat page. |
 | `bumperchat/plate_formats.json` | The plate rules (see `docs/PLATE_FORMATS.md`). |
@@ -46,6 +48,55 @@ when the session is gone (its `context` column is `bumperchat`).
 If a permanent "Bumperchat account" is wanted later (for example to always hide the list), add a column such as
 `google_users.signup_source` **and the same column to `google_users_deleted`**.
 
+## Google login
+
+`bumperchat/login.php` and `bumperchat/claim_register.php` have a "Continue with Google" button that goes to
+`bumperchat/google.php`. That script sets `$_SESSION['oauth_return'] = ['bumperchat' => 1, 'next' => <safe path>]`
+and starts the same Google login as 3wordid.com (`login/config.php`, callback `login/welcome.php`, `google_users` table;
+nothing changes in the Google console). `login/welcome.php` sees the return context and, instead of `3wid_list.php`,
+marks the session as Bumperchat (`bumperchat_mark_session`) and goes to `bumperchat/login.php?next=...`, which routes
+exactly like the email login (claim chain, waiting message `pending_send.php`, chat). Errors (cancelled, expired,
+failed, blocked email) return to `bumperchat/login.php?err=<welcome.* key>`. A normal login on `login/options.php`
+clears the context, so a main-site Google login behaves as before. Google logins do not set the
+"Stay logged in" cookie and skip the optional phone / reseller fields of the register step.
+
+## Plate accounts and chat-only routing
+
+A **Bumperchat plate** is a 3WordID with `claim_source = 'bumperchat'` or a `billing_product` (`bumperchat_is_plate_row()`).
+A **plate account** owns at least one plate and no normal 3WordID (`bumperchat_plate_only_account()`).
+`bumperchat_route_chat_only()` sends to `bumperchat/chat.php`: any session with the Bumperchat flag, and any
+plate-only account that logs in on 3wordid.com. It runs on `3wid_list.php`, `3wid_add.php`, `3wid_3wid.php` and
+`3wid_settings.php`. An account that also has normal 3WordIDs keeps the normal list when it logs in on 3wordid.com
+(it gets the chat view when it logs in through Bumperchat).
+
+## No redirects from Bumperchat to the main site
+
+Every Bumperchat page marks a Bumperchat context (session `bc_ctx` plus a browser-session cookie `bc_ctx`, so it survives
+an expired PHP session). `bumperchat_active()` is true for that context and for a Bumperchat login. Shared pages
+(chat view, message form, message view, print, delete, privacy consent, `3wid_forward.php`, `terms.php?from=bumperchat`,
+visitor message form, inactive / notification pages) use it for their back / home / login / list links
+(`bumperchat_or()`, `chat_list_button()`, `chat_back_home()`). The main homepage and `login/options.php` clear the context.
+`tools/test_bumperchat_context.php` fails when a file in `bumperchat/` links or redirects to `../index.php`,
+`../3wid_list.php` or `login/options.php`. The only link in the other direction is the car icon on the main homepage
+search box (`https://bumperchat.com`).
+
+## Chat view: plate form and country
+
+The "Message a car" box on `bumperchat/chat.php` uses the same plate face, formatter (`formatPlate` / `bumperchat_format_plate`)
+and validator as the claim flow, with a country icon button (globe + country code) that opens a hidden drop-down.
+Send is only enabled for a valid plate; it opens `pending_send.php` (which validates again on the server and handles claimed and
+unclaimed plates). The chosen country is remembered (session + `localStorage` `bcCountry`) and is the default on the home converter,
+claim, leave-a-message and chat pages. On the compose page (`3wid_messageform.php`) a recipient typed as a plate is converted to its
+three words (`bumperchat_plate_input_to_words()` on the server, `plateToWords` in the browser).
+
+## Why plate accounts could not message (chat_open)
+
+`3wordid.chat_open` defaults to 0 (closed) and `db_3wordid_insert()` does not set it. A closed chat 3WordID may only
+talk to 3WordIDs of the same account (`chat_access_error()` in `php/car_chat.php`: `chat.err_closed_out` when it sends,
+`chat.err_closed_in` when it receives). New plates were therefore closed. Not caused by the organization / reseller
+code (that only shows a name badge). `bumperchat_claim_plate()` now opens the plate; existing plates need
+`sql/2026-11-23_bumperchat_plates_chat_open.sql`. Real closed 3WordIDs keep the separation (`tools/test_chat_access.php`).
+
 ## Decisions for the owner (v1)
 
 1. **Bumperchat plates now get one month free, then EUR 7.95 per year** (one-off iDEAL). See the section below.
@@ -53,9 +104,9 @@ If a permanent "Bumperchat account" is wanted later (for example to always hide 
 2. **claim.php now creates the plate 3WordID** (with the trial). Car chat is still turned on from the edit page
    with the existing RDW + Dutch IP check; one-click Car chat is still later work.
 3. **Who owns a plate**: only Dutch plates are checked (RDW: exists yes/no). Nobody checks the claimer is the owner.
-4. **Login**: email + password only on the Bumperchat pages (top-right corner, `bumperchat/login.php`).
-   There is no login form inside the claim flow. Google login works on 3wordid.com, but then lands on the
-   normal list (not marked as Bumperchat). Optional "Stay logged in" is a 30-day remember-me cookie,
+4. **Login**: email + password or Google on the Bumperchat pages (top-right corner, `bumperchat/login.php`,
+   and the register step). Google started from Bumperchat comes back into Bumperchat (see "Google login").
+   Optional "Stay logged in" (email login) is a 30-day remember-me cookie,
    also on `/login/email_login.php`. The PHP session cookie stays a browser session; the remember-me
    cookie starts a new session when the visitor comes back.
 5. **Canada prefix is `cdn`**, not `ca` (California's code). Cross-country plate collisions are possible, see PLATE_FORMATS.md.

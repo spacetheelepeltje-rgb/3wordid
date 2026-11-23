@@ -117,7 +117,7 @@ if ($exists && $user) {
     <link rel="icon" type="image/x-icon" href="../img/favicon.ico">
     <link href="/css/inter.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/newstyle.css">
-    <link rel="stylesheet" href="../css/bumperchat.css?v=9">
+    <link rel="stylesheet" href="../css/bumperchat.css?v=10">
 </head>
 <body class="bc-body">
     <?php echo bumperchat_header($user); ?>
@@ -175,6 +175,13 @@ if ($exists && $user) {
         <?php endif; ?>
 
         <?php if (!$user && !$exists): ?>
+        <div class="bc-card bc-google-card">
+            <a class="btn bc-google bc-full" href="<?php echo bc_e(bumperchat_google_start_url('claim_register.php')); ?>">
+                <?php echo bumperchat_google_icon(); ?><span><?php echo t('bc.google_btn'); ?></span>
+            </a>
+            <p class="bc-meta"><?php echo t('bc.google_hint'); ?></p>
+        </div>
+        <p class="bc-or"><span><?php echo t('bc.or_email'); ?></span></p>
         <form class="bc-card" method="post" action="claim_register.php" id="register" autocomplete="off">
             <h2><?php echo t('bc.reg_h'); ?></h2>
             <p class="bc-p"><?php echo t('bc.reg_p'); ?></p>
@@ -214,7 +221,7 @@ if ($exists && $user) {
     </main>
 
     <footer class="site-footer">
-        <span><a href="../terms.php#bumperchat"><?php echo t('nav.terms'); ?></a> · <a href="../index.php">3WordID.com</a></span>
+        <span><?php echo bumperchat_footer_links(); ?></span>
         <?php echo site_copyright(); ?>
     </footer>
 </body>

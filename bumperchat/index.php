@@ -15,7 +15,7 @@ if (empty($_SESSION['csrf_token'])) {
 $formats = bumperchat_formats();
 $countries = $formats['countries'];
 // Default country: geo header / local GeoIP, else Accept-Language, else NL.
-$default_country = bumperchat_default_country();
+$default_country = bumperchat_remembered_country();
 
 function bc_e($s): string { return htmlspecialchars((string) $s, ENT_QUOTES, 'UTF-8'); }
 ?>
@@ -33,7 +33,7 @@ function bc_e($s): string { return htmlspecialchars((string) $s, ENT_QUOTES, 'UT
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link rel="stylesheet" href="../css/newstyle.css">
     <link rel="stylesheet" href="../css/home.css?v=2">
-    <link rel="stylesheet" href="../css/bumperchat.css?v=5">
+    <link rel="stylesheet" href="../css/bumperchat.css?v=10">
 </head>
 <body class="bc-body">
     <?php echo bumperchat_header($user); ?>
@@ -173,7 +173,7 @@ function bc_e($s): string { return htmlspecialchars((string) $s, ENT_QUOTES, 'UT
     </main>
 
     <footer class="site-footer">
-        <span><a href="../terms.php"><?php echo t('nav.terms'); ?></a> · <a href="../index.php">3WordID.com</a></span>
+        <span><?php echo bumperchat_footer_links(); ?></span>
         <?php echo site_copyright(); ?>
     </footer>
 
@@ -195,7 +195,7 @@ function bc_e($s): string { return htmlspecialchars((string) $s, ENT_QUOTES, 'UT
     window.BC_LOGGED_IN = <?php echo $user ? 'true' : 'false'; ?>;
 </script>
 <script src="../js/3wid_index_2.js?v=7"></script>
-<script src="../js/bumperchat.js?v=11"></script>
+<script src="../js/bumperchat.js?v=12"></script>
 
 </body>
 </html>

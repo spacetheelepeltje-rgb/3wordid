@@ -30,7 +30,7 @@ function bc_e($s): string { return htmlspecialchars((string) $s, ENT_QUOTES, 'UT
 
 $formats = bumperchat_formats();
 $countries = $formats['countries'];
-$default_country = bumperchat_default_country();
+$default_country = bumperchat_remembered_country();
 $state = bumperchat_claim_state();
 
 $prefill = ['country' => '', 'region' => '', 'plate' => '', 'words' => ''];
@@ -54,6 +54,9 @@ $chosen = bumperchat_country($selected);
 if (!$chosen) {
     $selected = $default_country;
     $chosen = bumperchat_country($selected);
+}
+if ($country_explicit || !empty($state['country']) || $prefill['country'] !== '') {
+    bumperchat_remember_country($selected); // same country on the home converter, chat view and leave-a-message
 }
 
 $region = strtoupper(trim((string) ($_POST['region'] ?? $_GET['region'] ?? '')));
@@ -195,7 +198,7 @@ if ($check === null && $error === '' && $plate_ok && !$is_next && function_exist
     <link rel="icon" type="image/x-icon" href="../img/favicon.ico">
     <link href="/css/inter.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/newstyle.css">
-    <link rel="stylesheet" href="../css/bumperchat.css?v=8">
+    <link rel="stylesheet" href="../css/bumperchat.css?v=10">
 </head>
 <body class="bc-body">
     <?php echo bumperchat_header($user); ?>
@@ -304,7 +307,7 @@ if ($check === null && $error === '' && $plate_ok && !$is_next && function_exist
     </main>
 
     <footer class="site-footer">
-        <span><a href="../terms.php#bumperchat"><?php echo t('nav.terms'); ?></a> · <a href="../index.php">3WordID.com</a></span>
+        <span><?php echo bumperchat_footer_links(); ?></span>
         <?php echo site_copyright(); ?>
     </footer>
 <?php echo i18n_js([
@@ -330,7 +333,8 @@ if ($check === null && $error === '' && $plate_ok && !$is_next && function_exist
     window.BC_CLAIM_FORM = true;
     window.BC_LOGGED_IN = <?php echo $user ? 'true' : 'false'; ?>;
     window.BC_DEFAULT_COUNTRY = <?php echo json_encode($default_country); ?>;
+    window.BC_COUNTRY_EXPLICIT = <?php echo json_encode($country_explicit || $prefill['country'] !== '' || !empty($state['country'])); ?>;
 </script>
-<script src="../js/bumperchat.js?v=11"></script>
+<script src="../js/bumperchat.js?v=12"></script>
 </body>
 </html>

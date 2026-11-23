@@ -16,6 +16,10 @@
   require_once 'php/functions.php';
   require_once 'login/config.php';
 
+  // Bumperchat context: "home" and "login" stay inside /bumperchat/ (see docs/BUMPERCHAT.md)
+  if (($_GET['from'] ?? $_POST['from'] ?? '') === 'bumperchat') { bumperchat_ctx_remember(); }
+  if (bumperchat_active()) { $main_url = 'bumperchat/index.php'; }
+
   header('X-Robots-Tag: noindex');
 
   $words = '';
