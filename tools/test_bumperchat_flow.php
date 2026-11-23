@@ -62,7 +62,7 @@ $extra = [
     ['SE', 'ABC 12A', 's abc 12a'],
     ['LU', '1234', 'l 12 34'],
     ['CZ', '1A23456', 'cz 1a2 3456'],
-    ['NL', 'ABCD12', ''],
+    ['NL', 'ABCD12', 'ab cd 12'], // official sidecode 5 XX-XX-99
 ];
 foreach ($extra as [$code, $plate, $want]) {
     $n++;
@@ -250,6 +250,20 @@ expect('prefill empty', bumperchat_prefill_from_words('not three')['words'], '')
 expect('infer many not unique', bumperchat_infer_country('1234 BCD'), '');
 expect('infer ES among hits', in_array('ES', bumperchat_infer_countries('1234 BCD'), true), true);
 expect('infer empty', bumperchat_infer_country(''), '');
+
+// Official Dutch sidecodes (including 99-XXX-9 / 36-JXN-1) infer as NL even when
+// the default country is a region-mode country that does not accept three groups.
+expect('format NL sidecode 99-XXX-9 spaced', bumperchat_format_plate($by['NL'], '36 jxn 1'), '36-JXN-1');
+expect('format NL sidecode 99-XXX-9 compact', bumperchat_format_plate($by['NL'], '36JXN1'), '36-JXN-1');
+expect('words NL 36 jxn 1', bumperchat_plate_to_words($by['NL'], '36 jxn 1'), '36 jxn 1');
+expect('words US no region for Dutch plate', bumperchat_plate_to_words($by['US'], '36 jxn 1', ''), '');
+expect('infer 36-JXN-1 is NL', bumperchat_infer_country('36-JXN-1'), 'NL');
+expect('infer 36 jxn 1 is NL', bumperchat_infer_country('36 jxn 1'), 'NL');
+expect('infer compact 36JXN1 is NL', bumperchat_infer_country('36JXN1'), 'NL');
+expect('pick US default -> NL for 36 jxn 1', bumperchat_pick_country_for_plate('36 jxn 1', '', 'US'), 'NL');
+expect('pick NL default stays NL', bumperchat_pick_country_for_plate('36 jxn 1', '', 'NL'), 'NL');
+expect('default en-US is US (no geo/ip)', bumperchat_default_country([], 'en-US', false), 'US');
+expect('three mixed groups still kept on NL', bumperchat_format_plate($by['NL'], '2562AE 187 0'), '2562AE-187-0');
 
 // --- default country: headers, Accept-Language, fallback (no IP lookup in tests) ---
 expect('default CF-IPCountry', bumperchat_default_country(['HTTP_CF_IPCOUNTRY' => 'FR'], '', false), 'FR');

@@ -39,6 +39,7 @@ if ($raw_words !== '') {
     $prefill = bumperchat_prefill_from_words($raw_words);
 }
 
+$country_explicit = strtoupper(trim((string) ($_POST['country'] ?? $_GET['country'] ?? ''))) !== '';
 $selected = strtoupper(trim((string) ($_POST['country'] ?? $_GET['country'] ?? '')));
 if ($selected === '' && $prefill['country'] !== '') {
     $selected = $prefill['country'];
@@ -83,6 +84,20 @@ $check_error = '';
 $words = '';
 
 $is_next = ($_SERVER['REQUEST_METHOD'] === 'POST' && (string) ($_POST['do'] ?? 'next') === 'next');
+
+if (!$country_explicit && !$is_next && $plate !== '' && function_exists('bumperchat_pick_country_for_plate')) {
+    $pick = bumperchat_pick_country_for_plate($plate, $region, $selected);
+    if ($pick !== '' && $pick !== $selected) {
+        $selected = $pick;
+        $chosen = bumperchat_country($selected);
+        if ($chosen && empty($chosen['regions'])) {
+            $region = '';
+        }
+        if ($chosen && $plate !== '') {
+            $plate = bumperchat_format_plate($chosen, $plate, $region);
+        }
+    }
+}
 
 if ($is_next) {
     if (!bumperchat_csrf_ok()) {
@@ -316,6 +331,6 @@ if ($check === null && $error === '' && $plate_ok && !$is_next && function_exist
     window.BC_LOGGED_IN = <?php echo $user ? 'true' : 'false'; ?>;
     window.BC_DEFAULT_COUNTRY = <?php echo json_encode($default_country); ?>;
 </script>
-<script src="../js/bumperchat.js?v=10"></script>
+<script src="../js/bumperchat.js?v=11"></script>
 </body>
 </html>

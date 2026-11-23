@@ -298,7 +298,7 @@ while (count($featured_list) < $examples_visible && count($more_list) > 0) {
     'see_more'  => 'home.see_more',
     'show_less' => 'home.show_less',
 ]); ?>
-<script src="js/3wid_index_2.js?v=6"></script>
+<script src="js/3wid_index_2.js?v=7"></script>
 <script>
     function handleGoogleLogin() {
         //window.location.href = '<?php echo $loginUrl; ?>';

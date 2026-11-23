@@ -808,6 +808,7 @@ Se eliminarán la URL, la notificación y el chat de estas palabras. Esta acció
     'bc.formats_disclaimer' => 'Los formatos cambian y las matrículas especiales (diplomáticas, militares, personalizadas, de concesionario) pueden diferir. Basado en fuentes públicas, ver docs/PLATE_FORMATS.md en el repositorio de 3WordID.',
     'bc.js_exists' => 'Esta matrícula está en 3WordID: envía un mensaje',
     'bc.js_missing' => 'Aún no está en 3WordID: reclámala abajo',
+    'bc.js_missing_plate' => 'Esta matrícula aún no está en 3WordID. Puedes dejar un mensaje, o reclamarla si es tuya.',
     'bc.js_example' => 'Ejemplo:',
     'bc.js_type_plate' => 'Escribe tu matrícula para ver sus tres palabras.',
     'bc.js_no_fit' => 'Esta matrícula no encaja en la regla. Escríbela tal como aparece, con espacios o guiones entre los grupos.',

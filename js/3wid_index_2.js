@@ -98,6 +98,23 @@ function setSearchLock(state, plate, address) {
     }
 }
 
+// Bumperchat search box: offer "Leave a message" for an unclaimed plate.
+// The button (#bcSearchLeave) is only on bumperchat/index.php, so this is a no-op elsewhere.
+function setSearchLeave(show, words) {
+    var btn = document.getElementById('bcSearchLeave');
+    if (!btn) return;
+    if (!show || !words) {
+        btn.hidden = true;
+        return;
+    }
+    var pendingBase = btn.getAttribute('data-pending') || 'pending_send.php';
+    var loginBase = btn.getAttribute('data-login') || 'login.php';
+    var href = pendingBase + '?words=' + encodeURIComponent(words);
+    var loggedIn = !!(window.BC_LOGGED_IN);
+    btn.setAttribute('href', loggedIn ? href : (loginBase + '?next=' + encodeURIComponent(href)));
+    btn.hidden = false;
+}
+
 var existsRequest = 0; // only the newest answer may change the lock
 
 if (typeof $ === 'function') {
@@ -117,6 +134,7 @@ if (typeof $ === 'function') {
                for (let word of threewords_array) {
                     if(containsSpecialCharacters(word)) {
                         setSearchLock('closed');
+                        setSearchLeave(false);
                         return;
                     }
                     
@@ -124,6 +142,7 @@ if (typeof $ === 'function') {
 
               if(nr_words != 3) {
                     setSearchLock('closed');
+                    setSearchLeave(false);
                     return;
               }
               
@@ -145,9 +164,15 @@ if (typeof $ === 'function') {
                             if (response && response.exists) {
                                 $("#helperText").text(tr('exists', "3wid exists"));
                                 setSearchLock(response.paying ? 'gold' : 'found', plate, address);
+                                setSearchLeave(false, threewords);
                             } else {
-                                $('#helperText').text(tr('missing', "3wid does not exist log in to create"));
+                                var plateMissing = looksLikePlate(threewords_array);
+                                var missingPlateText = tr('missing_plate', '');
+                                $('#helperText').text(plateMissing && missingPlateText
+                                    ? missingPlateText
+                                    : tr('missing', "3wid does not exist log in to create"));
                                 setSearchLock('closed', plate, address);
+                                setSearchLeave(plateMissing, threewords);
                             }
                         },
                         error: function(xhr, status, error) {

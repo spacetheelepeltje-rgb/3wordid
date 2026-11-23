@@ -900,6 +900,7 @@ The URL, notification, and chat for these words will be removed. This cannot be 
     'bc.formats_disclaimer' => 'Plate formats change and special plates (diplomatic, military, personalised, trade) can differ. Based on public sources, see docs/PLATE_FORMATS.md in the 3WordID repository.',
     'bc.js_exists' => 'This plate is on 3WordID: send a message',
     'bc.js_missing' => 'Not on 3WordID yet: claim it below',
+    'bc.js_missing_plate' => 'This plate is not on 3WordID yet. You can leave a message, or claim it if it is yours.',
     'bc.js_example' => 'Example:',
     'bc.js_type_plate' => 'Type your plate to see its three words.',
     'bc.js_no_fit' => 'This plate does not fit the rule. Type it as printed, with spaces or dashes between the groups.',

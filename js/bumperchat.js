@@ -487,7 +487,25 @@
         return 'eu';
     }
 
+    function inferOfficialCountries(list, plate, region) {
+        var hits = [], compact = String(plate || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+        if (!compact) return hits;
+        (list || []).forEach(function (c) {
+            if (!(c.group_patterns && c.group_patterns.length)) return;
+            if (c.mode === 'region' && !region) return;
+            var fit = uniqueFitAnyPattern(c, compact, false);
+            if (!fit || !plateToWords(c, plate, region || '')) return;
+            var typed = groups(String(plate || ''));
+            if (typed.length > 1 && (fit.length !== typed.length || fit.join('\0') !== typed.join('\0'))) return;
+            hits.push(c.code);
+        });
+        return hits;
+    }
+
     function inferCountry(list, plate, region) {
+        var official = inferOfficialCountries(list, plate, region);
+        if (official.length === 1) return official[0];
+        if (official.length > 1) return '';
         var hits = [];
         if (!String(plate || '').trim()) return '';
         (list || []).forEach(function (c) {
@@ -573,12 +591,38 @@
                 if (formatted !== plate.value) setFormattedValue(plate, formatted);
             }
             var words = plate && plate.value.trim() !== '' ? plateToWords(c, plate.value, region && region.value) : '';
+            var guess = (!words && plate && plate.value.trim() !== '') ? inferCountry(list, plate.value, region && region.value) : '';
+            var guessC = guess ? byCode[guess] : null;
+            var guessWords = (guessC && plate) ? plateToWords(guessC, plate.value, '') : '';
+            var linkCountry = words ? c : (guessWords ? guessC : c);
+            var linkWords = words || guessWords;
+            var suggest = $('bcSuggest');
+            if (suggest) {
+                suggest.hidden = true;
+                suggest.textContent = '';
+                if (guessC && guessWords && guess !== c.code) {
+                    suggest.hidden = false;
+                    suggest.appendChild(document.createTextNode(
+                        (tr('bc_suggest', 'This looks like a {country} plate. Use {country}?')).split('{country}').join(txt(guessC.name) || guess)
+                    ));
+                    var sbtn = document.createElement('button');
+                    sbtn.type = 'button';
+                    sbtn.className = 'btn btn-ghost';
+                    sbtn.textContent = txt(guessC.name) || guess;
+                    sbtn.addEventListener('click', function () {
+                        if (select) select.value = guess;
+                        fillRegions(byCode[guess]);
+                        update();
+                    });
+                    suggest.appendChild(sbtn);
+                }
+            }
             if (out) {
                 if (!plate || plate.value.trim() === '') {
                     out.textContent = tr('bc_type_plate', 'Type your plate to see its three words.');
                     out.classList.remove('is-ok', 'is-bad');
-                } else if (words) {
-                    out.textContent = words;
+                } else if (linkWords) {
+                    out.textContent = linkWords;
                     out.classList.add('is-ok'); out.classList.remove('is-bad');
                 } else {
                     out.textContent = tr('bc_no_fit', 'This plate does not fit the rule. Type it as printed, with spaces or dashes between the groups.');
@@ -586,15 +630,15 @@
                 }
             }
             if (useBtn || leaveBtn) {
-                var q = '?country=' + encodeURIComponent(c.code);
-                if (region && region.value) q += '&region=' + encodeURIComponent(region.value);
+                var q = '?country=' + encodeURIComponent(linkCountry && linkCountry.code || c.code);
+                if (linkCountry === c && region && region.value) q += '&region=' + encodeURIComponent(region.value);
                 if (plate && plate.value) q += '&plate=' + encodeURIComponent(plate.value);
                 if (useBtn) {
-                    useBtn.hidden = !words;
+                    useBtn.hidden = !linkWords;
                     useBtn.setAttribute('href', claimBase + q);
                 }
                 if (leaveBtn) {
-                    leaveBtn.hidden = !words;
+                    leaveBtn.hidden = !linkWords;
                     var pendingHref = pendingBase + q;
                     leaveBtn.setAttribute('href', root.BC_LOGGED_IN ? pendingHref : (loginBase + '?next=' + encodeURIComponent(pendingHref)));
                 }

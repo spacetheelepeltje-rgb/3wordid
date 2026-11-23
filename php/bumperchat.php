@@ -1095,11 +1095,71 @@ function bumperchat_infer_countries(string $plate, string $region = ''): array
     return $hits;
 }
 
-/** The only matching country code, or '' when none or more than one match. */
+/**
+ * Countries whose official group_patterns uniquely fit this plate.
+ * Loose mode-three rules (any three typed groups) are ignored here, so a
+ * Dutch 99-XXX-9 plate is not also treated as French or German.
+ * @return list<string>
+ */
+function bumperchat_infer_official_countries(string $plate, string $region = ''): array
+{
+    $hits = [];
+    $compact = strtoupper((string) preg_replace('/[^A-Za-z0-9]/', '', $plate));
+    if ($compact === '') {
+        return $hits;
+    }
+    foreach (bumperchat_formats()['countries'] as $c) {
+        if (empty($c['group_patterns']) || !is_array($c['group_patterns'])) {
+            continue;
+        }
+        if (($c['mode'] ?? '') === 'region' && $region === '') {
+            continue;
+        }
+        $fit = bumperchat_unique_fit_any_pattern($c, $compact, false);
+        if (!$fit || bumperchat_plate_to_words($c, $plate, $region) === '') {
+            continue;
+        }
+        $typed = bumperchat_plate_groups($plate);
+        if (count($typed) > 1 && ($fit !== $typed)) {
+            continue;
+        }
+        $hits[] = (string) ($c['code'] ?? '');
+    }
+    return array_values(array_filter($hits));
+}
+
+/** The only matching country code, or '' when none or more than one match.
+ * Official group_patterns win when exactly one country matches them. */
 function bumperchat_infer_country(string $plate, string $region = ''): string
 {
+    $official = bumperchat_infer_official_countries($plate, $region);
+    if (count($official) === 1) {
+        return $official[0];
+    }
+    if (count($official) > 1) {
+        return '';
+    }
     $hits = bumperchat_infer_countries($plate, $region);
     return count($hits) === 1 ? $hits[0] : '';
+}
+
+/**
+ * Use $preferred when that country already accepts the plate; otherwise the
+ * unique inferred country (official patterns first). Empty when still unknown.
+ */
+function bumperchat_pick_country_for_plate(string $plate, string $region = '', string $preferred = ''): string
+{
+    if ($plate === '') {
+        return $preferred;
+    }
+    if ($preferred !== '') {
+        $c = bumperchat_country($preferred);
+        $needs_region = $c && !empty($c['regions']) && $region === '';
+        if ($c && !$needs_region && bumperchat_plate_to_words($c, $plate, $region) !== '') {
+            return $preferred;
+        }
+    }
+    return bumperchat_infer_country($plate, $region);
 }
 
 /**
