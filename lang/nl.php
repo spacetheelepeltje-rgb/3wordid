@@ -900,6 +900,7 @@ De URL, mededeling en chat van deze woorden worden verwijderd. Dit kan niet onge
     'bc.formats_disclaimer' => 'Kentekenformaten veranderen en bijzondere kentekens (diplomatiek, militair, gepersonaliseerd, handelaar) kunnen afwijken. Gebaseerd op openbare bronnen, zie docs/PLATE_FORMATS.md in de 3WordID-repository.',
     'bc.js_exists' => 'Dit kenteken staat op 3WordID: stuur een bericht',
     'bc.js_missing' => 'Nog niet op 3WordID: claim het hieronder',
+    'bc.js_missing_plate' => 'Dit kenteken staat nog niet op 3WordID. Je kunt een bericht achterlaten, of het claimen als het van jou is.',
     'bc.js_example' => 'Voorbeeld:',
     'bc.js_type_plate' => 'Typ je kenteken om de drie woorden te zien.',
     'bc.js_no_fit' => 'Dit kenteken past niet in de regel. Typ het zoals het op de plaat staat, met spaties of streepjes tussen de groepen.',

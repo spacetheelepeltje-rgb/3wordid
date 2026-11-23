@@ -64,9 +64,7 @@ function bc_e($s): string { return htmlspecialchars((string) $s, ENT_QUOTES, 'UT
             </form>
             <div class="bc-hero-links">
                 <a class="btn btn-ghost" id="bcClaimLink" href="claim.php"><?php echo t('bc.claim_link'); ?></a>
-                <?php if ($user): ?>
-                <a class="btn btn-ghost" href="pending_send.php"><?php echo t('pending.leave_message'); ?></a>
-                <?php endif; ?>
+                <a class="btn btn-ghost" id="bcSearchLeave" href="<?php echo $user ? 'pending_send.php' : 'login.php?next=' . rawurlencode('pending_send.php'); ?>" data-pending="pending_send.php" data-login="login.php" hidden><?php echo t('pending.leave_message'); ?></a>
                 <a class="bc-textlink" href="#formats"><?php echo t('bc.how_plate'); ?></a>
             </div>
         </section>
@@ -135,6 +133,7 @@ function bc_e($s): string { return htmlspecialchars((string) $s, ENT_QUOTES, 'UT
                     <output id="bcWords" class="bc-words" for="bcPlate" aria-live="polite"></output>
                     <a class="btn btn-primary" id="bcUse" href="claim.php" data-claim="claim.php" hidden><?php echo t('bc.use_words'); ?></a>
                     <a class="btn btn-ghost" id="bcLeaveMsg" href="<?php echo $user ? 'pending_send.php' : 'login.php?next=' . rawurlencode('pending_send.php'); ?>" data-pending="pending_send.php" data-login="login.php" hidden><?php echo t('pending.leave_message'); ?></a>
+                    <p class="bc-suggest" id="bcSuggest" hidden></p>
                 </div>
             </div>
 
@@ -186,6 +185,8 @@ function bc_e($s): string { return htmlspecialchars((string) $s, ENT_QUOTES, 'UT
     'bc_example'    => 'bc.js_example',
     'bc_type_plate' => 'bc.js_type_plate',
     'bc_no_fit'     => 'bc.js_no_fit',
+    'bc_suggest'    => 'bc.suggest_country',
+    'missing_plate' => 'bc.js_missing_plate',
 ]); ?>
 <script>
     window.T3_EXISTS_URL = '../3wid_exists.php';
@@ -193,8 +194,8 @@ function bc_e($s): string { return htmlspecialchars((string) $s, ENT_QUOTES, 'UT
     window.BC_FORMATS = <?php echo json_encode($formats, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;
     window.BC_LOGGED_IN = <?php echo $user ? 'true' : 'false'; ?>;
 </script>
-<script src="../js/3wid_index_2.js?v=5"></script>
-<script src="../js/bumperchat.js?v=10"></script>
+<script src="../js/3wid_index_2.js?v=7"></script>
+<script src="../js/bumperchat.js?v=11"></script>
 
 </body>
 </html>

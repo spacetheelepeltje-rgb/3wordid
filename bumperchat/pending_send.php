@@ -20,6 +20,7 @@ $countries = $formats['countries'] ?? [];
 $prefill = bumperchat_prefill_from_words((string) ($_GET['words'] ?? $_GET['threeword'] ?? ''));
 $default_country = bumperchat_default_country();
 
+$country_explicit = strtoupper(trim((string) ($_GET['country'] ?? ''))) !== '';
 $selected = strtoupper(trim((string) ($_GET['country'] ?? '')));
 if ($selected === '' && !empty($prefill['country'])) {
     $selected = (string) $prefill['country'];
@@ -49,6 +50,27 @@ if ($chosen && $plate !== '') {
     if (!$needs_region) {
         $show_words = bumperchat_plate_to_words($chosen, $plate, $region);
         $plate_ok = ($show_words !== '');
+    }
+}
+if (!$country_explicit && $plate !== '' && function_exists('bumperchat_pick_country_for_plate')) {
+    $pick = bumperchat_pick_country_for_plate($plate, $region, $selected);
+    if ($pick !== '' && $pick !== $selected) {
+        $selected = $pick;
+        $chosen = bumperchat_country($selected);
+        if ($chosen && empty($chosen['regions'])) {
+            $region = '';
+        }
+        if ($chosen) {
+            $plate = bumperchat_format_plate($chosen, $plate, $region);
+            $needs_region = !empty($chosen['regions']) && $region === '';
+            if (!$needs_region) {
+                $show_words = bumperchat_plate_to_words($chosen, $plate, $region);
+                $plate_ok = ($show_words !== '');
+            } else {
+                $show_words = '';
+                $plate_ok = false;
+            }
+        }
     }
 }
 if ($show_words === '' && $wanted_words !== '') {
@@ -314,6 +336,6 @@ $action_token = get_action_token();
     window.BC_PENDING_REMAINING = <?php echo $already ? 0 : (int) $remaining; ?>;
     window.BC_DEFAULT_COUNTRY = <?php echo json_encode($selected); ?>;
 </script>
-<script src="../js/bumperchat.js?v=10"></script>
+<script src="../js/bumperchat.js?v=11"></script>
 </body>
 </html>

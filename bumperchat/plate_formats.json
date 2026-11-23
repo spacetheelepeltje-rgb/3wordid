@@ -536,6 +536,22 @@
    },
    "mode": "three",
    "format": "AB-123-C",
+   "group_patterns": [
+    ["[A-Z]{2}", "[0-9]{2}", "[0-9]{2}"],
+    ["[0-9]{2}", "[0-9]{2}", "[A-Z]{2}"],
+    ["[0-9]{2}", "[A-Z]{2}", "[0-9]{2}"],
+    ["[A-Z]{2}", "[0-9]{2}", "[A-Z]{2}"],
+    ["[A-Z]{2}", "[A-Z]{2}", "[0-9]{2}"],
+    ["[0-9]{2}", "[A-Z]{2}", "[A-Z]{2}"],
+    ["[0-9]{2}", "[A-Z]{3}", "[0-9]"],
+    ["[0-9]", "[A-Z]{3}", "[0-9]{2}"],
+    ["[A-Z]{2}", "[0-9]{3}", "[A-Z]"],
+    ["[A-Z]", "[0-9]{3}", "[A-Z]{2}"],
+    ["[A-Z]{3}", "[0-9]{2}", "[A-Z]"],
+    ["[A-Z]", "[0-9]{2}", "[A-Z]{3}"],
+    ["[0-9]", "[A-Z]{2}", "[0-9]{3}"],
+    ["[0-9]{3}", "[A-Z]{2}", "[0-9]"]
+   ],
    "examples": [
     {
      "plate": "AB-123-C",
@@ -548,11 +564,15 @@
     {
      "plate": "GZ-12-KL",
      "words": "gz 12 kl"
+    },
+    {
+     "plate": "36-JXN-1",
+     "words": "36 jxn 1"
     }
    ],
    "rule": {
-    "en": "Always three groups: type the groups between the dashes, with a space instead of each dash.",
-    "nl": "Altijd drie groepen: typ de groepen tussen de streepjes, met een spatie in plaats van elk streepje."
+    "en": "Always three groups: type the groups between the dashes, with a space instead of each dash. Official Dutch sidecodes include 99-XXX-9 (for example 36-JXN-1).",
+    "nl": "Altijd drie groepen: typ de groepen tussen de streepjes, met een spatie in plaats van elk streepje. Officiële sidecodes zijn onder meer 99-XXX-9 (bijvoorbeeld 36-JXN-1)."
    },
    "source": "https://en.wikipedia.org/wiki/Vehicle_registration_plates_of_the_Netherlands",
    "note": {

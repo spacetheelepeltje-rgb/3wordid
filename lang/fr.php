@@ -808,6 +808,7 @@ L’URL, la notification et le chat de ces mots seront supprimés. Cette action 
     'bc.formats_disclaimer' => 'Les formats changent et les plaques spéciales (diplomatiques, militaires, personnalisées, garage) peuvent différer. Basé sur des sources publiques, voir docs/PLATE_FORMATS.md dans le dépôt 3WordID.',
     'bc.js_exists' => 'Cette plaque est sur 3WordID : envoyez un message',
     'bc.js_missing' => 'Pas encore sur 3WordID : réservez-la ci-dessous',
+    'bc.js_missing_plate' => 'Cette plaque n’est pas encore sur 3WordID. Vous pouvez laisser un message, ou la réserver si elle est à vous.',
     'bc.js_example' => 'Exemple :',
     'bc.js_type_plate' => 'Tapez votre plaque pour voir ses trois mots.',
     'bc.js_no_fit' => 'Cette plaque ne correspond pas à la règle. Tapez-la telle qu’imprimée, avec des espaces ou des tirets entre les groupes.',

@@ -4,7 +4,7 @@
 // Not needed on the web server. Exit code 1 when something differs.
 const fs = require('fs');
 const path = require('path');
-const { plateToWords, formatPlate, platePrefix, platePrefixLabel } = require(path.join(__dirname, '..', 'js', 'bumperchat.js'));
+const { plateToWords, formatPlate, platePrefix, platePrefixLabel, inferCountry } = require(path.join(__dirname, '..', 'js', 'bumperchat.js'));
 const data = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'bumperchat', 'plate_formats.json'), 'utf8'));
 
 let fail = 0, n = 0;
@@ -30,7 +30,7 @@ const extra = [
     ['NL', 'ab123c', 'ab 123 c'], ['NL', 'AB 123 C', 'ab 123 c'], ['FR', 'AB123CD', 'ab 123 cd'],
     ['DK', 'AB12345', 'ab 12 345'], ['ES', '1234BCD', 'e 1234 bcd'], ['BE', '1ABC234', '1 abc 234'],
     ['BE', '123-ABC', 'b 123 abc'], ['HU', 'AABC123', 'h aabc 123'], ['SE', 'ABC 12A', 's abc 12a'],
-    ['LU', '1234', 'l 12 34'], ['CZ', '1A23456', 'cz 1a2 3456'], ['NL', 'ABCD12', ''], ['US|XX', 'ABC123', ''],
+    ['LU', '1234', 'l 12 34'], ['CZ', '1A23456', 'cz 1a2 3456'], ['NL', 'ABCD12', 'ab cd 12'], ['US|XX', 'ABC123', ''],
     ['CA|QC', 'ABC 123', 'qc abc 123'], ['US|TX', 'ABC-1234', 'tx abc 1234'],
 ];
 for (const [k, plate, want] of extra) {
@@ -148,6 +148,22 @@ for (const [code, plate, region, formatted, words] of officialCases) {
 // Without a country, keep three typed groups; generic split only on fewer groups.
 n++;
 if (formatPlate({}, '2562AE 187 0') !== '2562AE 187 0') { console.log('no-country three groups were split'); fail++; }
+
+// Official Dutch sidecode 99-XXX-9 (e.g. 36-JXN-1): format, words, and unique infer.
+const nlSidecode = [
+    ['36 jxn 1', '36-JXN-1', '36 jxn 1'],
+    ['36-JXN-1', '36-JXN-1', '36 jxn 1'],
+    ['36JXN1', '36-JXN-1', '36 jxn 1'],
+];
+for (const [plate, formatted, words] of nlSidecode) {
+    n++;
+    const fmt = formatPlate(by.NL, plate);
+    if (fmt !== formatted) { console.log(`NL sidecode format "${plate}" -> "${fmt}", expected "${formatted}"`); fail++; }
+    const got = plateToWords(by.NL, fmt);
+    if (got !== words) { console.log(`NL sidecode words "${plate}" -> "${got}", expected "${words}"`); fail++; }
+    const inferred = inferCountry(data.countries, plate);
+    if (inferred !== 'NL') { console.log(`NL sidecode infer "${plate}" -> "${inferred}", expected "NL"`); fail++; }
+}
 
 const eu = ['AT','BE','BG','HR','CY','CZ','DK','EE','FI','FR','DE','GR','HU','IE','IT','LV','LT','LU','MT','NL','PL','PT','RO','SK','SI','ES','SE'];
 for (const c of eu.concat(['US', 'CA'])) { if (!codes.has(c)) { console.log(`missing country ${c}`); fail++; } }
