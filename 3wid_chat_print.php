@@ -6,7 +6,7 @@
   $data = current_user_from_session($conn);
  
 	if ($data == NULL) {
-    header('Location: login/options.php?message=' . rawurlencode(t_plain('common.login_required')));
+    header('Location: ' . (bumperchat_active() ? 'bumperchat/login.php?next=chat.php' : 'login/options.php?message=' . rawurlencode(t_plain('common.login_required'))));
     exit;
 	}
   
@@ -32,7 +32,7 @@
   $owned_3wid = db_3wordid_owned_by($threeword_id, $data['id']);
   if (!$owned_3wid) {
     error_log('list messages: user ' . $data['id'] . ' does not own 3wid ' . $threeword_id);
-    header('location:3wid_list.php');
+    header('location:' . bumperchat_or('3wid_list.php', 'chat.php'));
     exit;
   }
 
@@ -47,7 +47,7 @@
   //error_log('messages found ' . json_encode($messages));
 
   if($messages == NULL && !$sent_rows) {
-    header('location:3wid_list.php'); 
+    header('location:' . bumperchat_or('3wid_list.php', 'chat.php')); 
     die(t_plain('lm.none')); 
   }
  

@@ -1,6 +1,10 @@
 <?php
   require_once 'php/functions.php';
   require_once 'login/config.php';
+
+  // Bumperchat context: "home" and "login" stay inside /bumperchat/ (see docs/BUMPERCHAT.md)
+  if (($_GET['from'] ?? $_POST['from'] ?? '') === 'bumperchat') { bumperchat_ctx_remember(); }
+  if (bumperchat_active()) { $main_url = 'bumperchat/index.php'; }
   
   $threewords="";
   
@@ -42,7 +46,7 @@
    $word_row = db_3wordid_get_threeword($threewords);
 
    if($word_row == NULL || $word_row['id']==0) {
-        $from_bc = (($_POST['from'] ?? $_GET['from'] ?? '') === 'bumperchat');
+        $from_bc = (($_POST['from'] ?? $_GET['from'] ?? '') === 'bumperchat') || bumperchat_active();
         $looks_like_plate = function_exists('car_plate_pattern') && car_plate_pattern($threewords);
         if ($from_bc || $looks_like_plate) {
             $pending_q = 'pending_send.php?words=' . rawurlencode(trim(preg_replace('/\s+/u', ' ', $threewords)));

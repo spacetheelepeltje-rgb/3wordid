@@ -6,7 +6,7 @@
   $data = current_user_from_session($conn);
  
 	if ($data == NULL) {
-    header('Location: login/options.php?message=' . rawurlencode(t_plain('common.login_required')));
+    header('Location: ' . (bumperchat_active() ? 'bumperchat/login.php?next=chat.php' : 'login/options.php?message=' . rawurlencode(t_plain('common.login_required'))));
     exit;
 	}
   
@@ -32,7 +32,7 @@
   $owned_3wid = db_3wordid_owned_by($threeword_id, $data['id']);
   if (!$owned_3wid) {
     error_log('list messages: user ' . $data['id'] . ' does not own 3wid ' . $threeword_id);
-    header('location:3wid_list.php');
+    header('location:' . bumperchat_or('3wid_list.php', 'chat.php'));
     exit;
   }
 
@@ -61,7 +61,7 @@
   }
 
   if($messages == NULL && !$sent_rows && !$pending_groups) {
-    header('location:3wid_list.php'); 
+    header('location:' . bumperchat_or('3wid_list.php', 'chat.php')); 
     die(t_plain('lm.none')); 
   }
  
@@ -143,7 +143,7 @@
         'name'    => $threeword_safe,
         'sub'     => t_n('chat.conversations', $total),
         'actions' => chat_tb_button('3wid_messageform.php?threeword_id=' . (int) $threeword_id, 'compose', t_plain('chat.new_message'))
-                   . chat_tb_button('3wid_list.php', 'list', t_plain('tb.my_ids')),
+                   . chat_list_button(),
     )); ?>
 <div class="chat-app">
 
@@ -206,7 +206,7 @@
                    // Delete conversation: everything in it, received and sent (3wid_message_delete.php)
                    . chat_tb_form_button('3wid_message_delete.php', array('do' => 'conversation', 'wid_id' => (int) $threeword_id, 'with' => $open['key'], 'action_token' => $action_token),
                        'trash', t_plain('chat.delete_conversation'), t_plain('chat.confirm_delete_conversation'), 'tb-del'))
-                   . chat_tb_button('3wid_list.php', 'list', t_plain('tb.my_ids')),
+                   . chat_list_button(),
     )); ?>
 <div class="chat-app">
 

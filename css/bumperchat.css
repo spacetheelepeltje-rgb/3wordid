@@ -211,3 +211,31 @@
 .bc-reseller summary { cursor: pointer; color: var(--muted); font-size: 13px; font-weight: 600; }
 .bc-reseller[open] summary { margin-bottom: 8px; }
 .bc-reseller-note { color: var(--gold, #B45309); font-size: 13px; margin: 6px 0 0; }
+
+/* Google login button and "or" divider (bumperchat/login.php) */
+.bc-google { display: inline-flex; align-items: center; justify-content: center; gap: 10px; background: #fff; color: var(--navy); border: 1px solid var(--line); border-radius: 10px; font-weight: 600; text-decoration: none; }
+.bc-google:hover { border-color: var(--navy); }
+.bc-google-card .bc-meta { text-align: center; }
+.bc-or { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 12px; margin: 4px 0 16px; }
+.bc-or::before, .bc-or::after { content: ''; flex: 1; border-top: 1px solid var(--line); }
+
+/* Header help icon */
+.bc-help-ico { display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; color: var(--slate); border: 1px solid var(--line); background: #fff; text-decoration: none; }
+.bc-help-ico:hover { color: var(--navy); border-color: var(--navy); }
+
+/* Chat view: "message a car" with a country icon button + hidden dropdown */
+.bc-chat-plate-row { align-items: center; position: relative; }
+.bc-country-pick { position: relative; align-self: center; }
+.bc-country-btn { display: inline-flex; align-items: center; gap: 6px; height: 44px; padding: 0 12px; border: 1px solid var(--line); border-radius: 10px; background: #fff; color: var(--navy); font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+.bc-country-btn:hover, .bc-country-btn[aria-expanded="true"] { border-color: var(--navy); }
+.bc-country-pop { position: absolute; z-index: 30; top: calc(100% + 8px); left: 0; width: min(320px, 86vw); background: #fff; border: 1px solid #ECEAE4; border-radius: 14px; padding: 14px; box-shadow: var(--shadow); }
+.bc-country-pop[hidden] { display: none; }
+.bc-country-pop .bc-input { margin-bottom: 8px; }
+.bc-chatform .bc-plate-row .bc-next { min-height: 56px; }
+
+/* Help page */
+.bc-help-toc ol { margin: 8px 0 0 20px; padding: 0; line-height: 1.8; }
+.bc-help-toc a { color: var(--navy); font-weight: 600; }
+.bc-help { max-width: 760px; }
+.bc-help section { scroll-margin-top: 80px; }
+.bc-help .bc-p { line-height: 1.6; color: var(--slate); }

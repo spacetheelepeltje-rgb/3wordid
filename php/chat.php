@@ -384,15 +384,30 @@ function chat_lang_menu() {
 // chat_home_button). Returns [url, visible label, accessible label, optional icon].
 // ($main_url is no longer used; kept so older calls keep working.)
 function chat_back_home($logged_in, $main_url = 'index.php') {
+	// Bumperchat context: stay inside /bumperchat/ (chat list, Bumperchat login, Bumperchat home)
+	if (bumperchat_active()) {
+		if ($logged_in) {
+			return array('bumperchat/chat.php', t('bc.my_chats'), t('bc.tb_back'));
+		}
+		return array('bumperchat/login.php', t('nav.login'), t('nav.login'), 'login');
+	}
 	if ($logged_in) {
 		return array('3wid_list.php', t('tb.my_ids'), t('tb.back_my_ids'));
 	}
 	return array('/login/options.php', t('nav.login'), t('nav.login'), 'login');
 }
 
-// Home icon for the right side of the bar (visitors who are not logged in)
+// "My 3WordIDs" icon on the right of the bar; in Bumperchat context it is "My chats" (bumperchat/chat.php)
+function chat_list_button() {
+	if (bumperchat_active()) {
+		return chat_tb_button('bumperchat/chat.php', 'list', t_plain('bc.my_chats'));
+	}
+	return chat_tb_button('3wid_list.php', 'list', t_plain('tb.my_ids'));
+}
+
+// Home icon for the right side of the bar (visitors who are not logged in); Bumperchat context: Bumperchat home
 function chat_home_button() {
-	return chat_tb_button('index.php', 'home', t_plain('tb.back_home'));
+	return chat_tb_button(bumperchat_or('index.php', 'index.php'), 'home', t_plain('tb.back_home'));
 }
 
 // The bar itself. All values are HTML (already escaped):

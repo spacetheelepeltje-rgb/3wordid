@@ -64,6 +64,135 @@ function bumperchat_normalize_words(string $words): string
 function bumperchat_mark_session(string $words): void
 {
     $_SESSION['bumperchat'] = ['words' => $words, 'at' => time()];
+    bumperchat_ctx_remember();
+}
+
+/**
+ * Bumperchat context ("the visitor came in through Bumperchat"). Set by every Bumperchat
+ * page (bumperchat_header) and by 3wid_forward.php?from=bumperchat, cleared by any normal
+ * login (establish_user_session) and on the main homepage. Shared pages (chat, message form,
+ * consent, forward) use it to keep the visitor inside /bumperchat/ instead of sending them to
+ * the main 3wordID homepage, list or login. See docs/BUMPERCHAT.md "No redirects to the main site".
+ */
+function bumperchat_ctx_remember(): void
+{
+    if (isset($_SESSION) && is_array($_SESSION)) {
+        $_SESSION['bc_ctx'] = 1;
+    }
+    // Also a plain browser-session cookie, so the context survives an expired PHP session
+    // (a missing session on a shared page then goes to the Bumperchat login, not the main one).
+    if (PHP_SAPI !== 'cli' && !headers_sent() && (($_COOKIE['bc_ctx'] ?? '') !== '1')) {
+        setcookie('bc_ctx', '1', ['expires' => 0, 'path' => '/', 'secure' => !empty($_SERVER['HTTPS']), 'httponly' => true, 'samesite' => 'Lax']);
+        $_COOKIE['bc_ctx'] = '1';
+    }
+}
+
+/** Leave Bumperchat context (main homepage, main login page). */
+function bumperchat_ctx_forget(): void
+{
+    unset($_SESSION['bc_ctx'], $_SESSION['oauth_return']);
+    if (PHP_SAPI !== 'cli' && !headers_sent() && isset($_COOKIE['bc_ctx'])) {
+        setcookie('bc_ctx', '', ['expires' => time() - 3600, 'path' => '/', 'secure' => !empty($_SERVER['HTTPS']), 'httponly' => true, 'samesite' => 'Lax']);
+    }
+    unset($_COOKIE['bc_ctx']);
+}
+
+/** True for a Bumperchat login (flag) or a visitor in Bumperchat context (session or cookie). */
+function bumperchat_active(): bool
+{
+    return !empty($_SESSION['bumperchat']) || !empty($_SESSION['bc_ctx']) || (($_COOKIE['bc_ctx'] ?? '') === '1');
+}
+
+/**
+ * Path of a Bumperchat page for a script at the web root (3wid_*.php, php/*): 'bumperchat/chat.php'.
+ * From a script inside /bumperchat/ use the bare page name instead.
+ */
+function bumperchat_root_url(string $page = 'chat.php'): string
+{
+    return 'bumperchat/' . ltrim($page, '/');
+}
+
+/** $main for ordinary visitors, the Bumperchat page ($bc_page, from the web root) in Bumperchat context. */
+function bumperchat_or(string $main, string $bc_page): string
+{
+    return bumperchat_active() ? bumperchat_root_url($bc_page) : $main;
+}
+
+/**
+ * A 3WordID row of a Bumperchat licence plate (claimed through Bumperchat, with or without a
+ * billing product: paying 3WordID accounts get plates without a trial and have no billing_product).
+ */
+function bumperchat_is_plate_row($row): bool
+{
+    return is_array($row) && (((string) ($row['claim_source'] ?? '')) === 'bumperchat' || ((string) ($row['billing_product'] ?? '')) !== '');
+}
+
+/**
+ * Plate account = owns at least one Bumperchat plate and no other (normal) 3WordID.
+ * Such an account only uses the chat view, never the list / add / edit pages of the main site.
+ * An account that ALSO has normal 3WordIDs keeps the normal list when it logs in on 3wordid.com
+ * (it still gets the chat view when it logged in through Bumperchat: session flag).
+ * @param list<array> $rows 3WordID rows of the account (db_3wordid_list)
+ */
+function bumperchat_plate_only_account($rows): bool
+{
+    if (!is_array($rows) || !$rows) {
+        return false;
+    }
+    foreach ($rows as $r) {
+        if (!bumperchat_is_plate_row($r)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/**
+ * For the main-site pages a plate account must not land on (list, add, edit, settings): send
+ * a Bumperchat session or a plate-only account to the Bumperchat chat view. Call after the login check.
+ */
+function bumperchat_route_chat_only(array $user, string $target = 'bumperchat/chat.php'): void
+{
+    $chat_only = !empty($_SESSION['bumperchat']);
+    if (!$chat_only && function_exists('db_3wordid_list')) {
+        $chat_only = bumperchat_plate_only_account(db_3wordid_list((int) ($user['id'] ?? 0)));
+    }
+    if ($chat_only) {
+        bumperchat_mark_session(bumperchat_session_words());
+        header('Location: ' . $target);
+        exit;
+    }
+    // A normal account on a main-site page: not in Bumperchat context any more
+    bumperchat_ctx_forget();
+}
+
+/** Remember the chosen plate country for this session (kept in sync across Bumperchat pages). */
+function bumperchat_remember_country(string $code): void
+{
+    $code = strtoupper(trim($code));
+    if ($code !== '' && bumperchat_country($code) && isset($_SESSION) && is_array($_SESSION)) {
+        $_SESSION['bc_country'] = $code;
+    }
+}
+
+/** Remembered country (session), else the detected default (geo / Accept-Language / NL). */
+function bumperchat_remembered_country(): string
+{
+    $code = strtoupper((string) ($_SESSION['bc_country'] ?? ''));
+    if ($code !== '' && bumperchat_country($code)) {
+        return $code;
+    }
+    return bumperchat_default_country();
+}
+
+/**
+ * Where "Continue with Google" goes: bumperchat/google.php stores a safe return path in the
+ * session and sends the visitor to the existing Google login (login/welcome.php callback).
+ */
+function bumperchat_google_start_url(string $next = ''): string
+{
+    $next = bumperchat_safe_next($next, '');
+    return 'google.php' . ($next !== '' ? '?next=' . rawurlencode($next) : '');
 }
 
 function bumperchat_session_words(): string
@@ -78,15 +207,33 @@ function bumperchat_car_icon(int $size = 20): string
         . '<path d="M5 17H3v-5l2-5h14l2 5v5h-2"></path><path d="M3 12h18"></path><circle cx="7.5" cy="17" r="2"></circle><circle cx="16.5" cy="17" r="2"></circle><path d="M9.5 17h5"></path></svg>';
 }
 
+/** Globe mark of the country picker button (chat view). */
+function bumperchat_globe_icon(int $size = 18): string
+{
+    return '<svg width="' . $size . '" height="' . $size . '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">'
+        . '<circle cx="12" cy="12" r="10"></circle><path d="M2 12h20"></path><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>';
+}
+
+/** Small round help icon (help.php) for the header. */
+function bumperchat_help_icon(int $size = 18): string
+{
+    return '<svg width="' . $size . '" height="' . $size . '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">'
+        . '<circle cx="12" cy="12" r="10"></circle><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 2.5-3 4.5"></path><path d="M12 17.5h.01"></path></svg>';
+}
+
 /** Header of every Bumperchat page. $user: logged-in user or null. */
 function bumperchat_header($user): string
 {
+    bumperchat_ctx_remember();
     $out = '<header class="site-header bc-header">'
         . '<a class="brand bc-brand" href="index.php"><span class="brand-mark bc-mark">' . bumperchat_car_icon(18) . '</span>'
         . '<span>Bumperchat<span class="bc-by">' . t('bc.by_3wordid') . '</span></span></a>'
-        . '<div class="header-actions">' . lang_switcher();
+        . '<div class="header-actions">'
+        . '<a class="bc-help-ico" href="help.php" title="' . htmlspecialchars(t_plain('bc.help_link'), ENT_QUOTES, 'UTF-8') . '" aria-label="' . htmlspecialchars(t_plain('bc.help_link'), ENT_QUOTES, 'UTF-8') . '">' . bumperchat_help_icon() . '</a>'
+        . lang_switcher();
     if ($user) {
         $out .= '<a class="btn btn-ghost bc-hide-sm" href="chat.php">' . t('bc.my_chats') . '</a>'
+            . '<a class="btn btn-ghost bc-hide-sm" href="account.php">' . t('bc.account') . '</a>'
             . '<a class="btn btn-primary" href="logout.php">' . t('bc.logout') . '</a>';
     } else {
         $next = bumperchat_current_return();
@@ -97,6 +244,22 @@ function bumperchat_header($user): string
         $out .= '<a class="btn btn-primary" href="' . htmlspecialchars($href, ENT_QUOTES, 'UTF-8') . '">' . t('nav.login') . '</a>';
     }
     return $out . '</div></header>';
+}
+
+/** Footer links of every Bumperchat page: terms and help. Both stay in Bumperchat context (no link to the main homepage). */
+function bumperchat_footer_links(): string
+{
+    return '<a href="../terms.php?from=bumperchat#bumperchat">' . t('nav.terms') . '</a> · <a href="help.php">' . t('bc.help_link') . '</a>';
+}
+
+/** Google "G" mark for the login button (inline SVG, no external request). */
+function bumperchat_google_icon(int $size = 18): string
+{
+    return '<svg width="' . $size . '" height="' . $size . '" viewBox="0 0 48 48" aria-hidden="true" focusable="false">'
+        . '<path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/>'
+        . '<path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/>'
+        . '<path fill="#FBBC05" d="M10.5 28.7a14.5 14.5 0 0 1 0-9.4l-7.9-6.1a24 24 0 0 0 0 21.6l7.9-6.1z"/>'
+        . '<path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.8 2.3-8.4 2.3-6.3 0-11.6-4.1-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>';
 }
 
 /** Optional mobile number + SMS consent fields for the claim form. */
@@ -439,7 +602,7 @@ function bumperchat_taken_actions(string $words, array $opts = []): string
     $logged_in = !empty($opts['logged_in']);
     $retry = array_key_exists('retry', $opts) ? !empty($opts['retry']) : true;
     $out = '<div class="bc-taken-actions">';
-    $out .= '<a class="btn btn-primary" href="../3wid_forward.php?threewords=' . rawurlencode($words) . '">'
+    $out .= '<a class="btn btn-primary" href="../3wid_forward.php?from=bumperchat&amp;threewords=' . rawurlencode($words) . '">'
         . t('bc.send_to_plate') . '</a>';
     if (!$logged_in) {
         $next = 'claim.php?words=' . rawurlencode($words);
@@ -482,7 +645,7 @@ function bumperchat_safe_next(?string $next, string $fallback = 'chat.php'): str
     if ($next === '') {
         return $fallback;
     }
-    if (!preg_match('/^(claim|claim_plate|claim_register|chat|pay|pay_return|index|login|pending_send|dispute)\.php(?:\?[A-Za-z0-9_\-=.+&%]*)?$/', $next)) {
+    if (!preg_match('/^(claim|claim_plate|claim_register|chat|pay|pay_return|index|login|pending_send|dispute|help|google_details|account)\.php(?:\?[A-Za-z0-9_\-=.+&%]*)?$/', $next)) {
         return $fallback;
     }
     return $next;
@@ -1163,6 +1326,36 @@ function bumperchat_pick_country_for_plate(string $plate, string $region = '', s
 }
 
 /**
+ * What a user typed as the recipient in the Bumperchat chat view -> the plate's three words.
+ * Three words as typed stay as they are (normalised). Anything else ("AB-123-C", "ab123c") is
+ * read as a licence plate with the official format of $country (default: the remembered
+ * country), or of the one country it fits. '' when it is not a valid plate in any country.
+ * Same formatter / validator as the claim flow.
+ */
+function bumperchat_plate_input_to_words(string $input, string $country = ''): string
+{
+    $input = trim($input);
+    if ($input === '') {
+        return '';
+    }
+    $words = bumperchat_normalize_words($input);
+    if ($words !== '') {
+        return $words;
+    }
+    $code = strtoupper($country);
+    if ($code === '' || !bumperchat_country($code)) {
+        $code = function_exists('bumperchat_remembered_country') ? bumperchat_remembered_country() : bumperchat_default_country();
+    }
+    $pick = bumperchat_pick_country_for_plate($input, '', $code);
+    $entry = $pick !== '' ? bumperchat_country($pick) : null;
+    if (!$entry || !empty($entry['regions'])) {
+        return '';
+    }
+    $plate = bumperchat_format_plate($entry, $input, '');
+    return bumperchat_plate_to_words($entry, $plate, '');
+}
+
+/**
  * From a 3WordID ("e 1234 bcd", "tx abc 1234", "ab 123 c"), recover a country,
  * optional US/CA region, and a formatted plate. When the first word is not a
  * known country or region prefix, country is left empty and the three words
@@ -1464,4 +1657,10 @@ function bumperchat_plate_face_html(array $country, array $opts = []): string
     }
     $html .= '</span></div>';
     return $html;
+}
+
+// Every script inside /bumperchat/ is Bumperchat context. Done here (while headers can still be
+// sent) rather than in bumperchat_header(), which runs inside the HTML.
+if (PHP_SAPI !== 'cli' && strpos((string) ($_SERVER['SCRIPT_NAME'] ?? ''), '/bumperchat/') !== false) {
+    bumperchat_ctx_remember();
 }

@@ -268,9 +268,13 @@ $count = count($users);
                     <div class="meta">#<?php echo (int)$user['id']; ?></div>
                     <div>
                         <a class="id-name" href="3wid_user_edit.php?id=<?php echo (int)$user['id']; ?>">
-                            <?php echo htmlspecialchars((string)($user['full_name'] !== '' ? $user['full_name'] : $user['email'])); ?>
+                            <?php
+                                $shown_email = function_exists('email_store_plain') ? email_store_plain($user) : '';
+                                $shown_name = trim((string)($user['full_name'] ?? ''));
+                                echo htmlspecialchars($shown_name !== '' ? $shown_name : ($shown_email !== '' ? $shown_email : ('#' . (int)$user['id'])));
+                            ?>
                         </a>
-                        <div class="meta"><?php echo htmlspecialchars((string)$user['email']); ?></div>
+                        <div class="meta"><?php echo htmlspecialchars($shown_email !== '' ? $shown_email : t_plain('pii.hashed_only')); ?></div>
                     </div>
                     <div class="meta"><?php echo htmlspecialchars((string)($user['auth_provider'] ?? '')); ?></div>
                     <div class="meta"><?php echo t('ul.type'); ?> <?php echo htmlspecialchars((string)($user['user_type'] ?? '')); ?></div>

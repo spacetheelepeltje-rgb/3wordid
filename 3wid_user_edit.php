@@ -31,7 +31,7 @@ $editable = [
 ];
 
 // Never shown at all.
-$hidden_columns = ['csrf_token', 'token', 'session_id', 'password_hash'];
+$hidden_columns = ['csrf_token', 'token', 'session_id', 'password_hash', 'email', 'email_enc', 'email_lookup', 'notify_phone_enc', 'notify_sms_consent', 'notify_sms_consent_at'];
 
 function db_3wordid_admin_update_user($id, $changes, $editable) {
     $id = (int)$id;
@@ -145,14 +145,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $password_changed = true;
     }
 
+    $email_posted = strtolower(trim((string)($_POST['email'] ?? '')));
+    $phone_posted = (string)($_POST['notify_phone'] ?? '');
+    $consent_posted = !empty($_POST['notify_sms_consent']);
+    $pii_ok = true;
+    $pii_changed = false;
+    if ($email_posted !== '') {
+        $cur = function_exists('email_store_plain') ? email_store_plain($existing) : '';
+        if ($email_posted !== $cur) {
+            $saved = email_store_save($conn, $edit_id, $email_posted);
+            if (empty($saved['ok'])) {
+                $errors[] = t_plain($saved['error'] !== '' ? $saved['error'] : 'pii.save_failed');
+                $pii_ok = false;
+            } else {
+                $pii_changed = true;
+            }
+        }
+    }
+    if ($pii_ok) {
+        $notify = function_exists('notify_read_claim_post')
+            ? notify_read_claim_post(['notify_phone' => $phone_posted, 'notify_sms_consent' => $consent_posted ? '1' : ''])
+            : ['ok' => true, 'phone' => null, 'consent' => false, 'error' => ''];
+        if (!$notify['ok']) {
+            $errors[] = t_plain($notify['error']);
+            $pii_ok = false;
+        } else {
+            $cur_phone = function_exists('phone_store_plain') ? phone_store_plain($existing) : '';
+            $new_phone = (string) ($notify['phone'] ?? '');
+            $cur_consent = (int) ($existing['notify_sms_consent'] ?? 0) === 1;
+            if ($new_phone !== $cur_phone || (!empty($notify['consent']) !== $cur_consent)) {
+                $ps = user_phone_store_save($conn, $edit_id, $notify['phone'], !empty($notify['consent']));
+                if (empty($ps['ok'])) {
+                    $errors[] = t_plain($ps['error'] !== '' ? $ps['error'] : 'pii.save_failed');
+                    $pii_ok = false;
+                } else {
+                    $pii_changed = true;
+                }
+            }
+        }
+    }
+
     if ($errors) {
         $note = t_plain('ue.not_saved', ['errors' => implode('; ', $errors)]);
-    } elseif (!$changes) {
+    } elseif (!$changes && !$pii_changed) {
         $note = t_plain('ue.nothing');
     } else {
-        $ok = db_3wordid_admin_update_user($edit_id, $changes, $editable);
-        if ($ok && $password_changed && function_exists('remember_revoke_user')) {
-            remember_revoke_user($conn, $edit_id);
+        $ok = true;
+        if ($changes) {
+            $ok = db_3wordid_admin_update_user($edit_id, $changes, $editable);
+            if ($ok && $password_changed && function_exists('remember_revoke_user')) {
+                remember_revoke_user($conn, $edit_id);
+            }
         }
         $note = $ok ? t_plain('ue.saved') : t_plain('ue.failed');
     }
@@ -390,6 +433,20 @@ if (!$user) {
                 </div>
             <?php } ?>
 
+            <div class="field wide">
+                <label class="lbl" for="edit_email"><?php echo t('ue.email_label'); ?></label>
+                <input type="email" id="edit_email" name="email" maxlength="255" autocomplete="email" value="<?php echo htmlspecialchars(email_store_plain($user), ENT_QUOTES, 'UTF-8'); ?>">
+                <p class="hint"><?php echo t('ue.email_hint'); ?></p>
+            </div>
+            <div class="field wide">
+                <label class="lbl" for="notify_phone"><?php echo t('ue.phone_label'); ?></label>
+                <input type="tel" id="notify_phone" name="notify_phone" maxlength="20" autocomplete="tel" value="<?php echo htmlspecialchars(phone_store_plain($user), ENT_QUOTES, 'UTF-8'); ?>">
+                <p class="hint"><?php echo t('ue.phone_hint'); ?></p>
+                <label class="hint" style="display:block;margin-top:8px;">
+                    <input type="checkbox" name="notify_sms_consent" value="1"<?php echo ((int) ($user['notify_sms_consent'] ?? 0) === 1) ? ' checked' : ''; ?>>
+                    <?php echo t('ue.sms_consent'); ?>
+                </label>
+            </div>
             <?php if (array_key_exists('password_hash', $user)) { ?>
             <div class="field wide">
                 <label class="lbl" for="new_password"><?php echo t('ue.new_password'); ?></label>

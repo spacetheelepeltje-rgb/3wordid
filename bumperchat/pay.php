@@ -95,7 +95,7 @@ $days = $wid ? plate_days_remaining($wid) : null;
     <link rel="icon" type="image/x-icon" href="../img/favicon.ico">
     <link href="/css/inter.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/newstyle.css">
-    <link rel="stylesheet" href="../css/bumperchat.css?v=9">
+    <link rel="stylesheet" href="../css/bumperchat.css?v=10">
 </head>
 <body class="bc-body">
     <?php echo bumperchat_header($user); ?>
@@ -149,7 +149,7 @@ $days = $wid ? plate_days_remaining($wid) : null;
     </main>
 
     <footer class="site-footer">
-        <span><a href="../terms.php#bumperchat"><?php echo t('nav.terms'); ?></a> · <a href="../index.php">3WordID.com</a></span>
+        <span><?php echo bumperchat_footer_links(); ?></span>
         <?php echo site_copyright(); ?>
     </footer>
 </body>

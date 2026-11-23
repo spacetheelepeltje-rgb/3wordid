@@ -9,6 +9,9 @@
 		exit;
 	}
 
+
+// Plate accounts only use the Bumperchat chat view
+bumperchat_route_chat_only($data);
 	$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 	if ($id < 1) {
 		header('Location: 3wid_list.php');

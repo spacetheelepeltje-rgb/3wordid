@@ -36,7 +36,7 @@ if (!$user) {
     exit;
 }
 if ((int) ($user['privacy_consent'] ?? 0) !== 1) {
-    header('Location: ../3wid_privacy_consent.php');
+    header('Location: ../3wid_privacy_consent.php?from=bumperchat');
     exit;
 }
 
@@ -64,7 +64,7 @@ $owned = db_3wordid_owned_by($from_id, (int) $user['id']);
 if (!$owned) {
     error_log('pending_process: user ' . $user['id'] . ' tried to send from 3wid ' . $from_id);
     $_SESSION['pending_error'] = 'mp.session';
-    header('Location: ../3wid_list.php?message=' . rawurlencode(t_plain('mp.session')));
+    header('Location: chat.php');
     exit;
 }
 

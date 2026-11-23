@@ -13,11 +13,10 @@ if ($data == NULL) {
     exit;
 }
 
-// Logged in through Bumperchat (bumperchat/login.php or the claim flow): chat only, no list page
-if (!empty($_SESSION['bumperchat'])) {
-    header('Location: bumperchat/chat.php');
-    exit;
-}
+// Chat only, no list page, for: a Bumperchat login (bumperchat/login.php, Google via Bumperchat or
+// the claim flow) and a plate account (only Bumperchat plates, no normal 3WordIDs) that logged in
+// on 3wordid.com. See bumperchat_route_chat_only() in php/bumperchat.php.
+bumperchat_route_chat_only($data);
 
 if ((int)$data['privacy_consent'] === 0) {
     header('Location: 3wid_privacy_consent.php');

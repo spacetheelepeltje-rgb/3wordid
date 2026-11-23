@@ -11,7 +11,7 @@
   
   if(!$data) {
       error_log('no user credentials');
-      header('location:3wid_list.php');  
+      header('location:' . bumperchat_or('3wid_list.php', 'chat.php'));  
       exit;
   }
 
@@ -43,7 +43,7 @@
  $user_threeword_rows = db_3wid_get_3wids($data["id"]);
  
  if($user_threeword_rows == NULL) {
-     header('location:3wid_list.php?message=' . rawurlencode(t_plain('mp.create_first')));  
+     header('location:' . bumperchat_or('3wid_list.php', 'chat.php') . '?message=' . rawurlencode(t_plain('mp.create_first')));  
      exit;
  }
  
@@ -126,7 +126,7 @@
       'name_id'   => 'tbName',
       'sub'       => $sub,
       'sub_attrs' => 'class="tb-sub tb-sub-from"',
-      'actions'   => chat_tb_button('3wid_list.php', 'list', t_plain('tb.my_ids')),
+      'actions'   => chat_list_button(),
   ));
 ?>
 <div class="chat-app">
@@ -180,9 +180,46 @@
     'checking'      => 'msg.js_checking',
     'check_later'   => 'msg.js_check_later',
 ]); ?>
+<?php if (bumperchat_active()): ?>
+<script>
+    // Bumperchat chat view: a recipient typed as a licence plate ("AB-123-C") becomes its three
+    // words with the same formatter / validator as the claim flow (js/bumperchat.js).
+    window.BC_LIB_ONLY = true;
+    window.BC_FORMATS = <?php echo json_encode(bumperchat_formats(), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;
+    window.BC_DEFAULT_COUNTRY = <?php echo json_encode(bumperchat_remembered_country()); ?>;
+</script>
+<script src="<?php echo chat_asset('js/bumperchat.js'); ?>"></script>
+<?php endif; ?>
 <script src="<?php echo chat_asset('js/3wid_messageform.js'); ?>"></script>
 <script src="<?php echo chat_asset('js/chat.js'); ?>"></script>
 <script>
+    <?php if (bumperchat_active()): ?>
+    (function () {
+        var to = document.getElementById('threeword'), form = document.getElementById('3widForm');
+        var list = (window.BC_FORMATS && window.BC_FORMATS.countries) || [], by = {};
+        list.forEach(function (c) { by[c.code] = c; });
+        function country() {
+            try { var s = window.localStorage.getItem('bcCountry'); if (s && by[s]) { return s; } } catch (e) {}
+            return window.BC_DEFAULT_COUNTRY;
+        }
+        function plateToRecipient() {
+            if (!to || !window.plateToWords) { return; }
+            var v = to.value.replace(/\s+/g, ' ').trim();
+            if (v === '' || /^[A-Za-z0-9]+ [A-Za-z0-9]+ [A-Za-z0-9]+$/.test(v)) { return; }
+            var code = country(), c = by[code], region = '';
+            var plate = c ? window.formatPlate(c, v, region) : v;
+            var words = (c && !c.regions) ? window.plateToWords(c, plate, region) : '';
+            if (!words) {
+                var guess = window.inferCountry(list, v, region), g = by[guess];
+                words = (g && !g.regions) ? window.plateToWords(g, window.formatPlate(g, v, region), region) : '';
+            }
+            if (words) { to.value = words; checkRecipient(); }
+        }
+        if (to) { to.addEventListener('blur', plateToRecipient); to.addEventListener('change', plateToRecipient); }
+        if (form) { form.addEventListener('submit', plateToRecipient, true); }
+        plateToRecipient();
+    })();
+    <?php endif; ?>
     // Check the recipient right away (prefilled for a reply); Send waits for that check
     checkRecipient();
 

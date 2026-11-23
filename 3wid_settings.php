@@ -17,6 +17,9 @@ if ($data == NULL) {
     header('Location: login/options.php?message=' . rawurlencode(t_plain('common.login_required')));
     exit;
 }
+
+// Plate accounts only use the Bumperchat chat view
+bumperchat_route_chat_only($data);
 if ((int) ($data['privacy_consent'] ?? 0) === 0) {
     header('Location: 3wid_privacy_consent.php');
     exit;
@@ -41,6 +44,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 $flash['err'] = 'acct.save_failed';
                 $flash['draft'] = $name;
+            }
+        } elseif ($do === 'contact') {
+            $email = strtolower(trim((string) ($_POST['email'] ?? '')));
+            $saved = email_store_save($conn, (int) $data['id'], $email);
+            if (empty($saved['ok'])) {
+                $flash['err'] = $saved['error'] !== '' ? $saved['error'] : 'pii.save_failed';
+            } else {
+                set_session_email($saved['plain']);
+                $notify = function_exists('notify_read_claim_post') ? notify_read_claim_post($_POST) : ['ok' => true, 'phone' => null, 'consent' => false, 'error' => ''];
+                if (!$notify['ok']) {
+                    $flash['err'] = $notify['error'];
+                } else {
+                    $ps = user_phone_store_save($conn, (int) $data['id'], $notify['phone'], !empty($notify['consent']));
+                    if (empty($ps['ok'])) {
+                        $flash['err'] = $ps['error'] !== '' ? $ps['error'] : 'pii.save_failed';
+                    } else {
+                        $flash['ok'] = 'pii.saved';
+                    }
+                }
             }
         }
     }
@@ -124,6 +146,33 @@ $none = '<span class="acct-none">' . t('acct.not_set') . '</span>';
                 <?php endif; ?>
             </dl>
             <p class="cl-help acct-foot"><a href="plans.php"><?php echo t('acct.see_plans'); ?></a></p>
+        </section>
+
+        <?php
+            $contact_email = email_store_plain($data);
+            if ($contact_email === '' && function_exists('get_session_email')) {
+                $contact_email = (string) (get_session_email() ?? '');
+            }
+            $contact_phone = phone_store_plain($data);
+            $contact_consent = (int) ($data['notify_sms_consent'] ?? 0) === 1;
+        ?>
+        <h2 class="cl-section-h" id="acctContactH"><?php echo t('acct.contact_h'); ?></h2>
+        <p class="cl-section-p"><?php echo t('acct.contact_lede'); ?></p>
+        <section class="cl-card" aria-labelledby="acctContactH">
+            <form method="post" action="<?php echo $e($self); ?>" autocomplete="on">
+                <input type="hidden" name="action_token" value="<?php echo $e($action_token); ?>">
+                <input type="hidden" name="do" value="contact">
+                <label class="cl-field" for="acct_email"><?php echo t('login.email'); ?></label>
+                <input class="cl-input" type="email" id="acct_email" name="email" required maxlength="255" autocomplete="email" value="<?php echo $e($contact_email); ?>">
+                <label class="cl-field" for="notify_phone"><?php echo t('acct.phone_label'); ?></label>
+                <input class="cl-input" type="tel" id="notify_phone" name="notify_phone" maxlength="20" autocomplete="tel" value="<?php echo $e($contact_phone); ?>" placeholder="<?php echo $e(t_plain('bc.phone_ph')); ?>">
+                <p class="cl-help"><?php echo t('acct.phone_help'); ?></p>
+                <label class="cl-help" style="display:block;margin:8px 0 16px;">
+                    <input type="checkbox" name="notify_sms_consent" value="1"<?php echo $contact_consent ? ' checked' : ''; ?>>
+                    <?php echo t('acct.sms_consent'); ?>
+                </label>
+                <button type="submit" class="cl-btn cl-btn-primary"><?php echo t('acct.save'); ?></button>
+            </form>
         </section>
 
         <?php if ($org_ready): ?>

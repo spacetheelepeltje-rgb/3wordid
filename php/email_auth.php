@@ -7,8 +7,9 @@
  * The caller checks its own CSRF token (and, for registration, botcheck_failed()) first.
  * Both functions return ['user_id' => int, 'error' => lang key or ''] and never start the
  * session themselves: on success the caller runs establish_user_session().
- * The email address is stored only as md5 (same as Google login), the password with
- * password_hash(). No verification email is sent (same as before).
+ * The email is stored encrypted at rest (php/pii_store.php) with a keyed lookup
+ * hash for login; the legacy md5 in the email column is kept as a fallback.
+ * The password uses password_hash(). No verification email is sent (same as before).
  */
 
 if (!defined('EMAIL_PW_MIN')) { define('EMAIL_PW_MIN', 10); }
@@ -28,10 +29,22 @@ function email_auth_register($conn, string $email, string $password, string $con
     }
 
     $email_hash = md5($email);
-    $stmt = $conn->prepare('SELECT id, password_hash FROM google_users WHERE email = ? LIMIT 1');
-    $stmt->bind_param('s', $email_hash);
-    $stmt->execute();
-    $existing = $stmt->get_result()->fetch_assoc();
+    $existing_id = function_exists('email_store_find_id') ? email_store_find_id($conn, $email) : 0;
+    $existing = null;
+    if ($existing_id > 0) {
+        $stmt = $conn->prepare('SELECT id, password_hash FROM google_users WHERE id = ? LIMIT 1');
+        $stmt->bind_param('i', $existing_id);
+        $stmt->execute();
+        $existing = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+    } else {
+        $email_hash = md5($email);
+        $stmt = $conn->prepare('SELECT id, password_hash FROM google_users WHERE email = ? LIMIT 1');
+        $stmt->bind_param('s', $email_hash);
+        $stmt->execute();
+        $existing = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+    }
 
     if ($existing && !empty($existing['password_hash'])) {
         return ['user_id' => 0, 'error' => 'reg.exists'];
@@ -69,11 +82,22 @@ function email_auth_login($conn, string $email, string $password): array
         return ['user_id' => 0, 'error' => 'elogin.invalid'];
     }
 
-    $email_hash = md5($email);
-    $stmt = $conn->prepare('SELECT id, password_hash FROM google_users WHERE email = ? LIMIT 1');
-    $stmt->bind_param('s', $email_hash);
-    $stmt->execute();
-    $user = $stmt->get_result()->fetch_assoc();
+    $user_id = function_exists('email_store_find_id') ? email_store_find_id($conn, $email) : 0;
+    $user = null;
+    if ($user_id > 0) {
+        $stmt = $conn->prepare('SELECT id, password_hash FROM google_users WHERE id = ? LIMIT 1');
+        $stmt->bind_param('i', $user_id);
+        $stmt->execute();
+        $user = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+    } else {
+        $email_hash = md5($email);
+        $stmt = $conn->prepare('SELECT id, password_hash FROM google_users WHERE email = ? LIMIT 1');
+        $stmt->bind_param('s', $email_hash);
+        $stmt->execute();
+        $user = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+    }
 
     if ($user && empty($user['password_hash'])) {
         return ['user_id' => 0, 'error' => 'elogin.google_account'];

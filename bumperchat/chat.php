@@ -19,7 +19,7 @@ if (!$user) {
 }
 // Same rule as 3wid_list.php: privacy consent first (that page comes back here afterwards)
 if ((int) ($user['privacy_consent'] ?? 0) === 0) {
-    header('Location: ../3wid_privacy_consent.php');
+    header('Location: ../3wid_privacy_consent.php?from=bumperchat');
     exit;
 }
 
@@ -29,7 +29,27 @@ if (empty($_SESSION['csrf_token'])) {
 
 function bc_e($s): string { return htmlspecialchars((string) $s, ENT_QUOTES, 'UTF-8'); }
 
-$is_bumperchat = !empty($_SESSION['bumperchat']);
+// Plate-only accounts (and Bumperchat logins) live here; chat.php never links to the main-site list.
+bumperchat_mark_session(bumperchat_session_words());
+
+// "Message a car": same formatter / validator / country list as claim.php and pending_send.php
+$formats = bumperchat_formats();
+$countries = $formats['countries'] ?? [];
+$country_explicit = strtoupper(trim((string) ($_GET['country'] ?? ''))) !== '';
+$selected = strtoupper(trim((string) ($_GET['country'] ?? '')));
+if ($selected === '' || !bumperchat_country($selected)) {
+    $selected = bumperchat_remembered_country();
+    $country_explicit = false;
+}
+bumperchat_remember_country($selected);
+$chosen = bumperchat_country($selected);
+$region = strtoupper(trim((string) ($_GET['region'] ?? '')));
+$plate = (string) ($_GET['plate'] ?? '');
+if ($chosen && $plate !== '') {
+    $plate = bumperchat_format_plate($chosen, $plate, $region);
+}
+$chat_plate_error = (string) ($_SESSION['bc_chat_error'] ?? '');
+unset($_SESSION['bc_chat_error']);
 $rows = db_3wordid_list((int) $user['id']);
 $summary = db_3wordid_mail_summary((int) $user['id']);
 $paying = user_is_paying($user);
@@ -63,7 +83,7 @@ if ($wanted !== '') {
     <link rel="icon" type="image/x-icon" href="../img/favicon.ico">
     <link href="/css/inter.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/newstyle.css">
-    <link rel="stylesheet" href="../css/bumperchat.css?v=6">
+    <link rel="stylesheet" href="../css/bumperchat.css?v=10">
 </head>
 <body class="bc-body">
     <?php echo bumperchat_header($user); ?>
@@ -77,7 +97,7 @@ if ($wanted !== '') {
             <h2><?php echo t('bc.wanted_' . $wanted_state . '_h', ['words' => $wanted]); ?></h2>
             <p class="bc-p"><?php echo t_raw('bc.wanted_' . $wanted_state . '_p', ['words' => bc_e($wanted)]); ?></p>
             <?php if ($wanted_state === 'taken'): ?>
-                <a class="btn btn-ghost" href="../3wid_forward.php?threewords=<?php echo rawurlencode($wanted); ?>"><?php echo t('bc.send_message'); ?></a>
+                <a class="btn btn-ghost" href="../3wid_forward.php?from=bumperchat&amp;threewords=<?php echo rawurlencode($wanted); ?>"><?php echo t('bc.send_message'); ?></a>
                 <?php echo bumperchat_dispute_link($wanted); ?>
             <?php elseif ($wanted_state === 'free'): ?>
                 <a class="btn btn-ghost" href="claim.php?words=<?php echo rawurlencode($wanted); ?>"><?php echo t('bc.claim_now'); ?></a>
@@ -156,26 +176,75 @@ if ($wanted !== '') {
         </div>
         <?php endif; ?>
 
-        <form class="bc-card" method="post" action="../3wid_forward.php">
+        <form class="bc-card bc-claim-form bc-chatform" method="get" action="pending_send.php" id="bcClaimForm" autocomplete="off">
             <h2><?php echo t('bc.message_car_h'); ?></h2>
             <p class="bc-p"><?php echo t('bc.message_car_p'); ?></p>
-            <div class="bc-inline">
-                <input name="threewords" class="bc-input" type="text" maxlength="80" autocomplete="off" spellcheck="false" placeholder="<?php echo t('bc.placeholder'); ?>" aria-label="<?php echo t('bc.search_label'); ?>">
-                <button class="btn btn-primary" type="submit"><?php echo t('bc.lookup'); ?></button>
+            <?php if ($chat_plate_error !== ''): ?><div class="bc-flash" role="alert"><?php echo t($chat_plate_error); ?></div><?php endif; ?>
+
+            <div class="bc-plate-row bc-chat-plate-row">
+                <div class="bc-country-pick">
+                    <button type="button" class="bc-country-btn" id="bcCountryBtn" aria-haspopup="true" aria-expanded="false" aria-controls="bcCountryPop" title="<?php echo bc_e(t_plain('bc.country_btn')); ?>" aria-label="<?php echo bc_e(t_plain('bc.country_btn')); ?>">
+                        <?php echo bumperchat_globe_icon(18); ?>
+                        <span class="bc-country-cc" id="bcCountryBtnCc"><?php echo bc_e($chosen ? ($chosen['strip'] ?? $chosen['code']) : ''); ?></span>
+                    </button>
+                    <div class="bc-country-pop" id="bcCountryPop" hidden>
+                        <label class="bc-label" for="bcCountry"><?php echo t('bc.country'); ?></label>
+                        <select id="bcCountry" name="country" class="bc-input">
+                            <?php foreach ($countries as $c): ?>
+                            <option value="<?php echo bc_e($c['code']); ?>"<?php echo $c['code'] === $selected ? ' selected' : ''; ?>><?php echo bc_e(bumperchat_text($c['name'])); ?> (<?php echo bc_e($c['strip']); ?>)</option>
+                            <?php endforeach; ?>
+                        </select>
+                        <div id="bcRegionWrap"<?php echo ($chosen && !empty($chosen['regions'])) ? '' : ' hidden'; ?>>
+                            <label class="bc-label" for="bcRegion"><?php echo t('bc.region'); ?></label>
+                            <select id="bcRegion" name="region" class="bc-input">
+                                <option value=""><?php echo t('bc.choose_region_ph'); ?></option>
+                                <?php if ($chosen && !empty($chosen['regions'])): foreach ($chosen['regions'] as $code => $label): ?>
+                                <option value="<?php echo bc_e($code); ?>"<?php echo $code === $region ? ' selected' : ''; ?>><?php echo bc_e($code . ' · ' . $label); ?></option>
+                                <?php endforeach; endif; ?>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <?php echo bumperchat_plate_face_html($chosen ?: ['code' => 'NL', 'strip' => 'NL', 'examples' => [['plate' => 'AB-123-C']]], [
+                    'value' => $plate,
+                    'region' => $region,
+                ]); ?>
+                <button class="btn btn-primary bc-next" type="submit" id="bcNext"><?php echo t('bc.lookup'); ?></button>
             </div>
-            <input type="hidden" name="from" value="bumperchat">
-            <input type="hidden" name="csrf_token" value="<?php echo bc_e($_SESSION['csrf_token']); ?>">
-            <p class="bc-meta"><a href="pending_send.php"><?php echo t('pending.leave_message'); ?></a> · <a href="index.php#formats"><?php echo t('bc.how_plate'); ?></a></p>
+            <div class="bc-result" id="bcResult">
+                <span class="bc-result-label"><?php echo t('bc.your_words'); ?></span>
+                <output id="bcWords" class="bc-words" for="bcPlate" aria-live="polite"><?php echo t('bc.js_type_plate'); ?></output>
+            </div>
+            <p class="bc-suggest" id="bcSuggest" hidden></p>
+            <noscript><p class="bc-meta"><?php echo t('bc.claim_nojs'); ?></p></noscript>
+            <p class="bc-meta"><a href="pending_send.php"><?php echo t('pending.leave_message'); ?></a> · <a href="index.php#formats"><?php echo t('bc.how_plate'); ?></a> · <a href="help.php"><?php echo t('bc.help_link'); ?></a></p>
         </form>
 
-        <?php if (!$is_bumperchat): ?>
-        <p class="bc-back"><a href="../3wid_list.php"><?php echo t('tb.my_ids'); ?></a></p>
-        <?php endif; ?>
     </main>
 
     <footer class="site-footer">
-        <span><a href="../terms.php#bumperchat"><?php echo t('nav.terms'); ?></a> · <a href="../index.php">3WordID.com</a></span>
+        <span><?php echo bumperchat_footer_links(); ?></span>
         <?php echo site_copyright(); ?>
     </footer>
+<?php echo i18n_js([
+    'bc_example'        => 'bc.js_example',
+    'bc_type_plate'     => 'bc.js_type_plate',
+    'bc_no_fit'         => 'bc.js_no_fit',
+    'bc_plate_invalid'  => 'bc.plate_invalid',
+    'bc_format_inline'  => 'bc.plate_format_inline',
+    'bc_plate_prefix_hint' => 'bc.plate_prefix_hint',
+    'bc_suggest'        => 'bc.suggest_country',
+    'bc_choose_region'  => 'bc.choose_region_ph',
+    'bc_err_region'     => 'bc.err_region',
+    'bc_country_btn'    => 'bc.country_btn',
+]); ?>
+    <script>
+    window.BC_FORMATS = <?php echo json_encode($formats, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;
+    window.BC_LANG = <?php echo json_encode(current_lang()); ?>;
+    window.BC_PENDING_FORM = true;   // validate only: the message itself is typed on the next page
+    window.BC_CHAT_FORM = true;      // compact country icon + dropdown
+    window.BC_COUNTRY_EXPLICIT = <?php echo json_encode($country_explicit || $plate !== ''); ?>;
+    </script>
+    <script src="../js/bumperchat.js?v=12"></script>
 </body>
 </html>
