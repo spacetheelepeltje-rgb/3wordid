@@ -14,6 +14,8 @@ Bumperchat is a second front door to 3WordID for licence plates: **chat only**, 
 | `bumperchat/login.php` | Top-right login: "Continue with Google" (same Google login as 3wordid.com, see below) or email + password with an optional "Stay logged in" checkbox. After login, return to the claim flow, a waiting message or chat. |
 | `bumperchat/google.php` | Starts the Google login from Bumperchat: stores a safe return path in the session, then uses the existing `login/config.php` client. `login/welcome.php` brings the visitor back to `bumperchat/login.php`. |
 | `bumperchat/help.php` | Help page (logging in, leaving messages, country picker, claiming, chat view, deleting). Texts are `bch.*` in `lang/*.php`. Linked from the header (help icon), the footer and the chat page. |
+| `bumperchat/google_details.php` | After a Bumperchat Google login, new sign-ups (and existing Google users who have never completed these) fill in phone, SMS consent, optional reseller code and "Stay logged in". Stays inside Bumperchat. |
+| `bumperchat/account.php` | Logged-in Bumperchat account page: email and phone are shown decrypted and can be edited; saving re-encrypts them. Plate-only accounts are sent here instead of the main settings page. |
 | `bumperchat/chat.php` | "My chats": the user's 3WordIDs with their message counts; "Open chat" opens the existing chat (`3wid_list_messages.php`). Shows the status of the plate they came for and a box to message another car. |
 | `bumperchat/logout.php` | Log out (also deletes the remember-me cookie), back to the Bumperchat page. |
 | `bumperchat/plate_formats.json` | The plate rules (see `docs/PLATE_FORMATS.md`). |
@@ -22,7 +24,8 @@ Bumperchat is a second front door to 3WordID for licence plates: **chat only**, 
 
 - **Accounts**: `php/email_auth.php` holds the email + password checks and the `INSERT INTO google_users`
   used by `login/email_register.php`, `login/email_login.php`, `bumperchat/login.php` and
-  `bumperchat/claim_register.php`. md5 email, `password_hash()`, at least 10 characters, same error texts.
+  `bumperchat/claim_register.php`. Email is stored encrypted at rest with a keyed lookup hash
+  (legacy md5 in `google_users.email` remains as a login fallback), `password_hash()`, at least 10 characters, same error texts.
   No verification email is sent. Registration uses the same bot check (`botcheck_fields()` /
   `botcheck_failed()`) and CSRF token, and `establish_user_session()` for the login itself.
 - **Exists check**: `db_3wordid_exists_status()`; the per-session limit lives in
@@ -54,11 +57,13 @@ If a permanent "Bumperchat account" is wanted later (for example to always hide 
 `bumperchat/google.php`. That script sets `$_SESSION['oauth_return'] = ['bumperchat' => 1, 'next' => <safe path>]`
 and starts the same Google login as 3wordid.com (`login/config.php`, callback `login/welcome.php`, `google_users` table;
 nothing changes in the Google console). `login/welcome.php` sees the return context and, instead of `3wid_list.php`,
-marks the session as Bumperchat (`bumperchat_mark_session`) and goes to `bumperchat/login.php?next=...`, which routes
-exactly like the email login (claim chain, waiting message `pending_send.php`, chat). Errors (cancelled, expired,
-failed, blocked email) return to `bumperchat/login.php?err=<welcome.* key>`. A normal login on `login/options.php`
-clears the context, so a main-site Google login behaves as before. Google logins do not set the
-"Stay logged in" cookie and skip the optional phone / reseller fields of the register step.
+marks the session as Bumperchat (`bumperchat_mark_session`). New Google sign-ups, and existing Google
+users who have never completed the extras, go first to `bumperchat/google_details.php` (phone, SMS
+consent, optional reseller code, Stay logged in) and then continue inside Bumperchat. Everyone else
+goes to `bumperchat/login.php?next=...`, which routes like the email login (claim chain, waiting
+message `pending_send.php`, chat). Errors (cancelled, expired, failed, blocked email) return to
+`bumperchat/login.php?err=<welcome.* key>`. A normal login on `login/options.php` clears the context,
+so a main-site Google login behaves as before.
 
 ## Plate accounts and chat-only routing
 
@@ -200,6 +205,40 @@ The "Log in" link on card 3 (`bc.step3_link`) now goes to `login.php` (top-right
 login), not into a login form on the claim page. Edit the other card texts yourself
 if you want the trial or the price mentioned on the homepage.
 
+
+## Encrypted email and phone (added 23 November 2026)
+
+Email addresses and mobile numbers are stored encrypted at rest (`php/pii_store.php`,
+libsodium `secretbox`, a fresh nonce per value). Login looks up email with a separate
+keyed hash in `google_users.email_lookup`; the legacy md5 in `google_users.email` remains
+as a fallback. Phone is not used for login, so it has no lookup column. The user edit
+page, the admin user list, account settings and `bumperchat/account.php` show the
+decrypted values; saving re-encrypts and updates the email lookup hash.
+
+Keys live only in the gitignored `login/config.php` (never commit a key):
+
+    define('EMAIL_ENC_KEY',  '...'); // base64 of 32 random bytes
+    define('EMAIL_HASH_KEY', '...'); // base64 of 32 random bytes, different from ENC
+
+Generate each key once on the server (run twice, store each result separately):
+
+    php -r "echo base64_encode(random_bytes(32)), PHP_EOL;"
+
+`login/email_keys.example.php` is a placeholder only. If a key is missing, existing
+logins still work with the md5 value; explicit saves return an error and never write
+plaintext. Existing md5 emails cannot be recovered; they are backfilled on the next
+login when the plaintext is known. Leftover readable emails or phones can also be
+encrypted with `php tools/encrypt_stored_pii.php --apply` (dry-run is the default).
+
+SQL to run once: `sql/2026-11-23_encrypted_email_phone.sql`. Also still run
+`sql/2026-11-23_bumperchat_plates_chat_open.sql` if that has not been applied yet.
+
+**Upload (this change):**
+- New: `php/pii_store.php`, `bumperchat/google_details.php`, `bumperchat/account.php`, `login/email_keys.example.php`, `sql/2026-11-23_encrypted_email_phone.sql`
+- Changed: `php/session_boot.php`, `php/email_auth.php`, `php/notify.php`, `php/plate_billing.php`, `php/bumperchat.php`, `php/functions.php`, `login/welcome.php`, `3wid_user_edit.php`, `3wid_user_list.php`, `3wid_settings.php`, `lang/en.php`, `lang/nl.php`, `lang/fr.php`, `lang/es.php`
+- Also required if not on the server yet from the previous Bumperchat upload: the files in the Upload list above, plus `sql/2026-11-23_bumperchat_plates_chat_open.sql` if that is still pending
+- Not needed on the web server: `docs/*`, `tools/*` (including `tools/encrypt_stored_pii.php` and the tests). Run the SQL on the server. Add the two key constants to `login/config.php` there (do not upload a file that contains real keys).
+
 ## Stay logged in (added 18 November 2026)
 
 `login/email_login.php` and `bumperchat/login.php` have an optional "Stay logged in"
@@ -216,7 +255,7 @@ in `php/remember.php` (loaded from `php/session_boot.php`) and
 `sql/2026-11-18_auth_remember_tokens.sql` has been run, the checkbox does nothing
 harmful: login still works as a normal session.
 
-Google login does not set this cookie (there is no checkbox on that screen).
+A Bumperchat Google login can set this cookie when the visitor ticks "Stay logged in" on `google_details.php`. A main-site Google login still does not set it.
 PHP 8 is required (`str_starts_with` is already used in `php/notify.php`; the new
 code uses typed arguments and `hash_equals`).
 

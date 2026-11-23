@@ -102,6 +102,9 @@ function plate_pay_url(string $words, string $prefix = ''): string
 function plate_email_hash_for_user(array $user): string
 {
     $plain = function_exists('get_session_email') ? get_session_email() : null;
+    if (!is_string($plain) || $plain === '') {
+        $plain = function_exists('email_store_plain') ? email_store_plain($user) : '';
+    }
     if (is_string($plain) && $plain !== '') {
         return md5(strtolower(trim($plain)));
     }
@@ -244,6 +247,10 @@ function bumperchat_claim_plate(array $user, string $words, array $notify = []):
     // account got "closed" errors both when sending and when receiving (chat_access_error).
     if (function_exists('db_chat_open_set')) {
         db_chat_open_set($new_id, true);
+    }
+    // Store the optional mobile number encrypted (and clear the plaintext column).
+    if (function_exists('plate_phone_store_save') && !empty($phone)) {
+        plate_phone_store_save($conn, $new_id, is_string($phone) ? $phone : null);
     }
 
     if ($grant_trial) {

@@ -19,7 +19,7 @@ function notify_sms_allowed(?array $wid): bool
     if ((int) ($wid['notify_sms_consent'] ?? 0) !== 1) {
         return false;
     }
-    $phone = (string) ($wid['notify_phone'] ?? '');
+    $phone = function_exists('phone_store_plain') ? phone_store_plain($wid) : (string) ($wid['notify_phone'] ?? '');
     return notify_phone_is_e164($phone);
 }
 

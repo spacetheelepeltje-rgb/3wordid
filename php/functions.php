@@ -11,9 +11,9 @@ require_once __DIR__ . '/i18n.php'; // t(), current_lang() ... for every page
 
 $session_path = ini_get('session.save_path');
 
-$email_consent = 'We collect and store email addresses to provide our services and communicate with you. By checking below checkbox, you consent to the collection and use of your email address as outlined in our Privacy Policy. If you do not agree, please refrain from using this site or contact us to opt out.';
+$email_consent = 'We collect and store email addresses and, if you give one, a mobile number to provide our services and communicate with you. They are stored encrypted. By checking the checkbox below, you consent to that use as outlined in our Privacy Policy. If you do not agree, please refrain from using this site or contact us to opt out.';
 
-$email_consent_encrypt = 'We use Google Authentication with your consent. Your email address is stored as a one-way hash, not as readable text. We use the hash to recognise you when you log in. The email address you log in with is used only to send what you request; it is held encrypted only during your session and is not stored in readable form. Messages, IP addresses and account data are logged and kept, also after an account is deactivated, so we can respond to lawful requests from law enforcement.';
+$email_consent_encrypt = 'We use Google Authentication with your consent. Your email address and, if you give one, your mobile number are stored encrypted. A separate keyed hash of the email is used to recognise you when you log in. We use the email and number to run your account and to send what you request, including notifications you have asked for. Messages, IP addresses and account data are logged and kept, also after an account is deactivated, so we can respond to lawful requests from law enforcement.';
 
 // Google Analytics, only after the visitor clicks "Accept" in the cookie banner.
 // Every page that echoes $google_stats gets the banner. Nothing is sent to Google
@@ -3542,6 +3542,7 @@ function db_3wordid_mail_summary($user_id) {
 // Chat login (members log in with a 3WordID + password set by its owner)
 require_once __DIR__ . '/chat_login.php';
 require_once __DIR__ . '/car_chat.php';
+require_once __DIR__ . '/pii_store.php';
 require_once __DIR__ . '/account_settings.php';
 require_once __DIR__ . '/message_delete.php';
 require_once __DIR__ . '/bumperchat.php';

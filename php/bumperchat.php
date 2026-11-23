@@ -233,6 +233,7 @@ function bumperchat_header($user): string
         . lang_switcher();
     if ($user) {
         $out .= '<a class="btn btn-ghost bc-hide-sm" href="chat.php">' . t('bc.my_chats') . '</a>'
+            . '<a class="btn btn-ghost bc-hide-sm" href="account.php">' . t('bc.account') . '</a>'
             . '<a class="btn btn-primary" href="logout.php">' . t('bc.logout') . '</a>';
     } else {
         $next = bumperchat_current_return();
@@ -644,7 +645,7 @@ function bumperchat_safe_next(?string $next, string $fallback = 'chat.php'): str
     if ($next === '') {
         return $fallback;
     }
-    if (!preg_match('/^(claim|claim_plate|claim_register|chat|pay|pay_return|index|login|pending_send|dispute|help)\.php(?:\?[A-Za-z0-9_\-=.+&%]*)?$/', $next)) {
+    if (!preg_match('/^(claim|claim_plate|claim_register|chat|pay|pay_return|index|login|pending_send|dispute|help|google_details|account)\.php(?:\?[A-Za-z0-9_\-=.+&%]*)?$/', $next)) {
         return $fallback;
     }
     return $next;

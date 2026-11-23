@@ -73,10 +73,26 @@ function establish_user_session(mysqli $conn, int $userId, ?string $plainEmail =
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
     unset($_SESSION['action_token']); // new action token after login
 
-    // Keep the email only in this session, encrypted (see set_session_email).
-    // Never breaks the login: without SESSION_EMAIL_KEY this does nothing.
+    // Session copy (SESSION_EMAIL_KEY) plus, when the at-rest keys are set,
+    // an encrypted copy in google_users (email_enc / email_lookup). Login still
+    // works if those keys are missing; nothing is written in plaintext.
     if ($plainEmail !== null) {
         set_session_email($plainEmail);
+        if (function_exists('email_store_remember')) {
+            email_store_remember($conn, $userId, $plainEmail);
+        }
+    } elseif (function_exists('email_store_plain')) {
+        $stmt = $conn->prepare('SELECT email, email_enc FROM google_users WHERE id = ? LIMIT 1');
+        if ($stmt) {
+            $stmt->bind_param('i', $userId);
+            $stmt->execute();
+            $row = $stmt->get_result()->fetch_assoc();
+            $stmt->close();
+            $stored = email_store_plain($row ?: null);
+            if ($stored !== '') {
+                set_session_email($stored);
+            }
+        }
     }
 
     return $rawToken;
@@ -85,11 +101,11 @@ function establish_user_session(mysqli $conn, int $userId, ?string $plainEmail =
 /*
  * Session email
  * -------------
- * The database only holds a one-way hash of the email address. To let a
- * logged-in user ask for something by email ("Send to my email"), the plain
- * email is kept in $_SESSION during the session only, encrypted with
- * libsodium (secretbox, random nonce). It is never written to the database,
- * logs or error output, and it is gone when the user logs out or the session ends.
+ * The database stores the email encrypted at rest (php/pii_store.php, EMAIL_ENC_KEY)
+ * plus a keyed lookup hash (EMAIL_HASH_KEY). To let a logged-in user ask for
+ * something by email ("Send to my email"), a copy is also kept in $_SESSION
+ * during the session, encrypted with SESSION_EMAIL_KEY. It is never written
+ * to logs or error output, and the session copy is gone at logout.
  *
  * Setup: add this line to login/config.php (that file is not in the repo):
  *

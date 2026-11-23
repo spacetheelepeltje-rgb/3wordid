@@ -53,7 +53,7 @@ if ($emailRaw === '' || check_spam_emails($emailRaw)) {
     welcome_exit($from_bumperchat, 'welcome.spam', '../index.php');
 }
 
-$emailHash      = md5($emailRaw); // same as your current column
+$emailHash      = md5($emailRaw); // legacy column (md5); the readable address is stored encrypted separately
 $firstName      = (string)($info['givenName'] ?? '');
 $lastName       = (string)($info['familyName'] ?? '');
 $gender         = (string)($info['gender'] ?? '');
@@ -61,11 +61,17 @@ $fullName       = (string)($info['name'] ?? '');
 $picture        = (string)($info['picture'] ?? '');
 $verifiedEmail  = !empty($info['verifiedEmail']) ? 1 : 0;
 
-$stmt = $conn->prepare('SELECT id FROM google_users WHERE email = ? LIMIT 1');
-$stmt->bind_param('s', $emailHash);
-$stmt->execute();
-$existing = $stmt->get_result()->fetch_assoc();
-$stmt->close();
+$existing_id = function_exists('email_store_find_id') ? email_store_find_id($conn, $emailRaw) : 0;
+if ($existing_id < 1) {
+    $stmt = $conn->prepare('SELECT id FROM google_users WHERE email = ? LIMIT 1');
+    $stmt->bind_param('s', $emailHash);
+    $stmt->execute();
+    $found = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+    $existing_id = $found ? (int)$found['id'] : 0;
+}
+$existing = $existing_id > 0 ? ['id' => $existing_id] : null;
+$google_just_created = !$existing;
 
 if ($existing) {
     $userId = (int)$existing['id'];
@@ -104,10 +110,18 @@ if ($existing) {
 establish_user_session($conn, $userId, $emailRaw);
 
 if ($from_bumperchat) {
-    // Same as the Bumperchat email login: mark the session, then let bumperchat/login.php route
-    // (claim chain, pending message, or chat). The user is logged in, so it redirects at once.
+    // Same as the Bumperchat email login: mark the session, then route into Bumperchat
+    // (extras form for new Google signups, then claim / pending message / chat).
     bumperchat_mark_session(bumperchat_normalize_words((string) (bumperchat_claim_state()['words'] ?? '')));
     $bc_next = bumperchat_safe_next((string) ($oauth_return['next'] ?? ''), '');
+    $row = function_exists('db_3wordid_get_google_user') ? db_3wordid_get_google_user($userId) : null;
+    if (!$row) {
+        $row = ['id' => $userId];
+    }
+    if (function_exists('bumperchat_google_details_needed') && bumperchat_google_details_needed($row, $google_just_created)) {
+        header('Location: ../bumperchat/google_details.php' . ($bc_next !== '' ? '?next=' . rawurlencode($bc_next) : ''));
+        exit;
+    }
     header('Location: ../bumperchat/login.php' . ($bc_next !== '' ? '?next=' . rawurlencode($bc_next) : ''));
     exit;
 }

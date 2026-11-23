@@ -86,6 +86,8 @@ expect('recipient: uses the remembered country', bumperchat_plate_input_to_words
 
 // --- return paths ---
 expect('help.php is an allowed return', bumperchat_safe_next('help.php', 'x'), 'help.php');
+expect('google_details is an allowed return', bumperchat_safe_next('google_details.php', 'x'), 'google_details.php');
+expect('account is an allowed return', bumperchat_safe_next('account.php', 'x'), 'account.php');
 expect('chat.php is an allowed return', bumperchat_safe_next('chat.php', 'x'), 'chat.php');
 expect('pending_send with query', bumperchat_safe_next('pending_send.php?words=ab+123+c', 'x'), 'pending_send.php?words=ab+123+c');
 expect('absolute URL rejected', bumperchat_safe_next('https://3wordid.com/index.php', 'x'), 'x');
