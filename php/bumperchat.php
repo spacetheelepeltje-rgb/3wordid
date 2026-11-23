@@ -147,9 +147,91 @@ function bumperchat_plate_only_account($rows): bool
     return true;
 }
 
+/** True when this account already has at least one claimed Bumperchat licence plate. */
+function bumperchat_user_has_plate($user): bool
+{
+    if (!is_array($user) || (int) ($user['id'] ?? 0) < 1 || !function_exists('db_3wordid_list')) {
+        return false;
+    }
+    try {
+        $rows = db_3wordid_list((int) $user['id']);
+    } catch (Throwable $e) {
+        error_log('bumperchat_user_has_plate: list failed');
+        return false;
+    }
+    if (!is_array($rows)) {
+        return false;
+    }
+    foreach ($rows as $r) {
+        if (bumperchat_is_plate_row($r)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/** Flash a one-time notice on the next Bumperchat page (e.g. plate registration). */
+function bumperchat_set_notice(string $lang_key): void
+{
+    if ($lang_key !== '' && isset($_SESSION) && is_array($_SESSION)) {
+        $_SESSION['bc_notice'] = $lang_key;
+    }
+}
+
+/** Read and clear the one-time notice. Empty string when none. */
+function bumperchat_take_notice(): string
+{
+    $key = (string) ($_SESSION['bc_notice'] ?? '');
+    unset($_SESSION['bc_notice']);
+    return $key;
+}
+
+/**
+ * Where a Bumperchat login should go (path relative to /bumperchat/).
+ * Google extras first when still needed; chat only after a plate is claimed;
+ * otherwise the plate registration page. $has_plate / $details_needed may be
+ * passed by tests so this needs no database.
+ */
+/**
+ * A relative URL to a Bumperchat page that works both from /bumperchat/* and
+ * from login/welcome.php (which must prefix ../bumperchat/).
+ */
+function bumperchat_href(string $path): string
+{
+    $path = ltrim($path, '/');
+    $script = str_replace('\\', '/', (string) ($_SERVER['SCRIPT_NAME'] ?? ''));
+    if (strpos($script, '/bumperchat/') === false) {
+        return '../bumperchat/' . $path;
+    }
+    return $path;
+}
+
+function bumperchat_login_destination(array $user, string $next = '', bool $just_created = false, ?bool $has_plate = null, ?bool $details_needed = null): string
+{
+    $next = bumperchat_safe_next($next, '');
+    if ($details_needed === null && function_exists('bumperchat_google_details_needed')) {
+        $details_needed = bumperchat_google_details_needed($user, $just_created);
+    }
+    if ($details_needed) {
+        $qs = ($next !== '' && $next !== 'google_details.php') ? ('?next=' . rawurlencode($next)) : '';
+        return 'google_details.php' . $qs;
+    }
+    if ($next !== '' && preg_match('/^(claim|claim_register|claim_plate)\.php/', $next)) {
+        return $next;
+    }
+    if ($has_plate === null) {
+        $has_plate = bumperchat_user_has_plate($user);
+    }
+    if ($has_plate) {
+        return $next !== '' ? $next : 'chat.php';
+    }
+    return 'claim.php';
+}
+
 /**
  * For the main-site pages a plate account must not land on (list, add, edit, settings): send
- * a Bumperchat session or a plate-only account to the Bumperchat chat view. Call after the login check.
+ * a Bumperchat session or a plate-only account to the Bumperchat chat view (or to plate
+ * registration when they have no plate yet). Call after the login check.
  */
 function bumperchat_route_chat_only(array $user, string $target = 'bumperchat/chat.php'): void
 {
@@ -159,6 +241,10 @@ function bumperchat_route_chat_only(array $user, string $target = 'bumperchat/ch
     }
     if ($chat_only) {
         bumperchat_mark_session(bumperchat_session_words());
+        if ($target === 'bumperchat/chat.php' && !bumperchat_user_has_plate($user)) {
+            bumperchat_set_notice('bc.first_register_plate');
+            $target = 'bumperchat/claim.php';
+        }
         header('Location: ' . $target);
         exit;
     }
@@ -669,29 +755,38 @@ function bumperchat_current_return(): string
  * claim the plate (logged-in users skip registration) and go to chat or pay.
  * Otherwise go to $next (a safe relative path).
  */
-function bumperchat_after_login_redirect(array $user, string $next = 'chat.php'): void
+function bumperchat_after_login_redirect(array $user, string $next = 'chat.php', bool $just_created = false): void
 {
     $state = bumperchat_claim_state();
     $words = bumperchat_normalize_words((string) ($state['words'] ?? ''));
     bumperchat_mark_session($words);
-    if ($words !== '') {
+    $dest = bumperchat_login_destination($user, $next, $just_created);
+    // Extras form first (new / incomplete Google signups), before chat or claim.
+    if (strpos($dest, 'google_details.php') === 0) {
+        header('Location: ' . bumperchat_href($dest));
+        exit;
+    }
+    if ($words !== '' && strpos($dest, 'google_details.php') !== 0) {
         $own = function_exists('db_3wordid_get_threeword') ? db_3wordid_get_threeword($words) : null;
         if (is_array($own) && (int) ($own['user_id'] ?? 0) === (int) ($user['id'] ?? 0)) {
             if (function_exists('plate_billing_requires_payment') && plate_billing_requires_payment($own)) {
-                header('Location: pay.php?words=' . rawurlencode($words));
+                header('Location: ' . bumperchat_href('pay.php?words=' . rawurlencode($words)));
                 exit;
             }
             bumperchat_claim_state_clear();
-            header('Location: chat.php');
+            header('Location: ' . bumperchat_href('chat.php'));
             exit;
         }
         $taken = is_array($own) || (function_exists('db_3wordid_exists') && db_3wordid_exists($words));
         if (!$taken) {
             bumperchat_try_claim_and_redirect($user, $words, $state['notify_post'] ?? []);
         }
-        // Already claimed by someone else: fall through to $next (the claim page).
+        // Already claimed by someone else: fall through to plate registration.
     }
-    header('Location: ' . bumperchat_safe_next($next, 'chat.php'));
+    if ($dest === 'claim.php' && !bumperchat_user_has_plate($user)) {
+        bumperchat_set_notice('bc.first_register_plate');
+    }
+    header('Location: ' . bumperchat_href(bumperchat_safe_next($dest, 'claim.php')));
     exit;
 }
 
@@ -703,7 +798,7 @@ function bumperchat_after_login_redirect(array $user, string $next = 'chat.php')
 function bumperchat_try_claim_and_redirect(array $user, string $words, array $post = []): void
 {
     if ($words === '' || (function_exists('db_3wordid_exists') && db_3wordid_exists($words))) {
-        header('Location: chat.php');
+        header('Location: ' . bumperchat_href('chat.php'));
         exit;
     }
     $notify = ['ok' => true, 'phone' => null, 'consent' => false, 'error' => ''];
@@ -729,10 +824,10 @@ function bumperchat_try_claim_and_redirect(array $user, string $words, array $po
     bumperchat_mark_session($words);
     bumperchat_claim_state_clear();
     if (($result['state'] ?? '') === 'expired') {
-        header('Location: pay.php?words=' . rawurlencode($words));
+        header('Location: ' . bumperchat_href('pay.php?words=' . rawurlencode($words)));
         exit;
     }
-    header('Location: chat.php');
+    header('Location: ' . bumperchat_href('chat.php'));
     exit;
 }
 

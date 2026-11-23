@@ -137,11 +137,41 @@ foreach (['en', 'nl', 'fr', 'es'] as $code) {
     }
 }
 
-// --- Google return (login/welcome.php) stays in Bumperchat ---
+// --- Google login destinations (the two starts are tested separately) ---
+$user_dest = ['id' => 9];
+expect('BC Google, extras needed, no plate: extras form first', bumperchat_login_destination($user_dest, '', true, false, true), 'google_details.php');
+expect('BC Google, extras needed, has plate: extras then chat', bumperchat_login_destination($user_dest, 'chat.php', false, true, true), 'google_details.php?next=chat.php');
+expect('BC Google, extras done, no plate: plate registration', bumperchat_login_destination($user_dest, '', false, false, false), 'claim.php');
+expect('BC Google, extras done, has plate: chat view', bumperchat_login_destination($user_dest, '', false, true, false), 'chat.php');
+expect('BC Google, has plate, pending-message next kept', bumperchat_login_destination($user_dest, 'pending_send.php?words=ab+123+c', false, true, false), 'pending_send.php?words=ab+123+c');
+expect('BC Google, no plate: pending-message next still goes to claim', bumperchat_login_destination($user_dest, 'pending_send.php?words=ab+123+c', false, false, false), 'claim.php');
+expect('BC Google, no plate, mid-claim next kept', bumperchat_login_destination($user_dest, 'claim_register.php', false, false, false), 'claim_register.php');
+expect('unsafe next is dropped, no plate: claim', bumperchat_login_destination($user_dest, '../3wid_list.php', false, false, false), 'claim.php');
+expect('unsafe next is dropped, has plate: chat', bumperchat_login_destination($user_dest, '../3wid_list.php', false, true, false), 'chat.php');
+
+$_SERVER['SCRIPT_NAME'] = '/login/welcome.php';
+expect('href from login/welcome.php prefixes /bumperchat/', bumperchat_href('claim.php'), '../bumperchat/claim.php');
+$_SERVER['SCRIPT_NAME'] = '/bumperchat/login.php';
+expect('href from a Bumperchat page stays relative', bumperchat_href('claim.php'), 'claim.php');
+unset($_SERVER['SCRIPT_NAME']);
+
+// --- Google return (login/welcome.php): Bumperchat vs 3wordID are separate ---
 $welcome = src('login/welcome.php');
 expect('welcome reads the Bumperchat return context', strpos($welcome, "oauth_return") !== false, true);
 expect('welcome marks the Bumperchat session', strpos($welcome, 'bumperchat_mark_session(') !== false, true);
-expect('welcome goes back to bumperchat/login.php', substr_count($welcome, '../bumperchat/login.php') >= 3, true);
+expect('welcome Bumperchat success uses after_login_redirect (chat or claim, not the list)', strpos($welcome, 'bumperchat_after_login_redirect(') !== false, true);
+expect('welcome error exits go back to bumperchat/login.php', substr_count($welcome, '../bumperchat/login.php') >= 1, true);
+expect('welcome 3wordID Google success still goes to 3wid_list.php', strpos($welcome, "header('Location: ../3wid_list.php')") !== false, true);
+// The 3wid_list redirect must stay outside the Bumperchat branch
+$pos_bc = strpos($welcome, 'if ($from_bumperchat)');
+$pos_bc_redir = strpos($welcome, 'bumperchat_after_login_redirect(');
+$pos_list = strpos($welcome, "header('Location: ../3wid_list.php')");
+expect('welcome Bumperchat branch comes before the 3wordID list redirect', $pos_bc !== false && $pos_list !== false && $pos_bc < $pos_list, true);
+expect('welcome Bumperchat success redirect is not the list page', $pos_bc_redir !== false && $pos_bc_redir < $pos_list, true);
+$bc_block = ($pos_bc !== false && $pos_list !== false) ? substr($welcome, $pos_bc, $pos_list - $pos_bc) : '';
+expect('welcome Bumperchat branch does not redirect to 3wid_list.php', $bc_block !== '' && strpos($bc_block, '3wid_list.php') === false, true);
+expect('claim page shows the flashed notice', strpos(src('bumperchat/claim.php'), 'bumperchat_take_notice') !== false && strpos(src('bumperchat/claim.php'), '$notice') !== false, true);
+expect('chat view refuses accounts with no plate', strpos(src('bumperchat/chat.php'), 'bumperchat_user_has_plate') !== false && strpos(src('bumperchat/chat.php'), 'bc.first_register_plate') !== false, true);
 $google = src('bumperchat/google.php');
 expect('google.php stores the return context', strpos($google, "'bumperchat' => 1") !== false, true);
 expect('google.php uses the existing Google client', strpos($google, 'createAuthUrl') !== false && strpos($google, 'login/config.php') !== false, true);
@@ -170,6 +200,7 @@ expect('car link title is the lang key to bumperchat.com', strpos($index, "t('ho
 expect('car link sits left of the lock icon', $pos_car !== false && $pos_lock !== false && $pos_car < $pos_lock, true);
 $en = include $root . '/lang/en.php';
 expect('tooltip text', $en['home.to_bumperchat'] ?? '', 'to bumperchat.com');
+expect('register-plate notice (en)', $en['bc.first_register_plate'] ?? '', 'First register your licence plate');
 foreach (glob($root . '/*.php') as $f) {
     if (basename($f) === 'index.php') { continue; }
     expect(basename($f) . ' has no bumperchat.com link (only index.php may)', stripos(file_get_contents($f), 'bumperchat.com"') !== false && stripos(file_get_contents($f), 'href="https://bumperchat.com') !== false, false);

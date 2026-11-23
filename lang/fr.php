@@ -1046,6 +1046,7 @@ L’URL, la notification et le chat de ces mots seront supprimés. Cette action 
     'bc.google_details_p' => 'Votre connexion Google est prête. Vous pouvez ajouter un numéro de mobile pour des SMS, un code revendeur si vous en avez un, et rester connecté sur cet appareil. Tout cela est facultatif.',
     'bc.google_details_submit' => 'Continuer',
     'bc.google_details_skip' => 'Vous pouvez laisser les champs facultatifs vides et appuyer sur Continuer.',
+    'bc.first_register_plate' => 'Enregistrez d’abord votre plaque d’immatriculation',
     'bc.account' => 'Compte',
     'bc.account_title' => 'Compte – Bumperchat',
     'bc.account_h' => 'Votre compte',

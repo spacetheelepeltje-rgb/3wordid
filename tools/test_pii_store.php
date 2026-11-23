@@ -160,8 +160,9 @@ expect('empty user: no', bumperchat_google_details_needed(null, true), false);
 // --- pages and wiring (no redirects to the main site; edit pages show decrypted values) ---
 $root = realpath(__DIR__ . '/..');
 $welcome = file_get_contents($root . '/login/welcome.php');
-expect('welcome sends new Google users to google_details', strpos($welcome, 'google_details.php') !== false, true);
-expect('welcome stays in bumperchat/', strpos($welcome, '../bumperchat/google_details.php') !== false, true);
+expect('welcome Bumperchat success uses after_login_redirect', strpos($welcome, 'bumperchat_after_login_redirect(') !== false, true);
+expect('welcome error/cancel stays in bumperchat/', strpos($welcome, '../bumperchat/login.php') !== false, true);
+expect('welcome 3wordID Google still goes to the list page', strpos($welcome, "header('Location: ../3wid_list.php')") !== false, true);
 $details = file_get_contents($root . '/bumperchat/google_details.php');
 foreach (['notify_phone', 'notify_sms_consent', 'reseller_code', 'remember_me'] as $field) {
     expect("google_details has $field", strpos($details, $field) !== false, true);
@@ -188,6 +189,28 @@ if (function_exists('bumperchat_safe_next')) {
     expect('safe_next allows google_details', strpos($bc, 'google_details') !== false, true);
     expect('safe_next allows account', strpos($bc, '|account)') !== false || strpos($bc, 'google_details|account') !== false, true);
 }
+
+// --- missing SQL columns must not fatal a login ---
+$boot = file_get_contents($root . '/php/session_boot.php');
+expect('remember-me resume does not SELECT email_enc unless the column exists', (strpos($boot, 'google_users_has_column') !== false && strpos($boot, "'email_enc'") !== false), true);
+expect('establish_user_session catches a failed email load', strpos($boot, 'could not load stored email') !== false, true);
+
+class PiiTestConn
+{
+    public $queries = [];
+    public function prepare($sql)
+    {
+        $this->queries[] = $sql;
+        if (stripos($sql, 'email_lookup') !== false || stripos($sql, 'email_enc') !== false) {
+            throw new Exception('Unknown column');
+        }
+        return false; // no real md5 lookup either
+    }
+}
+$fake = new PiiTestConn();
+$found = email_store_find_id($fake, 'user@example.com');
+expect('find_id with missing columns returns 0, does not fatal', $found, 0);
+
 
 if ($fail) {
     echo "$fail failed\n";

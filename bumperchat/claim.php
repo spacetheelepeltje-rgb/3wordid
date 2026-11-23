@@ -84,6 +84,7 @@ if ($chosen && $plate !== '') {
 $error = '';
 $check = null;
 $check_error = '';
+$notice = function_exists('bumperchat_take_notice') ? bumperchat_take_notice() : '';
 $words = '';
 
 $is_next = ($_SERVER['REQUEST_METHOD'] === 'POST' && (string) ($_POST['do'] ?? 'next') === 'next');
@@ -208,6 +209,9 @@ if ($check === null && $error === '' && $plate_ok && !$is_next && function_exist
         <h1 class="bc-h1"><?php echo t('bc.claim_page_h1'); ?></h1>
         <p class="bc-lede"><?php echo t('bc.claim_page_sub'); ?></p>
 
+        <?php if ($notice !== ''): ?>
+            <div class="bc-flash" role="status"><?php echo t($notice); ?></div>
+        <?php endif; ?>
         <?php if ($error !== ''): ?>
             <div class="bc-flash" role="alert"><?php
                 if ($error === 'bc.plate_invalid' && $chosen) {

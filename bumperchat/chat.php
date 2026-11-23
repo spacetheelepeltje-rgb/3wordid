@@ -23,6 +23,13 @@ if ((int) ($user['privacy_consent'] ?? 0) === 0) {
     exit;
 }
 
+// Chat view is only for accounts that already claimed a licence plate.
+if (function_exists('bumperchat_user_has_plate') && !bumperchat_user_has_plate($user)) {
+    bumperchat_set_notice('bc.first_register_plate');
+    header('Location: claim.php');
+    exit;
+}
+
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
